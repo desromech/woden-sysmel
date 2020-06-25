@@ -1,0 +1,18 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a mesh whose geometry data never changes in the GPU.
+ *#
+class GenericSubmesh definition: {
+    public field firstIndex type: UInt32.
+    public field indexCount type: UInt32.
+    public field primitiveTopology type: PrimitiveTopology.
+    public field material type: MaterialPtr.
+
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

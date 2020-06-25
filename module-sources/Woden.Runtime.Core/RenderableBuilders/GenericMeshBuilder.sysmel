@@ -1,11 +1,27 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
 #**
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
+    compileTime constant VertexType := GpuStructures GenericVertex.
+    compileTime constant SubmeshType := GenericSubmesh.
+    compileTime constant IndexType := UInt32.
+
+    protected field baseVertex type: IndexType.
     protected field engine type: EnginePtr.
+
+    public field currentColor type: Float32x4.
+    public field currentMaterial type: MaterialPtr.
+
+    protected field vertices type: Stdn Collections Vector(VertexType).
+    protected field indices type: Stdn Collections Vector(IndexType).
+    protected field submeshes type: Stdn Collections Vector(SubmeshType).
 
     meta definition: {
         method for: (anEngine: EnginePtr) ::=> GenericMeshBuilder sharedPointer := {
@@ -16,15 +32,141 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     }.
 
     method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
-        engine := anEngine
+        engine := anEngine.
+        self reset
+    }.
+
+    method reset => Void := {
+        currentColor := Float32x4 ones.
+        baseVertex := 0.
+    }.
+
+    method beginTriangles => Void := {
+    	self
+    		beginSubMeshWith: PrimitiveTopology Triangles material: currentMaterial;
+    		beginWithNewBaseVertex
+    }.
+
+    method beginSubMeshWith: (primitiveTopology: PrimitiveTopology) material: (newMaterial: MaterialPtr const ref) ::=> Void := {
+        submeshes ifNotEmpty: {
+            let lastSubmesh ref := submeshes last.
+            lastSubmesh primitiveTopology = primitiveTopology && lastSubmesh material = newMaterial ifTrue: {return: void}.
+            self finishLastSubmesh
+        }.
+
+        submeshes add: (SubmeshType()
+            primitiveTopology: primitiveTopology;
+            material: newMaterial;
+            firstIndex: (indices size castTo: UInt32);
+            yourself
+        )
+    }.
+
+    method finishLastSubmesh => Void := {
+        submeshes ifEmpty: {return: void}.
+
+        let lastSubmesh ref := submeshes last.
+        lastSubmesh indexCount: (vertices size - lastSubmesh firstIndex castTo: UInt32).
+    }.
+
+    method beginWithNewBaseVertex ::=> Void := {
+        baseVertex := vertices size castTo: IndexType
+    }.
+
+    method addI1: (i1: IndexType) i2: (i2: IndexType) i3: (i3: IndexType) ::=> Void := {
+        indices
+            add: i1 + baseVertex;
+            add: i2 + baseVertex;
+		    add: i3 + baseVertex
+    }.
+
+    method addI1: (i1: IndexType) i2: (i2: IndexType) i3: (i3: IndexType) i4: (i4: IndexType) ::=> Void := {
+        indices
+            add: i1 + baseVertex;
+            add: i2 + baseVertex;
+		    add: i3 + baseVertex;
+
+            add: i3 + baseVertex;
+            add: i4 + baseVertex;
+		    add: i1 + baseVertex
+    }.
+
+    method addP: (position: Float32x3) N: (normal: Float32x3) TC: (texcoord: Float32x2) ::=> Void := {
+        vertices add: (VertexType()
+            position: position;
+            normal: normal;
+            texcoord: texcoord;
+            color: currentColor;
+            yourself)
     }.
 
     method addCubeWithWidth: (width: Float32) height: (height: Float32) depth: (depth: Float32) ::=> Void := {
+    	self beginTriangles.
 
+    	let px := width * 0.5f.
+    	let py := height * 0.5f.
+    	let pz := depth * 0.5f.
+    	let nx := width * -0.5f.
+    	let ny := height * -0.5f.
+    	let nz := depth * -0.5f.
+
+    	## Back Face
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+    	self addI1: 0 i2: 1 i3: 2 i4: 3.
+
+    	## Front Face
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 4 i2: 5 i3: 6 i4: 7.
+
+    	## Top Face
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 8 i2: 9 i3: 10 i4: 11.
+
+    	## Bottom Face
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 12 i2: 13 i3: 14 i4: 15.
+
+    	## Left Face
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 16 i2: 17 i3: 18 i4: 19.
+
+    	## Right Face
+    	self addP: (Float32x3 x: px y: py z: pz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: pz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: nz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: py z: nz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 20 i2: 21 i3: 22 i4: 23.
     }.
 
-    method renderable => RenderablePtr
-        := RenderablePtr nil.
+    method renderable => RenderablePtr := {
+        submeshes isEmpty || vertices isEmpty || indices isEmpty ifTrue: {
+            return: (NullRenderable sharedNew upCastFor: Renderable)
+        }.
+
+        self finishLastSubmesh.
+        Stdn stdout << "GenericMeshBuilder create renderable with vertices: "
+            << vertices size << " indices " << indices size << " submeshes " << submeshes size; nl.
+
+        let result := GenericMeshRenderable sharedNew.
+        result _
+            submeshes: submeshes.
+        result upCastFor: Renderable
+    }
 }.
 
 compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder sharedPointer.

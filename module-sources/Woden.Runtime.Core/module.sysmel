@@ -3,6 +3,8 @@ Compiler importModulesNamed: #(
     #"Sysmel.Graphics.Core"
 ); loadPackages: #(
     CoreResources
+    GpuStructures
+    Materials
     Renderables
     RenderableBuilders
     SceneGraph

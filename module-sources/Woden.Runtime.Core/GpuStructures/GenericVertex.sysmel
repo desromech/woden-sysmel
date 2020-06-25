@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace GpuStructures definition: {
+
+struct GenericVertex definition: {
+    public field positionData type: CompactFloat32x3.
+    public field normalData type: CompactFloat32x3.
+    public field texcoord type: Float32x2.
+    public field tangent4 type: Float32x4.
+    public field color type: Float32x4.
+
+    const inline method position => Float32x3
+        := positionData asFloat32x3.
+
+    const inline method position: (newPosition: Float32x3) ::=> Void := {
+        positionData set: newPosition
+    }.
+
+    const inline method normal => Float32x3
+        := normalData asFloat32x3.
+
+    const inline method normal: (newNormal: Float32x3) ::=> Void := {
+        normalData set: newNormal
+    }.
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

@@ -5,6 +5,7 @@ namespace Runtime definition: {
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
+    public field submeshes type: Stdn Collections Vector(GenericSubmesh).
 
 }.
 

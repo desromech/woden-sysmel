@@ -1,0 +1,18 @@
+namespace Woden definition: {
+namespace GpuStructures definition: {
+
+struct CompactFloat32x3 definition: {
+    public field data type: (Float32 array: 3).
+
+    const inline method asFloat32x3 => Float32x3
+        := Float32x3(data[0], data[1], data[2]).
+
+    inline method set: (newValue: Float32x3) ::=> Void := {
+        data[0] := newValue x.
+        data[1] := newValue y.
+        data[2] := newValue z.
+    }.
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
+ *#
+class Material superclass: Stdn SharedObject; definition: {
+
+}.
+
+compileTime constant MaterialPtr := Material sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden
