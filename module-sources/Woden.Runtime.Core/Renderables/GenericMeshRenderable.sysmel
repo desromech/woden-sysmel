@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a mesh whose geometry data never changes in the GPU.
+ *#
+class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
+
+}.
+
+compileTime constant GenericMeshRenderablePtr := GenericMeshRenderable sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

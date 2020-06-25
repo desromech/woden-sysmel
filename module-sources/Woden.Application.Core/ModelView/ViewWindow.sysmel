@@ -1,0 +1,24 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a generic interface for a window that is used by a view.
+ *#
+class ViewWindow superclass: Stdn SharedObject; definition: {
+    protected field view type: ViewPtr.
+
+    const inline method engine => EnginePtr const ref
+        := view _ engine.
+
+    virtual method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
+        view := theView.
+        true
+    }.
+}.
+
+compileTime constant ViewWindowPtr := ViewWindow sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

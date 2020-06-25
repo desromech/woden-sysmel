@@ -1,0 +1,32 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I represent a light source in the Woden scene graph.
+ *#
+class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
+    method makePoint => Void := {
+
+    }.
+
+    method makeDirectional => Void := {
+
+    }.
+
+    method makeSpot => Void := {
+
+    }.
+
+    method radius: (radius: Float32) ::=> Void := {
+
+    }.
+
+    method intensity: (intensity: Float32x4) ::=> Void := {
+
+    }.
+}.
+
+compileTime constant LightSourceNodePtr := LightSourceNode sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

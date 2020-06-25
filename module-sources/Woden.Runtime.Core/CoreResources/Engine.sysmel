@@ -1,0 +1,44 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Graphics GUI.
+
+#**
+ * I am core engine instance. I hold strong references to the core subsystem registries.
+ *#
+class Engine superclass: Stdn SharedObject; definition: {
+    protected field windowSystem type: WindowSystemRef.
+    protected field renderingDevice type: RenderingDevicePtr.
+    protected field resourceCache type: ResourceCachePtr.
+
+    const inline method windowSystem => WindowSystemRef const ref
+        := windowSystem.
+
+    const inline method renderingDevice => RenderingDevicePtr const ref
+        := renderingDevice.
+
+    const inline method resourceCache => ResourceCachePtr const ref
+        := resourceCache.
+
+    method initializeEngine => Boolean8 := {
+        windowSystem := createDefaultWindowSystem().
+        windowSystem ifNil: { return: false }.
+
+        windowSystem _ targetFrameRate: 60.
+
+        renderingDevice := RenderingDriverRegistry defaultDriver _ getMainDevice.
+        renderingDevice ifNil: {return: false }.
+
+        true
+    }.
+
+    method runMainLoop => Int32 := {
+        windowSystem _ runMainLoop
+    }.
+}.
+
+compileTime constant EnginePtr := Engine sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

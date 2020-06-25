@@ -1,0 +1,5 @@
+Compiler importModulesNamed: #(
+    #"Woden.Runtime.Core"
+    #"Woden.Application.Core"
+    #"Sysmel.Graphics.Headfull"
+).

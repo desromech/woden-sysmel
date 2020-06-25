@@ -1,0 +1,6 @@
+Compiler importModulesNamed: #(
+    #"Woden.Runtime.Core"
+); loadPackages: #(
+    ModelView
+    SceneModelView
+).

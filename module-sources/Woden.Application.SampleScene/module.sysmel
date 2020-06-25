@@ -1,0 +1,6 @@
+Compiler importModulesNamed: #(
+    #"Woden.Application.Headfull"
+); loadPackages: #(
+    SampleApplicationModel
+    Macros
+)

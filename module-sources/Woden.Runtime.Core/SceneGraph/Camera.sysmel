@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I represent a 3D scene with rendering only objects.
+ *#
+class Camera superclass: SceneNode; definition: {
+}.
+
+compileTime constant CameraPtr := Camera sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

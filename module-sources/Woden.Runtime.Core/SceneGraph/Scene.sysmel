@@ -1,0 +1,31 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I represent a 3D scene with rendering only objects.
+ *#
+class Scene superclass: Stdn SharedObject; definition: {
+    field backgroundLayer type: SceneLayerPtr.
+    field normalLayer type: SceneLayerPtr.
+    field foregroundLayer type: SceneLayerPtr.
+
+    override method initialize => Void := {
+        backgroundLayer := SceneLayer sharedNew.
+        normalLayer := SceneLayer sharedNew.
+        foregroundLayer := SceneLayer sharedNew.
+
+        backgroundLayer _ addedToScene: self asSharedPointer.
+        normalLayer _ addedToScene: self asSharedPointer.
+        foregroundLayer _ addedToScene: self asSharedPointer.
+    }.
+
+    method add: (node: SceneNodePtr const ref) ::=> Void := {
+
+    }.
+}.
+
+compileTime constant ScenePtr := Scene sharedPointer.
+compileTime constant SceneWeakPtr := Scene weakPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

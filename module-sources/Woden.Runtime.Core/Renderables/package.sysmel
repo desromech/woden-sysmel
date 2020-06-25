@@ -1,0 +1,3 @@
+loadFileOnce: "Renderable.sysmel".
+loadFileOnce: "ImmutableRenderable.sysmel".
+loadFileOnce: "GenericMeshRenderable.sysmel".

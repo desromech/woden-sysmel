@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am the model that lies underlying a Woden application.
+ *#
+class SceneView superclass: View; definition: {
+    method sceneModel => SceneModel pointer
+        := model getPointer castTo: SceneModel pointer.
+
+    method scene => ScenePtr
+        := self sceneModel _ scene.
+
+}.
+
+compileTime constant SceneViewPtr := SceneView sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

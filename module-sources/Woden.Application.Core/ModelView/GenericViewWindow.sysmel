@@ -1,0 +1,103 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Graphics GUI.
+
+#**
+ * I am the model that lies underlying a Woden application.
+ *#
+class GenericViewWindow superclass: ViewWindow; definition: {
+    protected field window type: Window sharedPointer.
+	protected field windowRenderer type: WindowScene2DRendererPtr.
+
+    override method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
+        (super openForView: theView) ifFalse: {
+            return: false.
+        }.
+
+        window := self engine _ windowSystem _ createWindow: (WindowCreationInfo()
+			resizable: true;
+			extent: Int32x2(640, 480);
+			title: "Test Window" asMutableString;
+			yourself).
+	    window ifNil: {
+	        return: false.
+	    }.
+
+        window _ renderingDevice: self engine _ renderingDevice.
+
+        ## Create the window scene 2D renderer.
+        windowRenderer := window _ createScene2DRenderer.
+        windowRenderer ifNil: {
+            return: false.
+        }.
+
+        ## Create the event handler.
+	    {
+	        let eventHandler := GenericViewEventHandler sharedNew.
+			eventHandler _ viewWindow: self address.
+	        window _ eventHandler: (eventHandler upCastFor: EventHandler)
+	    }.
+
+        true
+    }.
+
+    method render ::=> Void := {
+        windowRenderer _
+            clearColor: Float32x4 blue;
+            renderScene: Stdn Graphics Scene2D NodePtr nil;
+            present
+    }.
+
+    method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        self render
+    }.
+
+    method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
+        window _ close.
+        window reset.
+        view _ viewWindowDestroyed.
+    }.
+
+    method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
+    }.
+
+    method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
+    }.
+}.
+
+class GenericViewEventHandler superclass: EventHandler; definition: {
+	public field viewWindow type: GenericViewWindow pointer.
+
+    method render ::=> Void := {
+		viewWindow _ render.
+    }.
+
+    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+		viewWindow _ onTickEvent: event.
+    }.
+
+    override method onExposeEvent: (event: ExposeEvent ref) ::=> Void := {
+        self render
+    }.
+
+    override method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
+		viewWindow _ onWindowCloseRequestEvent: event.
+    }.
+
+	override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
+		viewWindow _ onMouseMoveEvent: event.
+    }.
+
+	override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
+		viewWindow _ onMouseWheelEvent: event.
+    }.
+}.
+
+compileTime constant GenericViewWindowPtr := GenericViewWindow sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

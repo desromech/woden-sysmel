@@ -1,0 +1,73 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I represent a 3D scene with rendering only objects.
+ *#
+class SceneNode superclass: Stdn SharedObject; definition: {
+    protected field parentWeakPtr type: SceneNodeWeakPtr.
+    protected field sceneWeakPtr type: SceneWeakPtr.
+    protected field children type: Stdn Collections Vector(SceneNodePtr).
+
+    const inline method parent => SceneNodePtr
+        := parentWeakPtr lock.
+
+    const inline method scene => ScenePtr
+        := sceneWeakPtr lock.
+
+    virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {
+        sceneWeakPtr := aScene asWeakPointer.
+        children do: {:each :: Void |
+            each _ addedToScene: aScene
+        }
+    }.
+
+    virtual method removedFromScene: (aScene: ScenePtr const ref) ::=> Void := {
+        children do: {:each :: Void |
+            each _ removedFromScene: aScene
+        }.
+
+        sceneWeakPtr reset.
+    }.
+
+    virtual method addedToNode: (newParentNode: SceneNodePtr const ref) ::=> Void := {
+        parentWeakPtr := newParentNode asWeakPointer.
+        let parentScene := newParentNode _ scene.
+        parentScene ifNotNil: {
+            self addedToScene: parentScene
+        }.
+    }.
+
+    virtual method removedFromNode: (newParentNode: SceneNodePtr const ref) ::=> Void := {
+        let oldScene := self scene.
+        oldScene ifNotNil: { self removedFromScene: oldScene }.
+        parentWeakPtr reset
+    }.
+
+    method addChild: (aChild: SceneNodePtr const ref) ::=> Void := {
+        aChild _ addedToNode: self asSharedPointer.
+        children add: aChild.
+    }.
+
+    inline method translateByX: (x: Float32) ::=> Void := {
+
+    }.
+
+    inline method translateByY: (y: Float32) ::=> Void := {
+
+    }.
+
+    inline method translateByZ: (z: Float32) ::=> Void := {
+
+    }.
+
+    inline method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
+
+    }.
+}.
+
+compileTime constant SceneNodePtr := SceneNode sharedPointer.
+compileTime constant SceneNodeWeakPtr := SceneNode weakPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

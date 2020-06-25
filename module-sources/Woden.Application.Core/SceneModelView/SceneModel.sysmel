@@ -1,0 +1,42 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am the model that lies underlying a Woden application.
+ *#
+class SceneModel superclass: Model; definition: {
+    protected field scene type: ScenePtr.
+    protected field mainCamera type: CameraPtr.
+
+    const inline method scene => ScenePtr const ref
+        := scene.
+
+    const inline method mainCamera => CameraPtr const ref
+        := mainCamera.
+
+    override method initializeModel => Boolean8 := {
+        scene := Scene sharedNew.
+        true.
+    }.
+
+    override method createNewView => ViewPtr
+        := SceneView sharedNew upCastFor: View.
+
+    virtual method newScene => ScenePtr := {
+        let newScene := Scene sharedNew.
+        let newCamera := Camera sharedNew.
+
+        mainCamera := newCamera.
+        newScene _ add: (mainCamera upCastFor: SceneNode).
+
+        scene := newScene.
+        newScene
+    }.
+}.
+
+compileTime constant SceneModelPtr := SceneModel sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

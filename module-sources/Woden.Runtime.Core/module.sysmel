@@ -1,0 +1,10 @@
+Compiler importModulesNamed: #(
+    #"Sysmel.Math.Core"
+    #"Sysmel.Graphics.Core"
+); loadPackages: #(
+    CoreResources
+    Renderables
+    RenderableBuilders
+    SceneGraph
+    RenderingPipeline
+)

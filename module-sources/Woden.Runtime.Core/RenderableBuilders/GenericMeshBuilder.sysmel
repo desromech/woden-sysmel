@@ -1,0 +1,39 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a mesh whose geometry data never changes in the GPU.
+ *#
+class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
+    protected field engine type: EnginePtr.
+
+    meta definition: {
+        method for: (anEngine: EnginePtr) ::=> GenericMeshBuilder sharedPointer := {
+            let result := GenericMeshBuilder sharedNew.
+            result _ initializeWithEngine: anEngine.
+            result
+        }
+    }.
+
+    method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
+        engine := anEngine
+    }.
+
+    method addCubeWithWidth: (width: Float32) height: (height: Float32) depth: (depth: Float32) ::=> Void := {
+
+    }.
+
+    method renderable => RenderablePtr
+        := RenderablePtr nil.
+}.
+
+compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder sharedPointer.
+
+
+Engine extend: {
+    inline method newGenericMeshBuilder => GenericMeshBuilderPtr
+        := GenericMeshBuilder for: self asSharedPointer.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

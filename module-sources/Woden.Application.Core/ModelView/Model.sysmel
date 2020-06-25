@@ -1,0 +1,75 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am the model that lies underlying a Woden application.
+ *#
+class Model superclass: Stdn SharedObject; definition: {
+    protected field engine type: EnginePtr.
+    protected field views type: Stdn Collections Vector(View sharedPointer).
+
+    const inline method engine => EnginePtr const ref
+        := engine.
+
+    virtual method initializeEngine => Boolean8 := {
+        engine ifNotNil: {return: true}.
+
+        let newEngine := Engine sharedNew.
+        newEngine _ initializeEngine ifFalse: {
+            return: false.
+        }.
+
+        engine := newEngine.
+        true
+    }.
+
+    virtual method initializeModel => Boolean8 := {
+        true.
+    }.
+
+    virtual method parseCArguments: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        true
+    }.
+
+    virtual method initializeWithCArguments: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        (self parseCArguments: arguments) &&
+        self initializeEngine &&
+        self initializeModel
+    }.
+
+    virtual method createNewView => ViewPtr
+        := View sharedNew.
+
+    virtual method openMainView => Boolean8 := {
+        self openView: self createNewView
+    }.
+
+    virtual method openView: (newView: ViewPtr const ref) ::=> Boolean8 := {
+        newView isNotNil && (newView _ initializeWithModel: self asSharedPointer) ifFalse: {
+            return: false.
+        }.
+
+        newView _ open ifFalse: {return: false}.
+        views add: newView.
+        true
+    }.
+
+    method viewDestroyed: (view: ViewPtr) ::=> Void := {
+        views remove: view
+    }.
+
+    method runMainLoop ::=> Int32 := {
+        engine ifNil: {
+            return: 1
+        }.
+
+        engine _ runMainLoop
+    }.
+}.
+
+compileTime constant ModelPtr := Model sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

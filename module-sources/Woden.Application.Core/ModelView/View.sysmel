@@ -1,0 +1,47 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Woden Runtime.
+
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Graphics GUI.
+
+#**
+ * I am the model that lies underlying a Woden application.
+ *#
+class View superclass: Stdn SharedObject; definition: {
+    protected field model type: ModelPtr.
+    protected field viewWindow type: ViewWindowPtr.
+
+    const inline method model => ModelPtr const ref
+        := model.
+
+    const inline method engine => EnginePtr const ref
+        := model _ engine.
+
+    virtual method initializeWithModel: (theModel: ModelPtr const ref) ::=> Boolean8 := {
+        model := theModel.
+
+        true
+    }.
+
+    virtual method open ::=> Boolean8 := {
+        let newViewWindow := GenericViewWindow sharedNew.
+        (newViewWindow _ openForView: self asSharedPointer) ifFalse: {
+            return: false.
+        }.
+
+        viewWindow := newViewWindow upCastFor: ViewWindow.
+        true
+    }.
+
+    method viewWindowDestroyed => Void := {
+        viewWindow reset.
+        model _ viewDestroyed: self asSharedPointer
+    }.
+}.
+
+compileTime constant ViewPtr := View sharedPointer
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

@@ -1,0 +1,23 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a node that poses a local coordinate system that is associated with a model matrix in the GPU.
+ *#
+class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
+    protected field renderable type: RenderablePtr.
+
+    const inline method renderable => RenderablePtr const ref
+        := renderable.
+
+    const inline method renderable: (theRenderable: RenderablePtr const ref) ::=> Void := {
+        renderable := theRenderable.
+
+        ## TODO: Create the rendering renderables and etc.
+    }.
+}.
+
+compileTime constant SpatialObjectNodePtr := SpatialObjectNode sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden
