@@ -9,6 +9,7 @@ useNamespace: Woden Runtime.
 class SceneModel superclass: Model; definition: {
     protected field scene type: ScenePtr.
     protected field mainCamera type: CameraPtr.
+    protected field sceneRenderingPipeline type: SceneRenderingPipelinePtr.
 
     const inline method scene => ScenePtr const ref
         := scene.
@@ -33,6 +34,17 @@ class SceneModel superclass: Model; definition: {
 
         scene := newScene.
         newScene
+    }.
+
+    virtual method createSceneRenderingPipeline => SceneRenderingPipelinePtr
+        := SceneRenderingPipelineRegistry uniqueInstance createDefaultFor: self engine.
+
+    method sceneRenderingPipeline => SceneRenderingPipelinePtr const ref := {
+        sceneRenderingPipeline ifNil: {
+            sceneRenderingPipeline := self createSceneRenderingPipeline.
+        }.
+
+        sceneRenderingPipeline
     }.
 }.
 

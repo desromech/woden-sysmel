@@ -1,0 +1,6 @@
+loadFileOnce: "SceneRenderingPipeline.sysmel".
+loadFileOnce: "SceneRenderingPipelineViewport.sysmel".
+loadFileOnce: "SceneRenderingPipelineRegistry.sysmel".
+
+loadFileOnce: "NullSceneRenderingPipeline.sysmel".
+loadFileOnce: "NullSceneRenderingPipelineViewport.sysmel".

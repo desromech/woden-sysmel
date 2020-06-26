@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * An abstract pipeline for rendering a null scene.
+ *#
+class NullSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
+    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr
+        := NullSceneRenderingPipelineViewport sharedNew upCastFor: SceneRenderingPipelineViewport.
+
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -1,0 +1,83 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a factory for a scene rendering pipeline.
+ *#
+class SceneRenderingPipelineFactory definition: {
+    method initialize => Void := {
+        SceneRenderingPipelineRegistry uniqueInstance registerFactory: self address
+    }.
+
+    virtual method createPipeline => SceneRenderingPipelinePtr
+        := SceneRenderingPipelinePtr nil.
+
+    virtual method priority => UInt32
+        := 0.
+
+    virtual method canBeUsedWithEngine: (engine: EnginePtr const ref) ::=> Boolean8
+        := false.
+}.
+
+#**
+ * I am a registry for registering rendering pipeline factories.
+ *#
+class SceneRenderingPipelineRegistry definition: {
+    meta definition: {
+        let singleton mutable type: SceneRenderingPipelineRegistry uniquePointer.
+        let singletonOnceCreation mutable type: Stdn OnceFlag.
+
+        method uniqueInstance => SceneRenderingPipelineRegistry ref := {
+            singletonOnceCreation do: {
+                singleton reset: SceneRenderingPipelineRegistry nativeNew.
+            }.
+
+            singleton _
+        }.
+    }.
+
+
+    private field mutex type: Stdn Mutex.
+    private field registeredSceneRenderingPipelineFactories type: Stdn Collections Vector(SceneRenderingPipelineFactory pointer).
+
+    method registerFactory: (factory: SceneRenderingPipelineFactory pointer) ::=> Void := {
+        mutex withLock: {
+            registeredSceneRenderingPipelineFactories add: factory
+        }.
+    }.
+
+    method createDefaultFor: (engine: EnginePtr const ref) ::=> SceneRenderingPipelinePtr := {
+        let factory := self findDefaultFactoryFor: engine.
+        let result mutable type: SceneRenderingPipelinePtr.
+        factory ifNotNil: {
+            result := factory _ createPipeline.
+        }.
+        result ifNil: {
+            result := NullSceneRenderingPipeline sharedNew upCastFor: SceneRenderingPipeline.
+        }.
+
+        result _ initializeForEngine: engine.
+        result
+    }.
+
+    method findDefaultFactoryFor: (engine: EnginePtr const ref) ::=> SceneRenderingPipelineFactory pointer := {
+        let bestFound mutable type: SceneRenderingPipelineFactory pointer.
+        let bestFoundPriority mutable type: UInt32.
+
+        mutex withLock: {
+            registeredSceneRenderingPipelineFactories do: {:each :: Void |
+                let priority := each _ priority.
+
+                (each _ canBeUsedWithEngine: engine) && (bestFound isNil || priority > bestFoundPriority) ifTrue: {
+                    bestFound := each.
+                    bestFoundPriority := priority.
+                }.
+            }
+        }.
+
+        bestFound
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

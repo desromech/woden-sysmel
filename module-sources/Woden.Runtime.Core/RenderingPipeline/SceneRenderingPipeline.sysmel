@@ -1,0 +1,23 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * An abstract pipeline for rendering a scene.
+ *#
+class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
+    protected field engine type: EnginePtr.
+
+    const inline method engine => EnginePtr const ref
+        := engine.
+
+    virtual method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+        engine := anEngine.
+    }.
+
+    abstract method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr.
+}.
+
+compileTime constant SceneRenderingPipelinePtr := SceneRenderingPipeline sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

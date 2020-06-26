@@ -1,0 +1,22 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+
+class ForwardSceneRenderingPipelineFactory superclass: SceneRenderingPipelineFactory; definition: {
+    override method createPipeline => SceneRenderingPipelinePtr
+        := ForwardSceneRenderingPipeline sharedNew upCastFor: SceneRenderingPipeline.
+
+    override method priority => UInt32
+        := 10.
+
+    override method canBeUsedWithEngine: (engine: EnginePtr const ref) ::=> Boolean8
+        := true.
+
+    meta definition: {
+        global Singleton mutable type: ForwardSceneRenderingPipelineFactory.
+    }.
+}.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

@@ -1,0 +1,25 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * An abstract pipeline for rendering a scene.
+ *#
+class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
+    virtual method mainColorBufferTextureHandle => StrongTextureHandlePtr
+        := StrongTextureHandlePtr nil.
+
+    virtual method extent: (viewportExtent: UInt32x2) ::=> Void := {
+
+    }.
+
+    virtual method render ::=> Void := {
+        ## By default do nothing.
+    }.
+}.
+
+compileTime constant SceneRenderingPipelineViewportPtr := SceneRenderingPipelineViewport sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

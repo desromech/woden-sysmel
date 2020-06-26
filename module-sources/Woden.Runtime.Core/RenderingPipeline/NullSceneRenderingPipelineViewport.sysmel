@@ -1,0 +1,12 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * An abstract pipeline for rendering a null scene.
+ *#
+class NullSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
+
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

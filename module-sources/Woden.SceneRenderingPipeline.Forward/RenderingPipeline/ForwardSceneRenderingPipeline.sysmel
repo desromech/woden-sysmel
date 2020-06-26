@@ -1,0 +1,25 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * An abstract pipeline for rendering a null scene.
+ *#
+class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
+
+    override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+        super initializeForEngine: anEngine.
+    }.
+
+    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr := {
+        let result := ForwardSceneRenderingPipelineViewport sharedNew.
+        result _ initializeWithSceneRenderingPipeline: self asSharedPointer.
+        result upCastFor: SceneRenderingPipelineViewport
+    }.
+}.
+
+compileTime constant ForwardSceneRenderingPipelinePtr := ForwardSceneRenderingPipeline sharedPointer.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden
