@@ -39,6 +39,16 @@ class View superclass: Stdn SharedObject; definition: {
         viewWindow reset.
         model _ viewDestroyed: self asSharedPointer
     }.
+
+    virtual method renderWithWindowRenderer: (windowRenderer: WindowScene2DRendererPtr const ref) ::=> Void := {
+        windowRenderer _
+            clearColor: Float32x4 zeros;
+            renderScene: (self buildWindowScene2DWith: windowRenderer _ newSceneBuilder);
+            present
+    }.
+
+    virtual method buildWindowScene2DWith: (scene2DBuilder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr
+        := Stdn Graphics Scene2D NodePtr nil.
 }.
 
 compileTime constant ViewPtr := View sharedPointer

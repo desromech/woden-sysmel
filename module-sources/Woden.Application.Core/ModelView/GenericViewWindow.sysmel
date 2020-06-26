@@ -46,10 +46,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     }.
 
     method render ::=> Void := {
-        windowRenderer _
-            clearColor: Float32x4 blue;
-            renderScene: Stdn Graphics Scene2D NodePtr nil;
-            present
+        view _ renderWithWindowRenderer: windowRenderer.
     }.
 
     method onTickEvent: (event: TickEvent ref) ::=> Void := {

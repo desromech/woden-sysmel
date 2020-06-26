@@ -2,17 +2,138 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Graphics GUI.
+useNamespace: Stdn Math Geometry.
 
 #**
  * I am the model that lies underlying a Woden application.
  *#
 class SceneView superclass: View; definition: {
+    protected field currentExtent type: UInt32x2.
+
     method sceneModel => SceneModel pointer
         := model getPointer castTo: SceneModel pointer.
 
     method scene => ScenePtr
         := self sceneModel _ scene.
 
+    protected field renderingCommandQueue type: CommandQueuePtr.
+	protected field commandListAllocator type: CommandListAllocatorPtr.
+	protected field commandList type: CommandListPtr.
+
+    protected field sceneColorBufferTextureHandle type: StrongTextureHandlePtr.
+    protected field sceneFramebuffer type: FramebufferPtr.
+    protected field sceneRenderPass type: RenderPassPtr.
+
+    method ensureRenderTargetWithExtent: (requiredExtent: UInt32x2) ::=> Void := {
+        currentExtent = requiredExtent ifTrue: {return: void}.
+
+        let renderingDevice := self engine _ renderingDevice.
+        renderingCommandQueue ifNotNil: {
+            renderingCommandQueue _ waitForIdle
+        }.
+
+        sceneColorBufferTextureHandle reset.
+        sceneFramebuffer reset.
+
+        ## Create the main framebuffer.
+		{
+			let colorBuffer := renderingDevice _ createTexture: (TextureDescription()
+				type: TextureType Texture2D;
+				width: requiredExtent x;
+				height: requiredExtent y;
+				depth: 1;
+				layers: 1;
+				miplevels: 1;
+				format: PixelFormat B8G8R8A8_UNormSRGB;
+				usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+				mainUsageMode: TextureUsageMode Sampled;
+				heapType: MemoryHeapType DeviceLocal;
+				sampleCount: 1;
+				yourself).
+			let colorBufferTextureView := colorBuffer _ getOrCreateFullView.
+
+			sceneColorBufferTextureHandle := renderingDevice _ createScene2DBuilder _
+				createTextureHandleFor: (colorBuffer upCastFor: Stdn SharedObject) view: (colorBufferTextureView upCastFor: Stdn SharedObject).
+
+			let depthBuffer := renderingDevice _ createTexture: (TextureDescription()
+				type: TextureType Texture2D;
+				width: requiredExtent x;
+				height: requiredExtent y;
+				depth: 1;
+				layers: 1;
+				miplevels: 1;
+				format: PixelFormat D32_Float;
+				usageModes: TextureUsageMode DepthAttachment;
+				mainUsageMode: TextureUsageMode DepthAttachment;
+				heapType: MemoryHeapType DeviceLocal;
+				sampleCount: 1;
+				yourself).
+			let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
+
+			let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
+			sceneFramebuffer := renderingDevice _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+		}.
+
+        sceneRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat B8G8R8A8_UNormSRGB;
+                    beginAction: RenderPassAttachmentAction Clear;
+                    endAction: RenderPassAttachmentAction Keep;
+                    clearValue: 0.25f;
+                    yourself
+            ).
+
+            let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
+                format: PixelFormat D32_Float;
+                beginAction: RenderPassAttachmentAction Clear;
+                endAction: RenderPassAttachmentAction Discard;
+                yourself.
+            sceneRenderPass := renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+        }.
+
+        ## Get the rendering command queue.
+		renderingCommandQueue := renderingDevice _ getDefaultCommandQueue.
+
+		## Build the command allocator and list.
+		{
+			commandListAllocator := renderingDevice _ createCommandAllocatorOfType: CommandListType Direct for: renderingCommandQueue.
+			commandList := renderingDevice _ createCommandListOfType: CommandListType Direct for: commandListAllocator.
+			commandList _ close.
+		}.
+
+        currentExtent := requiredExtent.
+    }.
+
+    method doSceneRendering => Void := {
+        commandListAllocator _ resetAllocator.
+		commandList _
+			resetFor: commandListAllocator;
+
+			beginRenderPass: sceneRenderPass on: sceneFramebuffer contentOnBundle: false;
+			endRenderPass;
+			close.
+
+		renderingCommandQueue _
+			submitCommandList: commandList;
+			waitForIdle.
+    }.
+
+    override method buildWindowScene2DWith: (scene2DBuilder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+        self ensureRenderTargetWithExtent: UInt32x2(640, 480).
+        sceneColorBufferTextureHandle ifNil: {
+            return: Stdn Graphics Scene2D NodePtr nil.
+        }.
+
+        self doSceneRendering.
+
+        (scene2DBuilder _ blendingMode: BlendingMode Copy node: ((
+		     scene2DBuilder _ texture: sceneColorBufferTextureHandle rectangle: (RectangleF32 extent: Float32x2(640, 480))
+		) upCastFor: Stdn Graphics Scene2D Node))
+            upCastFor: Stdn Graphics Scene2D Node
+    }.
 }.
 
 compileTime constant SceneViewPtr := SceneView sharedPointer
