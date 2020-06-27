@@ -15,6 +15,9 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
 
         ## TODO: Create the rendering renderables and etc.
     }.
+
+    const override method isSpatialObjectNode => Boolean8
+        := true.
 }.
 
 compileTime constant SpatialObjectNodePtr := SpatialObjectNode sharedPointer.

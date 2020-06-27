@@ -18,6 +18,9 @@ class SceneView superclass: View; definition: {
     method scene => ScenePtr
         := self sceneModel _ scene.
 
+    method camera => CameraPtr
+        := self sceneModel _ mainCamera.
+
     protected field sceneRenderingPipelineViewport type: SceneRenderingPipelineViewportPtr.
 
     method ensureRenderingViewportWithExtent: (requiredExtent: UInt32x2) ::=> Void := {
@@ -39,7 +42,9 @@ class SceneView superclass: View; definition: {
             return: Stdn Graphics Scene2D NodePtr nil.
         }.
 
-        sceneRenderingPipelineViewport _ render.
+        sceneRenderingPipelineViewport _
+            camera: self camera;
+            render.
 
         (scene2DBuilder _ blendingMode: BlendingMode Copy node: ((
 		     scene2DBuilder _ texture: textureHandle rectangle: (RectangleF32 extent: Float32x2(640, 480))

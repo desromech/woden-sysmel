@@ -1,11 +1,30 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Graphics Core.
+
 #**
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
+    public field vertexBinding type: VertexBindingPtr.
+    public field indexBuffer type: BufferPtr.
+
     public field submeshes type: Stdn Collections Vector(GenericSubmesh).
+
+    override method renderWithStateTracker: (stateTracker: StateTracker ref) ::=> Void := {
+        vertexBinding ifNil: {return: void}.
+
+        stateTracker useVertexBinding: vertexBinding.
+        indexBuffer ifNotNil: {
+            stateTracker useIndexBuffer: indexBuffer
+        }.
+
+        submeshes do: {:each :: Void |
+            each
+                renderWithStateTracker: stateTracker
+        }
+    }.
 
 }.
 

@@ -7,11 +7,20 @@ useNamespace: Stdn Graphics Core.
  * An abstract pipeline for rendering a scene.
  *#
 class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
+    protected field camera type: CameraPtr.
+
+    const inline method camera => CameraPtr const ref
+        := camera.
+
     virtual method mainColorBufferTextureHandle => StrongTextureHandlePtr
         := StrongTextureHandlePtr nil.
 
     virtual method extent: (viewportExtent: UInt32x2) ::=> Void := {
 
+    }.
+
+    virtual method camera: (theCamera: CameraPtr const ref) ::=> Void := {
+        camera := theCamera
     }.
 
     virtual method render ::=> Void := {

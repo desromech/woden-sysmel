@@ -1,0 +1,37 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+    class VertexIO definition: {
+
+    }.
+
+    function vertex vertexShader(in: GenericVertexInput inputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let input := in receive.
+
+        #*let worldPosition := objectState _ transformationState _ modelMatrix * input position.
+        let viewPosition := cameraState _ transformationState _ viewMatrix * worldPosition.
+        let screenPosition := cameraState _ transformationState _ projectionMatrix * viewPosition.
+
+        let output mutable := input.
+        output position: worldPosition.
+        out send: output.
+        *#
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: Float32x4(input position, 1.0f);
+            yourself
+        ).
+    }.
+
+    function fragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        out send: (FragmentOutput() color0: Float32x4 white)
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

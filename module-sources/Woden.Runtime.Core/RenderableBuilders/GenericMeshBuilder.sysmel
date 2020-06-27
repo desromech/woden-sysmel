@@ -19,6 +19,9 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     public field currentColor type: Float32x4.
     public field currentMaterial type: MaterialPtr.
 
+    protected field vertexLayout type: VertexLayoutPtr.
+    protected field vertexBinding type: VertexBindingPtr.
+
     protected field vertices type: Stdn Collections Vector(VertexType).
     protected field indices type: Stdn Collections Vector(IndexType).
     protected field submeshes type: Stdn Collections Vector(SubmeshType).
@@ -146,11 +149,19 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         self addI1: 16 i2: 17 i3: 18 i4: 19.
 
     	## Right Face
-    	self addP: (Float32x3 x: px y: py z: pz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
-    	self addP: (Float32x3 x: px y: ny z: pz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
-    	self addP: (Float32x3 x: px y: ny z: nz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
-    	self addP: (Float32x3 x: px y: py z: nz)  N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
         self addI1: 20 i2: 21 i3: 22 i4: 23.
+    }.
+
+    method vertexLayout => VertexLayoutPtr := {
+        vertexLayout ifNil: {
+            vertexLayout := engine _ renderingDevice _ getDefaultVertexLayoutCache _ getOrCreateWithDescription: VertexType vertexLayoutDescription
+        }.
+
+        vertexLayout
     }.
 
     method renderable => RenderablePtr := {
@@ -159,11 +170,34 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         }.
 
         self finishLastSubmesh.
-        Stdn stdout << "GenericMeshBuilder create renderable with vertices: "
-            << vertices size << " indices " << indices size << " submeshes " << submeshes size; nl.
+
+        let device := engine _ renderingDevice.
+        let vertexBuffer := device _ createBuffer: (BufferDescription()
+            size: vertices size * VertexType instanceSize;
+            heapType: MemoryHeapType DeviceLocal;
+            usageModes: BufferUsageMode Array;
+            mainUsageMode: BufferUsageMode Array;
+            stride: VertexType instanceSize;
+            yourself
+        ) initialData: vertices data.
+
+        let indexBuffer := device _ createBuffer: (BufferDescription()
+            size: indices size * IndexType instanceSize;
+            heapType: MemoryHeapType DeviceLocal;
+            usageModes: BufferUsageMode ElementArray;
+            mainUsageMode: BufferUsageMode ElementArray;
+            stride: IndexType instanceSize;
+            yourself
+        ) initialData: indices data.
+
+        let vertexBinding := device _ createVertexBindingFor: self vertexLayout.
+        let vertexBuffers mutable := BufferPtr array (vertexBuffer).
+        vertexBinding _ bindVertexBuffers: vertexBuffers.
 
         let result := GenericMeshRenderable sharedNew.
         result _
+            vertexBinding: vertexBinding;
+            indexBuffer: indexBuffer;
             submeshes: submeshes.
         result upCastFor: Renderable
     }

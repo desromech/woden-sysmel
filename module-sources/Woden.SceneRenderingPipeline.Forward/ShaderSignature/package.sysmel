@@ -1,0 +1,7 @@
+loadFileOnce: "SceneRenderingShaderSignature.sysmel".
+loadFileOnce: "SamplingStateBinding.sysmel".
+loadFileOnce: "CameraStateBinding.sysmel".
+loadFileOnce: "LightingStateBinding.sysmel".
+loadFileOnce: "MaterialStateBinding.sysmel".
+loadFileOnce: "ObjectStateBinding.sysmel".
+loadFileOnce: "RenderableStateBinding.sysmel".

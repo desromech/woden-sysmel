@@ -12,10 +12,17 @@ useNamespace: Stdn Math Geometry.
 class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
     protected field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
+    protected field cameraStateBuffer type: BufferPtr.
+    protected field cameraStateBinding type: ShaderResourceBindingsPtr.
+
+    protected field lightingStateBuffer type: BufferPtr.
+    protected field lightingStateBinding type: ShaderResourceBindingsPtr.
+
     protected field currentExtent type: UInt32x2.
     protected field renderingCommandQueue type: CommandQueuePtr.
     protected field commandListAllocator type: CommandListAllocatorPtr.
     protected field commandList type: CommandListPtr.
+    protected field stateTracker type: StateTrackerPtr.
 
     protected field colorBufferTextureHandle type: StrongTextureHandlePtr.
     protected field framebuffer type: FramebufferPtr.
@@ -34,7 +41,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     override method extent: (requiredExtent: UInt32x2) ::=> Void := {
         currentExtent = requiredExtent && colorBufferTextureHandle isNotNil ifTrue: {return: void}.
 
-        let renderingDevice := self engine _ renderingDevice.
+        let device := self engine _ renderingDevice.
         renderingCommandQueue ifNotNil: {
             renderingCommandQueue _ waitForIdle
         }.
@@ -44,7 +51,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         ## Create the main framebuffer.
         {
-            let colorBuffer := renderingDevice _ createTexture: (TextureDescription()
+            let colorBuffer := device _ createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
                 height: requiredExtent y;
@@ -59,10 +66,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 yourself).
             let colorBufferTextureView := colorBuffer _ getOrCreateFullView.
 
-            colorBufferTextureHandle := renderingDevice _ createScene2DBuilder _
+            colorBufferTextureHandle := device _ createScene2DBuilder _
                 createTextureHandleFor: (colorBuffer upCastFor: Stdn SharedObject) view: (colorBufferTextureView upCastFor: Stdn SharedObject).
 
-            let depthBuffer := renderingDevice _ createTexture: (TextureDescription()
+            let depthBuffer := device _ createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
                 height: requiredExtent y;
@@ -78,7 +85,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
 
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
-            framebuffer := renderingDevice _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+            framebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
         }.
 
         renderPass ifNil: {
@@ -96,28 +103,103 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 beginAction: RenderPassAttachmentAction Clear;
                 endAction: RenderPassAttachmentAction Discard;
                 yourself.
-            renderPass := renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+            renderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+        }.
+
+        ## Create the camera state buffer and binding.
+        cameraStateBuffer ifNil: {
+            cameraStateBuffer := device _ createBuffer: (BufferDescription()
+                size: (Woden Shaders CameraStateData instanceSize alignedTo: 256);
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            cameraStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 1.
+        }.
+
+        ## Create the lighting state buffer and binding.
+        lightingStateBuffer ifNil: {
+            lightingStateBuffer := device _ createBuffer: (BufferDescription()
+                size: (Woden Shaders GlobalLightingStateData instanceSize alignedTo: 256);
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            lightingStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 2.
         }.
 
         ## Get the rendering command queue.
-        renderingCommandQueue := renderingDevice _ getDefaultCommandQueue.
+        renderingCommandQueue := device _ getDefaultCommandQueue.
 
         ## Build the command allocator and list.
-        {
-            commandListAllocator := renderingDevice _ createCommandAllocatorOfType: CommandListType Direct for: renderingCommandQueue.
-            commandList := renderingDevice _ createCommandListOfType: CommandListType Direct for: commandListAllocator.
+        commandListAllocator ifNil: {
+            commandListAllocator := device _ createCommandAllocatorOfType: CommandListType Direct for: renderingCommandQueue.
+            commandList := device _ createCommandListOfType: CommandListType Direct for: commandListAllocator.
             commandList _ close.
+        }.
+
+        {
+            let theStateTracker := GenericStateTracker sharedNew.
+            theStateTracker _
+                commandList: commandList;
+                shaderCache: device _ getDefaultShaderCache;
+                pipelineStateCache: device _ getDefaultPipelineStateCache.
+            stateTracker := theStateTracker upCastFor: StateTracker
         }.
 
         currentExtent := requiredExtent.
     }.
 
+    method uploadCameraState => Void := {
+        camera ifNil: {return: void}.
+
+    }.
+
+    method renderSpatialObjectNode: (objectNode: SpatialObjectNode pointer) ::=> Void := {
+        let renderable := objectNode _ renderable.
+        renderable ifNotNil: {
+            renderable _ renderWithStateTracker: stateTracker _.
+        }
+    }.
+
+    method renderSceneNodes => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        camera ifNil: {return: void}.
+        scene ifNil: {return: void}.
+
+        scene _ allNodesDo: {:(SceneNode ref)each :: Void |
+            each isSpatialObjectNode ifTrue: {
+                self renderSpatialObjectNode: (each address castTo: SpatialObjectNode pointer)
+            }
+        }.
+    }.
+
     override method render => Void := {
+        self uploadCameraState.
+
         commandListAllocator _ resetAllocator.
-        commandList _
+        stateTracker _
             resetFor: commandListAllocator;
+			useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: cameraStateBinding;
+            useGraphicShaderBindings: lightingStateBinding;
+            vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address;
+            fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders fragment shaderEntryPointInfo address;
 
             beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
+    		setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
+    		setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
+
+        self renderSceneNodes.
+
+        stateTracker _
             endRenderPass;
             close.
 

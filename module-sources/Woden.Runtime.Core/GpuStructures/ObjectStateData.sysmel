@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct ObjectStateData definition: {
+	<gpu>
+    public field matrix type: Float32x4x4.
+    public field inverseMatrix type: Float32x4x4.
+    public field color type: Float32x4.
+    public field visible type: UInt32.
+    public field reserved type: (UInt32 array: 3).
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

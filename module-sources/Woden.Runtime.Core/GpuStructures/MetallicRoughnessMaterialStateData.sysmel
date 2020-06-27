@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct MetallicRoughnessMaterialStateData definition: {
+	<gpu>
+    public field emission type: Float32x4.
+    public field albedo type: Float32x4.
+    public field metallicFactor type: Float32.
+    public field roughnessFactor type: Float32.
+    public field alphaCutoff type: Float32.
+    public field reserved type: Float32.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

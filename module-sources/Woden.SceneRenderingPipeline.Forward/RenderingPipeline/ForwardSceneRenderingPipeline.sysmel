@@ -2,14 +2,89 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
 
 #**
  * An abstract pipeline for rendering a null scene.
  *#
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
+    public field shaderSignature type: ShaderSignaturePtr.
+    protected field sampler type: SamplerPtr.
+    public field samplingStateBinding type: ShaderResourceBindingsPtr.
 
     override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         super initializeForEngine: anEngine.
+
+        let device := anEngine _ renderingDevice.
+
+        ## Get or create the shader signature.
+        {
+            let shaderSignatureDescription := ShaderSignatureDescription()
+            ## Sampling state.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
+                yourself
+            );
+
+            ## CameraState.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType UniformBuffer;
+                yourself
+            );
+
+            ## LightingState.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType UniformBuffer;
+                yourself
+            );
+
+            ## ObjectState.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType UniformBuffer;
+                yourself
+            );
+
+            ## RenderableState.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType UniformBuffer;
+                yourself
+            );
+
+            ## MaterialState.
+            addBank: (ShaderSignatureBankDescription()
+                addElementWithType: ShaderBindingType UniformBuffer;
+                addElementWithType: ShaderBindingType SampledImage;
+                addElementWithType: ShaderBindingType SampledImage;
+                addElementWithType: ShaderBindingType SampledImage;
+                addElementWithType: ShaderBindingType SampledImage;
+                addElementWithType: ShaderBindingType SampledImage;
+                yourself
+            );
+            yourself.
+
+            shaderSignature := device _ getDefaultShaderSignatureCache _ getOrCreateWithDescription: shaderSignatureDescription.
+        }.
+
+        ## Create the sampling state binding.
+        {
+            sampler := device _ createSampler: (SamplerDescription()
+                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear;
+                addressU: TextureAddressMode Wrap;
+                addressV: TextureAddressMode Wrap;
+                addressW: TextureAddressMode Wrap;
+                maxLod: 10000.0f;
+                yourself).
+
+            samplingStateBinding := shaderSignature _ createShaderResourceBindings: 0.
+            0 until: 6 do: {:(UInt32)i :: Void |
+                samplingStateBinding _ bindOn: i sampler: sampler.
+            }.
+        }.
     }.
 
     override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr := {

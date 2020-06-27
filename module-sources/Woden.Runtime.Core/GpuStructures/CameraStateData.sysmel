@@ -1,0 +1,30 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct CameraStateData definition: {
+	<gpu>
+    public field matrix type: Float32x4x4.
+    public field inverseMatrix type: Float32x4x4.
+
+    macro method inverseViewMatrix := ``(`,self matrix).
+    macro method viewMatrix := ``(`,self inverseMatrix).
+
+    public field projectionMatrix type: Float32x4x4.
+    public field inverseProjectionMatrix type: Float32x4x4.
+
+    public field screenSize type: Float32x2.
+    public field inverseScreenSize type: Float32x2.
+
+    public field currentTime type: Float32.
+    public field reserved type: (Float32 array: 3).
+
+	public field exposure type: Float32.
+	public field fogMode type: Float32.
+	public field fogFactor1 type: Float32.
+	public field fogFactor2 type: Float32.
+
+	public field fogColor type: Float32x4.
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

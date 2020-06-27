@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct GenericVertexInput definition: {
+	<gpu>
+    public field position type: Float32x3; location: 0.
+    public field texcoord type: Float32x2; location: 1.
+    public field color type: Float32x4; location: 2.
+    public field normal type: Float32x3; location: 3.
+    public field tangent4 type: Float32x4; location: 4.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

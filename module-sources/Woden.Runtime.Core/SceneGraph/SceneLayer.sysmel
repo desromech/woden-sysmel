@@ -5,6 +5,8 @@ namespace Runtime definition: {
  * I represent a 3D scene with rendering only objects.
  *#
 class SceneLayer superclass: SceneNode; definition: {
+    const override method isSceneLayer => Boolean8
+        := true.
 }.
 
 compileTime constant SceneLayerPtr := SceneLayer sharedPointer.

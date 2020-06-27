@@ -1,2 +1,9 @@
+## Structures consumed indirectly by shaders.
 loadFileOnce: "CompactFloat32x3.sysmel".
 loadFileOnce: "GenericVertex.sysmel".
+loadFileOnce: "GenericVertexInput.sysmel".
+
+## Structures that are shared by shaders.
+loadFileOnce: "ObjectStateData.sysmel".
+loadFileOnce: "CameraStateData.sysmel".
+loadFileOnce: "MetallicRoughnessMaterialStateData.sysmel".

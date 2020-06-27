@@ -1,11 +1,16 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Graphics Core.
+
 #**
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#
 class Renderable superclass: Stdn SharedObject; definition: {
 
+    virtual method renderWithStateTracker: (stateTracker: StateTracker ref) ::=> Void := {
+
+    }.
 }.
 
 compileTime constant RenderablePtr := Renderable sharedPointer.

@@ -1,12 +1,14 @@
 namespace Woden definition: {
 namespace GpuStructures definition: {
 
+useNamespace: Stdn Graphics Core.
+
 struct GenericVertex definition: {
-    public field positionData type: CompactFloat32x3.
-    public field normalData type: CompactFloat32x3.
-    public field texcoord type: Float32x2.
-    public field tangent4 type: Float32x4.
-    public field color type: Float32x4.
+    public field positionData type: CompactFloat32x3; location: 0.
+    public field normalData type: CompactFloat32x3; location: 3.
+    public field texcoord type: Float32x2; location: 1.
+    public field tangent4 type: Float32x4; location: 4.
+    public field color type: Float32x4; location: 2.
 
     const inline method position => Float32x3
         := positionData asFloat32x3.
@@ -20,6 +22,39 @@ struct GenericVertex definition: {
 
     const inline method normal: (newNormal: Float32x3) ::=> Void := {
         normalData set: newNormal
+    }.
+
+    meta definition: {
+        method vertexLayoutDescription => VertexLayoutDescription := {
+            VertexLayoutDescription()
+                addAttribute: (VertexAttributeDescription()
+                    location: positionData location;
+                    format: PixelFormat R32G32B32_Float;
+                    offset: positionData byteOffset;
+                    yourself);
+                addAttribute: (VertexAttributeDescription()
+                    location: normalData location;
+                    format: PixelFormat R32G32B32_Float;
+                    offset: normalData byteOffset;
+                    yourself);
+                addAttribute: (VertexAttributeDescription()
+                    location: texcoord location;
+                    format: PixelFormat R32G32_Float;
+                    offset: texcoord byteOffset;
+                    yourself);
+                addAttribute: (VertexAttributeDescription()
+                    location: tangent4 location;
+                    format: PixelFormat R32G32B32A32_Float;
+                    offset: tangent4 byteOffset;
+                    yourself);
+                addAttribute: (VertexAttributeDescription()
+                    location: color location;
+                    format: PixelFormat R32G32B32A32_Float;
+                    offset: color byteOffset;
+                    yourself);
+                addBufferWithStride: GenericVertex instanceSize;
+                yourself.
+        }.
     }.
 }.
 

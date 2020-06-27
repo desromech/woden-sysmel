@@ -1,0 +1,9 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class UnlitMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

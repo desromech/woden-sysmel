@@ -6,12 +6,20 @@ namespace Runtime definition: {
  *#
 class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
     protected field engine type: EnginePtr.
+    protected field scene type: ScenePtr.
 
     const inline method engine => EnginePtr const ref
         := engine.
 
+    const inline method scene => ScenePtr const ref
+        := scene.
+
     virtual method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         engine := anEngine.
+    }.
+
+    virtual method scene: (theScene: ScenePtr const ref) ::=> Void := {
+        scene := theScene.
     }.
 
     abstract method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr.

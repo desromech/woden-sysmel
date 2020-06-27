@@ -1,0 +1,8 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class RenderableStateBinding definition: {
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

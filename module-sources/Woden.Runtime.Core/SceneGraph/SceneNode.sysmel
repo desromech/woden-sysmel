@@ -64,7 +64,36 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     inline method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
 
     }.
+
+    method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
+        children do: {:each :: Void |
+            each _ withAllNodesDo: aBlock
+        }
+    }.
+
+    method withAllNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
+        aBlock(self).
+        self allNodesDo: aBlock
+    }.
+
+    const virtual method isAbstractSpatialObjectNode => Boolean8
+        := false.
+
+    const virtual method isCamera => Boolean8
+        := false.
+
+    const virtual method isLightSourceNode => Boolean8
+        := false.
+
+    const virtual method isSceneLayer => Boolean8
+        := false.
+
+    const virtual method isSpatialObjectNode => Boolean8
+        := false.
+
 }.
+
+compileTime constant SceneNodeIterationBlock := ((SceneNode ref) => Void) nativeBlockClosure.
 
 compileTime constant SceneNodePtr := SceneNode sharedPointer.
 compileTime constant SceneNodeWeakPtr := SceneNode weakPointer.

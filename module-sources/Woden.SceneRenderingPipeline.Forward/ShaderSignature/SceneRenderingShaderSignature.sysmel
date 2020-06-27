@@ -1,0 +1,17 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class CommonSceneRenderingShaderSignature definition: {
+    public field samplingStateBinding type: SamplingStateBinding bindingSetPointer.
+    public field cameraStateBinding type: CameraStateBinding bindingSetPointer.
+}.
+
+class ForwardSceneRenderingShaderSignature definition: {
+    public field lightingStateBinding type: LightingStateBinding bindingSetPointer.
+    public field objectStateBinding type: ObjectStateBinding bindingSetPointer.
+    public field renderableStateBinding type: RenderableStateBinding bindingSetPointer.
+    public field materialStateBinding type: MaterialStateBinding bindingSetPointer.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

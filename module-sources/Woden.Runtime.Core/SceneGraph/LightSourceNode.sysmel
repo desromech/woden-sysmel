@@ -24,6 +24,9 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
     method intensity: (intensity: Float32x4) ::=> Void := {
 
     }.
+
+    const override method isLightSourceNode => Boolean8
+        := true.
 }.
 
 compileTime constant LightSourceNodePtr := LightSourceNode sharedPointer.

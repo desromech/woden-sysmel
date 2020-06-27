@@ -20,7 +20,13 @@ class Scene superclass: Stdn SharedObject; definition: {
     }.
 
     method add: (node: SceneNodePtr const ref) ::=> Void := {
+        normalLayer _ addChild: node
+    }.
 
+    method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
+        backgroundLayer _ withAllNodesDo: aBlock.
+        normalLayer _ withAllNodesDo: aBlock.
+        foregroundLayer _ withAllNodesDo: aBlock.
     }.
 }.
 
