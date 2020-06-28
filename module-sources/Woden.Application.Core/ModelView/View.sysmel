@@ -9,7 +9,7 @@ useNamespace: Stdn Graphics GUI.
 #**
  * I am the model that lies underlying a Woden application.
  *#
-class View superclass: Stdn SharedObject; definition: {
+class View superclass: EventHandler; definition: {
     protected field model type: ModelPtr.
     protected field viewWindow type: ViewWindowPtr.
 

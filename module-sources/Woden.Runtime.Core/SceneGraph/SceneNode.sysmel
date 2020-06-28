@@ -1,6 +1,9 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
 #**
  * I represent a 3D scene with rendering only objects.
  *#
@@ -8,12 +11,62 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     protected field parentWeakPtr type: SceneNodeWeakPtr.
     protected field sceneWeakPtr type: SceneWeakPtr.
     protected field children type: Stdn Collections Vector(SceneNodePtr).
+    protected field transform type: ReversibleAffineTransform3dF32.
+
+    private field globalTransform type: ReversibleAffineTransform3dF32.
+    private field globalTransformIsValid type: Boolean8.
+
+    override method initialize => Void := {
+        transform setIdentity.
+    }.
 
     const inline method parent => SceneNodePtr
         := parentWeakPtr lock.
 
     const inline method scene => ScenePtr
         := sceneWeakPtr lock.
+
+    const inline method transform => ReversibleAffineTransform3dF32
+        := transform.
+
+    inline method transform: (newTransform: ReversibleAffineTransform3dF32) ::=> Void := {
+        transform := newTransform.
+        self transformChanged.
+    }.
+
+    method transformChanged => Void := {
+        self parent ifNotNil: {:p :: Void |
+            p _ childTransformChanged: self
+        }.
+
+        self parentTransformChanged.
+    }.
+
+    method childTransformChanged: (aChild: SceneNode ref) ::=> Void := {
+
+    }.
+
+    method parentTransformChanged => Void := {
+        globalTransformIsValid := false.
+        children do: {:each :: Void |
+            each _ parentTransformChanged
+        }
+    }.
+
+    inline method globalTransform => ReversibleAffineTransform3dF32 := {
+        globalTransformIsValid ifFalse: { self validateGlobalTransform }.
+        globalTransform
+    }.
+
+    method validateGlobalTransform => Void := {
+        self parent ifNil: {
+            globalTransform := transform.
+        } ifNotNil: {:p :: Void |
+            globalTransform := p _ globalTransform transformTransform: transform
+        }.
+
+        globalTransformIsValid := true.
+    }.
 
     virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {
         sceneWeakPtr := aScene asWeakPointer.
@@ -50,21 +103,30 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     }.
 
     inline method translateByX: (x: Float32) ::=> Void := {
-
+        transform translateByX: x.
+        self transformChanged.
     }.
 
     inline method translateByY: (y: Float32) ::=> Void := {
-
+        transform translateByY: y.
+        self transformChanged.
     }.
 
     inline method translateByZ: (z: Float32) ::=> Void := {
-
+        transform translateByZ: z.
+        self transformChanged.
     }.
 
     inline method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
-
+        transform translateByX: x y: y z: z.
+        self transformChanged.
     }.
 
+    inline method translateBy: (delta: Float32x3) ::=> Void := {
+        transform translateBy: delta.
+        self transformChanged.
+    }.
+    
     method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
         children do: {:each :: Void |
             each _ withAllNodesDo: aBlock

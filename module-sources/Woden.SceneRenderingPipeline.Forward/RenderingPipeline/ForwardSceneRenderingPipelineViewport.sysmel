@@ -94,7 +94,6 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                     format: PixelFormat B8G8R8A8_UNormSRGB;
                     beginAction: RenderPassAttachmentAction Clear;
                     endAction: RenderPassAttachmentAction Keep;
-                    clearValue: 0.25f;
                     yourself
             ).
 
@@ -118,6 +117,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             ) initialData: nil.
 
             cameraStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 1.
+            cameraStateBinding _ bindOn: 0 uniformBuffer: cameraStateBuffer.
         }.
 
         ## Create the lighting state buffer and binding.
@@ -132,6 +132,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             ) initialData: nil.
 
             lightingStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 2.
+            lightingStateBinding _ bindOn: 0 uniformBuffer: lightingStateBuffer.
         }.
 
         ## Get the rendering command queue.
@@ -159,6 +160,26 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     method uploadCameraState => Void := {
         camera ifNil: {return: void}.
 
+        let cameraTransform := camera _ globalTransform.
+
+        let screenSize := (currentExtent castTo: Float32x2).
+        let aspect := screenSize x / screenSize y.
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: 60.0f aspect: aspect near: 0.1f far: 100.0f invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+
+        let cameraState mutable := Woden Shaders CameraStateData()
+            matrix: cameraTransform matrix4;
+            inverseMatrix: cameraTransform inverseMatrix4;
+
+            projectionMatrix: projectionMatrix;
+            inverseProjectionMatrix: projectionMatrix inverse;
+
+            screenSize: screenSize;
+            inverseScreenSize: 1 / screenSize;
+
+            exposure: 1;
+            yourself.
+
+        cameraStateBuffer _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
     method renderSpatialObjectNode: (objectNode: SpatialObjectNode pointer) ::=> Void := {
@@ -183,6 +204,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     override method render => Void := {
         self uploadCameraState.
 
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNotNil: {
+            renderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
+        }.
+
         commandListAllocator _ resetAllocator.
         stateTracker _
             resetFor: commandListAllocator;
@@ -190,6 +216,13 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
             useGraphicShaderBindings: cameraStateBinding;
             useGraphicShaderBindings: lightingStateBinding;
+
+            frontFaceOrientation: FrontFaceOrientation CounterClockwise;
+    		faceCullingMode: FaceCullingMode Back;
+            depthTestingEnabled: true;
+            depthWriteMask: true;
+            depthFunction: CompareFunction GreaterOrEqual;
+
             vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address;
             fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders fragment shaderEntryPointInfo address;
 

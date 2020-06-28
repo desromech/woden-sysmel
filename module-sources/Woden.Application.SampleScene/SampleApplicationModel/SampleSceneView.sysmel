@@ -1,0 +1,57 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+useNamespace: Stdn Graphics GUI.
+
+class SampleSceneView superclass: SceneView; definition: {
+    protected field cameraAngle type: Float32x3.
+
+    method cameraOrientation => Float32x3x3
+        := (Float32x3x3 yRotation: cameraAngle y) * (Float32x3x3 xRotation: cameraAngle x).
+
+    override method prepareViewCamera => Void := {
+        let camera := self camera.
+        camera ifNotNil: {
+            let transform mutable := camera _ transform.
+            transform orthonormal: self cameraOrientation.
+            camera _ transform: transform.
+        }.
+
+        super prepareViewCamera.
+    }.
+
+    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+
+    }.
+
+    override method onKeyPressedEvent: (event: KeyPressedEvent ref) ::=> Void := {
+
+    }.
+
+    override method onKeyReleasedEvent: (event: KeyReleasedEvent ref) ::=> Void := {
+
+    }.
+
+    override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
+        let camera := self camera.
+        camera ifNil: {return: void}.
+
+        event isLeftButtonPressed ifTrue: {
+            cameraAngle := cameraAngle + Float32x3(event delta y negated, event delta x negated, 0.0f)*0.01f.
+        }.
+
+        event isRightButtonPressed ifTrue: {
+            camera _ translateBy: self cameraOrientation * Float32x3(event delta x, event delta y negated , 0.0f) *0.01f.
+        }.
+    }.
+
+    override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
+        let camera := self camera.
+        camera ifNil: {return: void}.
+
+		camera _ translateBy: self cameraOrientation * Float32x3(0.0f, 0.0f, event scrollDelta y * -0.1f).
+    }.
+}.
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

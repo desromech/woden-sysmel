@@ -18,6 +18,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
 
     public field currentColor type: Float32x4.
     public field currentMaterial type: MaterialPtr.
+    public field currentTransform type: ReversibleAffineTransform3dF32.
 
     protected field vertexLayout type: VertexLayoutPtr.
     protected field vertexBinding type: VertexBindingPtr.
@@ -36,6 +37,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
 
     method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
         engine := anEngine.
+        currentTransform setIdentity.
         self reset
     }.
 
@@ -69,7 +71,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         submeshes ifEmpty: {return: void}.
 
         let lastSubmesh ref := submeshes last.
-        lastSubmesh indexCount: (vertices size - lastSubmesh firstIndex castTo: UInt32).
+        lastSubmesh indexCount: (indices size - lastSubmesh firstIndex castTo: UInt32).
     }.
 
     method beginWithNewBaseVertex ::=> Void := {
@@ -96,8 +98,8 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
 
     method addP: (position: Float32x3) N: (normal: Float32x3) TC: (texcoord: Float32x2) ::=> Void := {
         vertices add: (VertexType()
-            position: position;
-            normal: normal;
+            position: (currentTransform transformPosition: position);
+            normal: (currentTransform transformNormal: normal);
             texcoord: texcoord;
             color: currentColor;
             yourself)

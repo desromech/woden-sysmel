@@ -73,6 +73,17 @@ class GenericViewEventHandler superclass: EventHandler; definition: {
 		viewWindow _ render.
     }.
 
+    override method processEvent: (event: Event ref) ::=> Void := {
+        super processEvent: event.
+
+        viewWindow ifNotNil: {
+            let view := viewWindow _ view.
+            view ifNotNil: {
+                view _ processEvent: event.
+            }
+        }.
+    }.
+
     override method onTickEvent: (event: TickEvent ref) ::=> Void := {
 		viewWindow _ onTickEvent: event.
     }.

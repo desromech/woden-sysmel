@@ -2,7 +2,8 @@ namespace Woden definition: {
 namespace Application definition: {
 
 class SampleSceneModel superclass: SceneModel; definition: {
-
+    override method createNewView => ViewPtr
+        := SampleSceneView sharedNew upCastFor: View.
 }.
 
 }. ## End of namespace Application

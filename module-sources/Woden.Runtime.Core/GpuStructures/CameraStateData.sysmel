@@ -16,7 +16,6 @@ struct CameraStateData definition: {
     public field inverseScreenSize type: Float32x2.
 
     public field currentTime type: Float32.
-    public field reserved type: (Float32 array: 3).
 
 	public field exposure type: Float32.
 	public field fogMode type: Float32.

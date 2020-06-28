@@ -13,6 +13,10 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
     function vertex vertexShader(in: GenericVertexInput inputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
         let input := in receive.
 
+        let worldPosition := Float32x4(input position, 1.0f).
+        let viewPosition := self cameraState viewMatrix * worldPosition.
+        let screenPosition := self cameraState projectionMatrix * viewPosition.
+
         #*let worldPosition := objectState _ transformationState _ modelMatrix * input position.
         let viewPosition := cameraState _ transformationState _ viewMatrix * worldPosition.
         let screenPosition := cameraState _ transformationState _ projectionMatrix * viewPosition.
@@ -23,7 +27,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         *#
 
         stageOut send: (GPU VertexStageOutput()
-            screenPosition: Float32x4(input position, 1.0f);
+            screenPosition: screenPosition;
             yourself
         ).
     }.
