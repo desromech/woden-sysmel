@@ -5,7 +5,16 @@ namespace Runtime definition: {
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#
 class Material superclass: Stdn SharedObject; definition: {
+    protected field engine type: EnginePtr.
 
+    const inline method engine => EnginePtr const ref
+        := engine.
+
+    virtual method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+        engine := anEngine
+    }.
+
+    abstract method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8.
 }.
 
 compileTime constant MaterialPtr := Material sharedPointer.

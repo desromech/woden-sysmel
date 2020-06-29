@@ -12,17 +12,16 @@ class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
 
     public field submeshes type: Stdn Collections Vector(GenericSubmesh).
 
-    override method renderWithStateTracker: (stateTracker: StateTracker ref) ::=> Void := {
+    override method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
         vertexBinding ifNil: {return: void}.
 
-        stateTracker useVertexBinding: vertexBinding.
+        context stateTracker _ useVertexBinding: vertexBinding.
         indexBuffer ifNotNil: {
-            stateTracker useIndexBuffer: indexBuffer
+            context stateTracker _ useIndexBuffer: indexBuffer
         }.
 
         submeshes do: {:each :: Void |
-            each
-                renderWithStateTracker: stateTracker
+            each renderWithContext: context
         }
     }.
 

@@ -2,11 +2,12 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics GUI.
 
 #**
  * I am the model that lies underlying a Woden application.
  *#
-class Model superclass: Stdn SharedObject; definition: {
+class Model superclass: RenderingProcess; definition: {
     protected field engine type: EnginePtr.
     protected field views type: Stdn Collections Vector(View sharedPointer).
 
@@ -53,11 +54,17 @@ class Model superclass: Stdn SharedObject; definition: {
 
         newView _ open ifFalse: {return: false}.
         views add: newView.
+        views size = 1 ifTrue: {
+            engine _ registerRenderingProcess: (self asWeakPointer upCastFor: RenderingProcess)
+        }.
         true
     }.
 
     method viewDestroyed: (view: ViewPtr) ::=> Void := {
-        views remove: view
+        views remove: view.
+        views ifEmpty: {
+            engine _ unregisterRenderingProcess: (self asWeakPointer upCastFor: RenderingProcess)
+        }.
     }.
 
     method runMainLoop ::=> Int32 := {
@@ -66,6 +73,33 @@ class Model superclass: Stdn SharedObject; definition: {
         }.
 
         engine _ runMainLoop
+    }.
+
+    override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
+    }.
+
+    override method prepareRendering => Void := {
+        views do: {:each :: Void |
+            each _ prepareRendering.
+        }
+    }.
+
+    override method constructRenderingCommandList => Void := {
+        views do: {:each :: Void |
+            each _ constructRenderingCommandList.
+        }
+    }.
+
+    override method sendRenderingCommandList => Void := {
+        views do: {:each :: Void |
+            each _ sendRenderingCommandList.
+        }
+    }.
+
+    override method commitSurfaces => Void := {
+        views do: {:each :: Void |
+            each _ commitSurfaces.
+        }
     }.
 }.
 

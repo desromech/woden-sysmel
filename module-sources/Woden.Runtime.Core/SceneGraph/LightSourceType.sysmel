@@ -1,0 +1,11 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+enum LightSourceType valueType: UInt32; values: #{
+    Point: 0.
+    Directional: 1.
+    Spot: 2.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -8,7 +8,7 @@ useNamespace: Stdn Graphics Core.
  *#
 class Renderable superclass: Stdn SharedObject; definition: {
 
-    virtual method renderWithStateTracker: (stateTracker: StateTracker ref) ::=> Void := {
+    virtual method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
 
     }.
 }.

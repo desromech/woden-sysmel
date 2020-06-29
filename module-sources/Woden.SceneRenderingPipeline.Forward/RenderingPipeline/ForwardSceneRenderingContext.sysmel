@@ -1,0 +1,53 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * An abstract pipeline for rendering a null scene.
+ *#
+class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition: {
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipeline pointer.
+
+    method device => RenderingDevicePtr const ref
+        := sceneRenderingPipeline _ engine _ renderingDevice.
+
+    override method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8 := {
+        false
+    }.
+
+    override method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
+        material stateBinding ifNil: {
+            material stateBuffer := self device _ createBuffer: (BufferDescription()
+                size: Woden Shaders MetallicRoughnessMaterialStateData instanceSize;
+                heapType: MemoryHeapType DeviceLocal;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: material state address.
+
+            material stateBinding := self createMaterialStateBinding.
+            material stateBinding _
+                bindOn: 0 uniformBuffer: material stateBuffer;
+                bindOn: 1 sampledTextureView: material albedoTextureView;
+                bindOn: 2 sampledTextureView: material normalTextureView;
+                bindOn: 3 sampledTextureView: material emissionTextureView;
+                bindOn: 4 sampledTextureView: material metallicRoughnessTextureView.
+        }.
+
+        stateTracker _
+            useGraphicShaderBindings: material stateBinding;
+            vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address;
+            fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders fragment shaderEntryPointInfo address.
+
+        true
+    }.
+
+    method createMaterialStateBinding => ShaderResourceBindingsPtr
+        := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5
+}.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

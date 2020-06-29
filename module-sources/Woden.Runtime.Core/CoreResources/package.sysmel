@@ -1,2 +1,8 @@
 loadFileOnce: "Engine.sysmel".
 loadFileOnce: "ResourceCache.sysmel".
+loadFileOnce: "RenderingProcess.sysmel".
+
+loadFileOnce: "FrameBufferedRenderingResource.sysmel".
+loadFileOnce: "FrameBufferedBuffer.sysmel".
+loadFileOnce: "FrameBufferedShaderResourcesBindings.sysmel".
+loadFileOnce: "FrameBufferedStateTracker.sysmel".

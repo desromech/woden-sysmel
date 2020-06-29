@@ -5,3 +5,4 @@ loadFileOnce: "SceneLayer.sysmel".
 loadFileOnce: "AbstractSpatialObjectNode.sysmel".
 loadFileOnce: "SpatialObjectNode.sysmel".
 loadFileOnce: "LightSourceNode.sysmel".
+loadFileOnce: "LightSourceType.sysmel".

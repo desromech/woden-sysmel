@@ -1,0 +1,37 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I encapsulate a specific rendering scene context. I am using for decoupling
+ * material state specification from scene rendering pipeline specific data and method
+ *#
+class SceneRenderingContext superclass: Stdn Object; definition: {
+    public field stateTracker type: StateTrackerPtr.
+    protected field activeMaterial type: MaterialPtr.
+
+    virtual method reset => Void := {
+        activeMaterial reset.
+    }.
+
+    virtual method activateMaterial: (material: MaterialPtr const ref) ::=> Boolean8 := {
+        activeMaterial = material ifTrue: {
+            return: true.
+        }.
+
+        (material _ activateWithSceneRenderingContext: self) ifTrue: {
+            activeMaterial := material.
+            return: true.
+        } ifFalse: {
+            activeMaterial reset.
+            return: false.
+        }
+    }.
+
+    abstract method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8.
+    abstract method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -8,12 +8,20 @@ useNamespace: Stdn Math LinearAlgebra.
  *#
 class Scene superclass: Stdn SharedObject; definition: {
     public field backgroundColor type: Float32x4.
-    
+    public field groundLighting type: Float32x4.
+    public field skyLighting type: Float32x4.
+    public field sunDirection type: Float32x3.
+
     field backgroundLayer type: SceneLayerPtr.
     field normalLayer type: SceneLayerPtr.
     field foregroundLayer type: SceneLayerPtr.
 
     override method initialize => Void := {
+        backgroundColor := Float32x4 black.
+        skyLighting := 0.1f.
+        groundLighting := 0.05f.
+        sunDirection := Float32x3(0, 1, 0).
+
         backgroundLayer := SceneLayer sharedNew.
         normalLayer := SceneLayer sharedNew.
         foregroundLayer := SceneLayer sharedNew.

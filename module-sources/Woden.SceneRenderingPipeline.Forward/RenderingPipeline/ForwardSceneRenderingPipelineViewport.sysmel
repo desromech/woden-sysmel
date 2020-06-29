@@ -12,17 +12,16 @@ useNamespace: Stdn Math Geometry.
 class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
     protected field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
-    protected field cameraStateBuffer type: BufferPtr.
-    protected field cameraStateBinding type: ShaderResourceBindingsPtr.
+    protected field cameraStateBuffers type: FrameBufferedBuffer.
+    protected field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
 
-    protected field lightingStateBuffer type: BufferPtr.
-    protected field lightingStateBinding type: ShaderResourceBindingsPtr.
+    protected field lightingStateBuffers type: FrameBufferedBuffer.
+    protected field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
+    protected field lightingState type: Woden Shaders GlobalLightingStateData.
 
     protected field currentExtent type: UInt32x2.
     protected field renderingCommandQueue type: CommandQueuePtr.
-    protected field commandListAllocator type: CommandListAllocatorPtr.
-    protected field commandList type: CommandListPtr.
-    protected field stateTracker type: StateTrackerPtr.
+    protected field stateTrackers type: FrameBufferedStateTracker.
 
     protected field colorBufferTextureHandle type: StrongTextureHandlePtr.
     protected field framebuffer type: FramebufferPtr.
@@ -106,9 +105,9 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         ## Create the camera state buffer and binding.
-        cameraStateBuffer ifNil: {
-            cameraStateBuffer := device _ createBuffer: (BufferDescription()
-                size: (Woden Shaders CameraStateData instanceSize alignedTo: 256);
+        cameraStateBuffers isCreated ifFalse: {
+            cameraStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders CameraStateData instanceSize;
                 heapType: MemoryHeapType HostToDevice;
                 usageModes: BufferUsageMode Uniform;
                 mainUsageMode: BufferUsageMode Uniform;
@@ -116,14 +115,16 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 yourself
             ) initialData: nil.
 
-            cameraStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 1.
-            cameraStateBinding _ bindOn: 0 uniformBuffer: cameraStateBuffer.
+            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
+            cameraStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
+            }.
         }.
 
         ## Create the lighting state buffer and binding.
-        lightingStateBuffer ifNil: {
-            lightingStateBuffer := device _ createBuffer: (BufferDescription()
-                size: (Woden Shaders GlobalLightingStateData instanceSize alignedTo: 256);
+        lightingStateBuffers isCreated ifFalse: {
+            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders GlobalLightingStateData instanceSize;
                 heapType: MemoryHeapType HostToDevice;
                 usageModes: BufferUsageMode Uniform;
                 mainUsageMode: BufferUsageMode Uniform;
@@ -131,27 +132,18 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 yourself
             ) initialData: nil.
 
-            lightingStateBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 2.
-            lightingStateBinding _ bindOn: 0 uniformBuffer: lightingStateBuffer.
+            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
+            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index]
+            }.
         }.
 
         ## Get the rendering command queue.
         renderingCommandQueue := device _ getDefaultCommandQueue.
 
         ## Build the command allocator and list.
-        commandListAllocator ifNil: {
-            commandListAllocator := device _ createCommandAllocatorOfType: CommandListType Direct for: renderingCommandQueue.
-            commandList := device _ createCommandListOfType: CommandListType Direct for: commandListAllocator.
-            commandList _ close.
-        }.
-
-        {
-            let theStateTracker := GenericStateTracker sharedNew.
-            theStateTracker _
-                commandList: commandList;
-                shaderCache: device _ getDefaultShaderCache;
-                pipelineStateCache: device _ getDefaultPipelineStateCache.
-            stateTracker := theStateTracker upCastFor: StateTracker
+        stateTrackers isCreated ifFalse: {
+            stateTrackers for: self engine createOfType: CommandListType Direct
         }.
 
         currentExtent := requiredExtent.
@@ -179,24 +171,56 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             exposure: 1;
             yourself.
 
-        cameraStateBuffer _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
-    method renderSpatialObjectNode: (objectNode: SpatialObjectNode pointer) ::=> Void := {
+    method gatherSceneLightingState => Void := {
+        lightingState := Woden Shaders GlobalLightingStateData().
+
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+        camera ifNil: {return: void}.
+
+        let viewMatrix := camera _ globalTransform inverseMatrix4.
+
+        lightingState
+            groundLighting: scene _ groundLighting;
+            skyLighting: scene _ skyLighting;
+            sunDirection: scene _ sunDirection.
+
+        scene _ allNodesDo: {:(SceneNode ref)each :: Void |
+            each isLightSourceNode && lightingState numberOfLights < Woden Shaders MaxNumberOfLights ifTrue: {
+                let lightSourceData mutable := (each address reinterpretCastTo: LightSourceNode pointer) _ lightSourceData.
+                lightSourceData
+                    position: viewMatrix * lightSourceData position;
+                    spotDirection: (viewMatrix * Float32x4(lightSourceData spotDirection, 0)) xyz.
+
+                lightingState lightSources[lightingState numberOfLights] := lightSourceData.
+                lightingState numberOfLights := lightingState numberOfLights + 1.
+            }
+        }.
+
+    }.
+
+    method uploadSceneLightingState => Void := {
+        lightingStateBuffers current _ uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+    }.
+
+    method renderSpatialObjectNode: (objectNode: SpatialObjectNode pointer) with: (context: SceneRenderingContext ref) ::=> Void := {
         let renderable := objectNode _ renderable.
         renderable ifNotNil: {
-            renderable _ renderWithStateTracker: stateTracker _.
+            renderable _ renderWithContext: context.
         }
     }.
 
-    method renderSceneNodes => Void := {
+    method renderSceneNodesWith: (context: SceneRenderingContext ref) ::=> Void := {
         let scene := sceneRenderingPipeline _ scene.
         camera ifNil: {return: void}.
         scene ifNil: {return: void}.
 
         scene _ allNodesDo: {:(SceneNode ref)each :: Void |
             each isSpatialObjectNode ifTrue: {
-                self renderSpatialObjectNode: (each address castTo: SpatialObjectNode pointer)
+                self renderSpatialObjectNode: (each address castTo: SpatialObjectNode pointer) with: context
             }
         }.
     }.
@@ -209,13 +233,17 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             renderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
         }.
 
-        commandListAllocator _ resetAllocator.
+        let stateTracker := stateTrackers currentReseted.
+
+        self
+            gatherSceneLightingState;
+            uploadSceneLightingState.
+
         stateTracker _
-            resetFor: commandListAllocator;
 			useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
-            useGraphicShaderBindings: cameraStateBinding;
-            useGraphicShaderBindings: lightingStateBinding;
+            useGraphicShaderBindings: cameraStateBindings current;
+            useGraphicShaderBindings: lightingStateBindings current;
 
             frontFaceOrientation: FrontFaceOrientation CounterClockwise;
     		faceCullingMode: FaceCullingMode Back;
@@ -223,22 +251,23 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             depthWriteMask: true;
             depthFunction: CompareFunction GreaterOrEqual;
 
-            vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address;
-            fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders fragment shaderEntryPointInfo address;
-
             beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
     		setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
     		setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
 
-        self renderSceneNodes.
+        let renderingContext mutable := ForwardSceneRenderingContext()
+            stateTracker: stateTracker;
+            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            yourself.
+
+        self renderSceneNodesWith: renderingContext.
 
         stateTracker _
             endRenderPass;
             close.
 
         renderingCommandQueue _
-            submitCommandList: commandList;
-            waitForIdle.
+            submitCommandList: (stateTracker upCastFor: CommandList).
     }.
 }.
 

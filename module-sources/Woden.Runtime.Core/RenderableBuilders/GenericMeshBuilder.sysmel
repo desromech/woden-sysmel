@@ -43,6 +43,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
 
     method reset => Void := {
         currentColor := Float32x4 ones.
+        currentMaterial := engine _ resourceCache _ defaultMaterial.
         baseVertex := 0.
     }.
 
@@ -202,7 +203,73 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
             indexBuffer: indexBuffer;
             submeshes: submeshes.
         result upCastFor: Renderable
-    }
+    }.
+
+    method planeTextureScale: (texScale: Float32x2) offset: (texOffset: Float32x2) ::=> Void := {
+        self planeTextureTransform: Float32x3x3(
+            Float32x3(texScale x, 0, 0),
+            Float32x3(0, texScale y, 0),
+            Float32x3(texOffset, 1)
+        ).
+    }.
+
+    method planeTextureTransform: (textureMatrix: Float32x3x3) ::=> Void := {
+        vertices do: {:vertex :: Void |
+            let normal := vertex normal.
+            let position := vertex position.
+
+            ## Compute the predominant normal plane.
+    		let normalAxis := self computeNormalAxis: normal.
+    		let tangent := self tangentForAxis: normalAxis.
+    		let bitangent := self bitangentForAxis: normalAxis.
+
+    		## Compute the new texcoord
+    		let uv := Float32x2(tangent dot: position, bitangent dot: position).
+    		vertex texcoord: (textureMatrix * Float32x3(uv, 1)) xy.
+        }.
+    }.
+
+    method computeTangentsBitangents => Void := {
+        self finishLastSubmesh.
+
+        Stdn stdout << "TODO: computeTangentsBitangents"; nl.
+    }.
+
+    static global AxisVectors := Float32x3 array (
+        Float32x3(1, 0, 0),
+        Float32x3(-1, 0, 0),
+        Float32x3(0, 1, 0),
+        Float32x3(0, -1, 0),
+        Float32x3(0, 0, 1),
+        Float32x3(0, 0, -1),
+
+        ## Duplicate to avoid the modulo.
+        Float32x3(1, 0, 0),
+        Float32x3(-1, 0, 0),
+        Float32x3(0, 1, 0),
+        Float32x3(0, -1, 0),
+        Float32x3(0, 0, 1),
+        Float32x3(0, 0, -1)
+    ).
+
+    const method computeNormalAxis: (normal: Float32x3) ::=> UInt32 := {
+        let bestAmount mutable := Float32 negativeInfinity.
+        let best mutable := 0u.
+        0 until: 6 do: {:(UInt32)i :: Void |
+            let amount := normal dot: AxisVectors[i].
+            amount > bestAmount ifTrue: {
+                bestAmount := amount.
+                best := i.
+            }
+        }.
+        best
+    }.
+
+    const method tangentForAxis: (axis: UInt32) ::=> Float32x3
+        := AxisVectors[axis + 2].
+
+    const method bitangentForAxis: (axis: UInt32) ::=> Float32x3
+        := AxisVectors[axis + 4].
 }.
 
 compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder sharedPointer.

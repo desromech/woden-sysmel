@@ -1,3 +1,4 @@
+loadFileOnce: "ForwardSceneRenderingContext.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipeline.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipelineFactory.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipelineViewport.sysmel".

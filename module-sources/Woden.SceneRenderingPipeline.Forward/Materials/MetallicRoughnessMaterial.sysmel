@@ -1,30 +1,98 @@
 namespace Woden definition: {
 namespace Shaders definition: {
 
+function fresnelSchlick(F0: Float32x3, cosTheta: Float32) => Float32x3 := {
+    let powFactor := 1.0f - cosTheta.
+    let powFactor2 := powFactor * powFactor.
+    let powFactor4 := powFactor2 * powFactor2.
+    let powValue := powFactor4 * powFactor.
+
+    F0 + (Float32x3(1.0f, 1.0f, 1.0f) - F0) * powValue
+}.
+
+function fresnelSchlick(F0: Float32, cosTheta: Float32) => Float32 := {
+    let powFactor := 1.0f - cosTheta.
+    let powFactor2 := powFactor * powFactor.
+    let powFactor4 := powFactor2 * powFactor2.
+    let powValue := powFactor4 * powFactor.
+
+    F0 + (1.0f - F0) * powValue
+}.
+
+function computeLightFalloff(distance: Float32, radius: Float32) => Float32 := {
+	let a := distance / radius.
+	let a2 := a*a.
+	let a4 := a2*a2.
+	let num := 1.0f - a4 max: 0.0f.
+	num*num / (distance*distance + 1.0f).
+}.
+
+function ggxSpecularDistribution(alpha: Float32, cosTheta: Float32) => Float32 := {
+	let alphaSquare := alpha*alpha.
+	let den := cosTheta*cosTheta*(alphaSquare - 1.0f) + 1.0f.
+	alphaSquare / (Float32 pi * den*den).
+}.
+
+function specularDistribution(alpha: Float32, cosTheta: Float32) => Float32
+    := ggxSpecularDistribution(alpha, cosTheta).
+
+compileTime constant SquareRootOfTwoOverPi := 0.7978845608028654f.
+
+function smithSchlickBeckmannReciprocalFunction(k: Float32, cosTheta: Float32) => Float32
+    := cosTheta*(1.0f - k) + k.
+
+function cookTorranceSmithSchlickGGXMasking(alpha: Float32, NdotL: Float32, NdotV: Float32) => Float32 := {
+	let k := alpha * 0.5f.
+	1.0f / (4.0f*smithSchlickBeckmannReciprocalFunction(k, NdotL)*smithSchlickBeckmannReciprocalFunction(k, NdotV))
+}.
+
+function cookTorranceMasking(alpha: Float32, NdotL: Float32, NdotV: Float32) => Float32
+    := cookTorranceSmithSchlickGGXMasking(alpha, NdotL, NdotV).
+
 class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+    macro method materialState := ``(`,self materialStateBinding _ state _).
+    macro method albedoTexture := ``(`,self materialStateBinding _ texture0).
+    macro method normalTexture := ``(`,self materialStateBinding _ texture1).
+    macro method emissionTexture := ``(`,self materialStateBinding _ texture2).
+    macro method metallicRoughnessTexture := ``(`,self materialStateBinding _ texture3).
+
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
     }.
 
     class VertexIO definition: {
-
+        public field position type: Float32x3; location: 0.
+        public field texcoord type: Float32x2; location: 1.
+        public field color type: Float32x4; location: 2.
+        public field normal type: Float32x3; location: 3.
+        public field tangent type: Float32x3; location: 4.
+        public field bitangent type: Float32x3; location: 5.
     }.
 
-    function vertex vertexShader(in: GenericVertexInput inputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+    method transformNormal: (vector: Float32x3) ::=> Float32x3 := {
+        let worldNormal := Float32x4(vector, 0.0f).
+        (worldNormal * self cameraState inverseViewMatrix) xyz
+    }.
+
+    function vertex vertexShader(in: GenericVertexInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
         let input := in receive.
 
         let worldPosition := Float32x4(input position, 1.0f).
         let viewPosition := self cameraState viewMatrix * worldPosition.
         let screenPosition := self cameraState projectionMatrix * viewPosition.
 
-        #*let worldPosition := objectState _ transformationState _ modelMatrix * input position.
-        let viewPosition := cameraState _ transformationState _ viewMatrix * worldPosition.
-        let screenPosition := cameraState _ transformationState _ projectionMatrix * viewPosition.
+        let normal := self transformNormal: input normal.
+        let tangent := self transformNormal: input tangent4 xyz.
+        let bitangent := (normal cross: tangent) * input tangent4 w.
 
-        let output mutable := input.
-        output position: worldPosition.
-        out send: output.
-        *#
+        out send: (VertexIO()
+            position: viewPosition xyz;
+            texcoord: input texcoord;
+            color: self materialState albedo * input color;
+            normal: normal;
+            tangent: tangent;
+            bitangent: bitangent;
+            yourself).
 
         stageOut send: (GPU VertexStageOutput()
             screenPosition: screenPosition;
@@ -33,7 +101,71 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
     }.
 
     function fragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
-        out send: (FragmentOutput() color0: Float32x4 white)
+        let input := stageIn receive.
+
+        let P := input position.
+        let V := P negated normalized.
+
+        let N := input normal normalized.
+
+        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
+        let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
+
+        let metallic := self materialState metallicFactor.
+        let roughness := self materialState roughnessFactor.
+
+        let dielectricSpecular := Float32x3(0.04f, 0.04f, 0.04f).
+        let Cdiff := albedo rgb * (1.0f - dielectricSpecular r) interpolateTo: Float32x3 zeros at: metallic.
+        let F0 := dielectricSpecular interpolateTo: albedo rgb at: metallic.
+
+        let alpha := roughness*roughness.
+        let diff := Cdiff * Float32 piReciprocal.
+
+        let directRoughness := 0.05f interpolateTo: 1.0f at: roughness.
+    	let directAlpha := directRoughness*directRoughness.
+
+        let NdotV := (N dot: V) max: 0.0f.
+
+        ## Ambient lighting
+        let hemiFactor := (N dot: self globalLightingState sunDirection)*0.5f + 0.5f.
+        let hemiLightingFactor := self globalLightingState groundLighting
+            interpolateTo: self globalLightingState skyLighting
+            at: hemiFactor.
+
+        let result mutable := hemiLightingFactor rgb * Cdiff.
+
+        ## Accumulate the different lights.
+        0 until: self globalLightingState numberOfLights do: {:i :: Void |
+            let lightSource ref := self globalLightingState lightSources[i].
+
+            let L mutable := lightSource position xyz.
+            let dist mutable := 0.0f.
+            lightSource position w ~= 0 ifTrue: {
+                L := L - P.
+                dist := L length.
+                L := L / dist.
+            }.
+
+            let NdotL := (N dot: L) max: 0.0f.
+            NdotL > 0.0f ifTrue: {
+                let attenuation := computeLightFalloff(dist, lightSource radius).
+
+                ## Compute the specular input factors.
+                let H := (L + V) normalized.
+                let NdotH := (N dot: H) max: 0.0f.
+        		let VdotH := (V dot: H) max: 0.0f.
+
+                let F := fresnelSchlick(F0, VdotH).
+                let D := specularDistribution(directAlpha, NdotH).
+                let G := cookTorranceMasking(directAlpha, NdotL, NdotV).
+
+                result := result + lightSource intensity rgb * (diff + F*D*G) * (attenuation * Float32 pi * NdotL).
+            }.
+        }.
+
+        out send: (FragmentOutput()
+            color0: Float32x4(result, 1.0f);
+            yourself)
     }.
 }.
 

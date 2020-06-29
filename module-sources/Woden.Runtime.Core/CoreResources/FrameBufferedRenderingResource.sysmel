@@ -1,0 +1,18 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a helper for keeping track of resources that need to be created and handled in a per-frame basis.
+ *#
+class FrameBufferedRenderingResource definition: {
+    public field engine type: EnginePtr.
+
+    method frameBufferingIndex => UInt32
+        := engine _ frameBufferingIndex.
+
+    const inline method isCreated => Boolean8
+        := engine isNotNil.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

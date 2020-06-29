@@ -5,28 +5,52 @@ namespace Runtime definition: {
  * I represent a light source in the Woden scene graph.
  *#
 class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
-    method makePoint => Void := {
+    private field state type: Woden Shaders LightSourceData.
+    private field lightSourceType type: LightSourceType.
 
+    method lightSourceData => Woden Shaders LightSourceData := {
+        let result mutable := state.
+        let globalTransform := self globalTransform.
+
+        lightSourceType selectCase: #{
+        LightSourceType Point : {
+            result position: Float32x4(globalTransform translation, 1.0)
+        }.
+        LightSourceType Directional : {
+            result position: Float32x4(globalTransform transformVector: Float32x3(0, 0, 1), 0.0).
+        }.
+        LightSourceType Spot : {
+            result position: Float32x4(globalTransform translation, 0.0).
+            result spotDirection: (globalTransform transformVector: Float32x3(0, 0, 1)).
+        }.
+        }.
+
+        result
+    }.
+
+    method makePoint => Void := {
+        lightSourceType := LightSourceType Point.
     }.
 
     method makeDirectional => Void := {
-
+        lightSourceType := LightSourceType Directional.
     }.
 
     method makeSpot => Void := {
-
+        lightSourceType := LightSourceType Spot.
     }.
 
     method radius: (radius: Float32) ::=> Void := {
-
+        state radius: radius
     }.
 
     method intensity: (intensity: Float32x4) ::=> Void := {
-
+        state intensity: intensity
     }.
 
     const override method isLightSourceNode => Boolean8
         := true.
+
 }.
 
 compileTime constant LightSourceNodePtr := LightSourceNode sharedPointer.

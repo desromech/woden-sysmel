@@ -1,7 +1,26 @@
 namespace Woden definition: {
 namespace Shaders definition: {
 
+compileTime constant MaxNumberOfLights := 16.
+
 struct GlobalLightingStateData definition: {
+
+    ## Hemisphere lighting
+    public field groundLighting type: Float32x4.
+    public field skyLighting type: Float32x4.
+
+    ## Shadow mapping extents
+    public field shadowMapExtent type: Float32x2.
+    public field shadowMapInverseExtent type: Float32x2.
+
+    ## Normal lights
+    ## FIXME: support this kind of layouts properly with LLVM!
+    ##public sunDirection type: Float32x3;
+    macro method sunDirection := `'(Float32x3(0, 1, 0)).
+    method sunDirection: (value: Float32x3) ::=> Void := {}.
+
+    public field numberOfLights type: Int32.
+    public field lightSources type: (LightSourceData array: MaxNumberOfLights).
 }.
 
 }. ## End of namespace Shaders

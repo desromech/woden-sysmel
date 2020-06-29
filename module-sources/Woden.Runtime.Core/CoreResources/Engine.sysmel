@@ -4,6 +4,8 @@ namespace Runtime definition: {
 useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Graphics GUI.
 
+compileTime constant FrameBufferingCount := 3.
+
 #**
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
@@ -11,6 +13,12 @@ class Engine superclass: Stdn SharedObject; definition: {
     protected field windowSystem type: WindowSystemRef.
     protected field renderingDevice type: RenderingDevicePtr.
     protected field resourceCache type: ResourceCachePtr.
+
+    protected field renderingProcessesMutex type: Stdn Mutex.
+    protected field renderingProcesses type: Stdn Collections Vector(RenderingProcessWeakPtr).
+
+    protected field frameBufferingIndex type: UInt32.
+    protected field syncronizationFences type: (FencePtr array: FrameBufferingCount).
 
     const inline method windowSystem => WindowSystemRef const ref
         := windowSystem.
@@ -21,6 +29,21 @@ class Engine superclass: Stdn SharedObject; definition: {
     const inline method resourceCache => ResourceCachePtr const ref
         := resourceCache.
 
+    const inline method frameBufferingIndex => UInt32
+        := frameBufferingIndex.
+
+    method registerRenderingProcess: (process: RenderingProcessWeakPtr) ::=> Void := {
+        renderingProcessesMutex withLock: {
+            renderingProcesses add: process
+        }.
+    }.
+
+    method unregisterRenderingProcess: (process: RenderingProcessWeakPtr) ::=> Void := {
+        renderingProcessesMutex withLock: {
+            renderingProcesses remove: process
+        }.
+    }.
+
     method initializeEngine => Boolean8 := {
         windowSystem := createDefaultWindowSystem().
         windowSystem ifNil: { return: false }.
@@ -30,15 +53,121 @@ class Engine superclass: Stdn SharedObject; definition: {
         renderingDevice := RenderingDriverRegistry defaultDriver _ getMainDevice.
         renderingDevice ifNil: {return: false }.
 
+        resourceCache := ResourceCache sharedNew.
+        resourceCache _ initializeWithEngine: self asSharedPointer.
+
         true
     }.
 
+    private field globalEventHandler type: EngineGlobalEventHandlerPtr.
+
     method runMainLoop => Int32 := {
-        windowSystem _ runMainLoop
+        globalEventHandler := EngineGlobalEventHandler sharedNew.
+        globalEventHandler _ engineWeakPtr: self asWeakPointer.
+        windowSystem _ registerGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
+
+        let result := windowSystem _ runMainLoop.
+
+        windowSystem _ unregisterGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
+
+        result
+    }.
+
+    method runMainLoopAndQuit => Int32 := {
+        let result := self runMainLoop.
+        self quit.
+        result
+    }.
+
+    method quit => Void := {
+        ## Break the cycle between the resource cache and the engine.
+        resourceCache reset.
+    }.
+
+    method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        let thisFrameProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
+        let thisFrameRenderingProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
+
+        ## Get a copy of the rendering processes for this frame.
+        renderingProcessesMutex withLock: {
+            thisFrameProcesses reserve: renderingProcesses size.
+            renderingProcesses do: {:each :: Void |
+                let process := each lock.
+                process ifNotNil: {
+                    thisFrameProcesses add: process
+                }.
+            }
+        }.
+
+        ## Send the tick event to the rendering processes.
+        thisFrameProcesses do: {:each :: Void |
+            each _ onStartFrameTick: event
+        }.
+
+        ## Select the rendering processes that need to render.
+        thisFrameRenderingProcesses reserve: renderingProcesses size.
+        thisFrameProcesses do: {:each :: Void |
+            each _ needsToRender ifTrue: {
+                thisFrameRenderingProcesses add: each.
+            }.
+        }.
+
+        thisFrameRenderingProcesses ifEmpty: {
+            return: void
+        }.
+
+        let fence ref := syncronizationFences[frameBufferingIndex].
+        fence ifNotNil: {
+            fence _ wait
+        }.
+
+        ## First phase: prepare rendering.
+        thisFrameRenderingProcesses do: {:each :: Void |
+            each _ prepareRendering.
+        }.
+
+        ## Second phase: command list construction
+        thisFrameRenderingProcesses do: {:each :: Void |
+            each _ constructRenderingCommandList.
+        }.
+
+        ## Third phase: command list submission
+        thisFrameRenderingProcesses do: {:each :: Void |
+            each _ sendRenderingCommandList.
+        }.
+
+        ## Fourth phase: drawing surface commiting
+        thisFrameRenderingProcesses do: {:each :: Void |
+            each _ commitSurfaces.
+        }.
+
+        fence ifNil: {
+            fence := renderingDevice _ createFence
+        }.
+
+        fence ifNotNil: {
+            renderingDevice _ getDefaultCommandQueue _ signalFence: fence
+        }.
+        frameBufferingIndex := (frameBufferingIndex + 1) % FrameBufferingCount.
     }.
 }.
 
 compileTime constant EnginePtr := Engine sharedPointer.
+compileTime constant EngineWeakPtr := Engine weakPointer.
+
+class EngineGlobalEventHandler superclass: EventHandler; definition: {
+    public field engineWeakPtr type: EngineWeakPtr.
+
+    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        let engine := engineWeakPtr lock.
+        engine ifNotNil: {
+            engine _ onTickEvent: event
+        }
+    }.
+}.
+
+compileTime constant EngineGlobalEventHandlerPtr := EngineGlobalEventHandler sharedPointer.
+
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

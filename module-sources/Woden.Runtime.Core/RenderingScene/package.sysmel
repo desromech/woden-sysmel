@@ -1,0 +1,4 @@
+loadFileOnce: "AbstractRenderingSceneObject.sysmel".
+loadFileOnce: "RenderingSceneLightSource.sysmel".
+loadFileOnce: "RenderingSceneRenderable.sysmel".
+loadFileOnce: "SceneRenderingContext.sysmel".

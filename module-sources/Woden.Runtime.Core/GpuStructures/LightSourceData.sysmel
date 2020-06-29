@@ -1,0 +1,34 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct LightSourceData definition: {
+	<gpu>
+    public field position type: Float32x4.
+    public field intensity type: Float32x4.
+
+    ## FIXME: Support this kind of layouts properly with LLVM!
+    ##public field spotDirection type: Float32x3.
+    ##public field shadowMapLayer type: Float32.
+    macro method spotDirection := `'(Float32x3(0, 1, 0)).
+    method spotDirection: (v: Float32x3) ::=> Void := {}.
+
+    macro method shadowMapLayer := `'0.
+    method shadowMapLayer: (v: Float32) ::=> Void := {}.
+
+    public field innerCosCutoff type: Float32.
+    public field outerCosCutoff type: Float32.
+    public field spotExponent type: Float32.
+    public field radius type: Float32.
+
+    public field cascadeSplitOffsets type: Float32x4.
+    public field cascadeFrustumPlane type: Float32x4.
+
+	public field shadowMapTransform type: Float32x4x4.
+    public field shadowMapTransform2 type: Float32x4x4.
+    public field shadowMapTransform3 type: Float32x4x4.
+    public field shadowMapTransform4 type: Float32x4x4.
+}.
+
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

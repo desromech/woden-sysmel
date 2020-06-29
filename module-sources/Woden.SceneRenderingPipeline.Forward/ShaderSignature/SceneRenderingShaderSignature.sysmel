@@ -5,6 +5,9 @@ class CommonSceneRenderingShaderSignature definition: {
     public field samplingStateBinding type: SamplingStateBinding bindingSetPointer.
     public field cameraStateBinding type: CameraStateBinding bindingSetPointer.
 
+    macro method albedoSampler := ``(`,self samplingStateBinding _ albedoSampler).
+    macro method normalSampler := ``(`,self samplingStateBinding _ normalSampler).
+
     macro method cameraState := ``(`,self cameraStateBinding _ state _ ).
 }.
 
@@ -14,6 +17,7 @@ class ForwardSceneRenderingShaderSignature superclass: CommonSceneRenderingShade
     public field renderableStateBinding type: RenderableStateBinding bindingSetPointer.
     public field materialStateBinding type: MaterialStateBinding bindingSetPointer.
 
+    macro method globalLightingState := ``(`,self lightingStateBinding _ state _ ).
     macro method objectState := ``(`,self objectStateBinding _ state _ ).
 }.
 

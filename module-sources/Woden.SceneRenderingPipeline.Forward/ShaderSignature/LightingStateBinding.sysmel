@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace Shaders definition: {
 
 class LightingStateBinding definition: {
+    public field state type: GlobalLightingStateData uniformBufferPointer.
 }.
 
 }. ## End of namespace Shaders

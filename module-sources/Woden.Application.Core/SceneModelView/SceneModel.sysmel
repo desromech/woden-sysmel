@@ -50,6 +50,14 @@ class SceneModel superclass: Model; definition: {
 
         sceneRenderingPipeline
     }.
+
+    override method needsToRender => Boolean8
+        := true.
+
+    override method prepareRendering => Void := {
+        super prepareRendering.
+        
+    }.
 }.
 
 compileTime constant SceneModelPtr := SceneModel sharedPointer

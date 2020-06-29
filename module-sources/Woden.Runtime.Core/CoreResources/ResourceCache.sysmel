@@ -9,7 +9,116 @@ useNamespace: Stdn Graphics GUI.
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
 class ResourceCache superclass: Stdn SharedObject; definition: {
+    private field engine type: EnginePtr.
 
+    const inline method engine => EnginePtr const ref
+        := engine.
+
+    private field defaultMaterial type: MaterialPtr.
+
+    const inline method defaultMaterial => MaterialPtr const ref
+        := defaultMaterial.
+
+    private field checkboardMaterial type: MaterialPtr.
+
+    const inline method checkboardMaterial => MaterialPtr const ref
+        := checkboardMaterial.
+
+    private field whiteTexture type: TexturePtr.
+
+    const inline method whiteTexture => TexturePtr const ref
+        := whiteTexture.
+
+    private field blackTexture type: TexturePtr.
+
+    const inline method blackTexture => TexturePtr const ref
+        := blackTexture.
+
+    private field transparentTexture type: TexturePtr.
+
+    const inline method transparentTexture => TexturePtr const ref
+        := transparentTexture.
+
+    private field checkboardTexture type: TexturePtr.
+
+    const inline method checkboardTexture => TexturePtr const ref
+        := checkboardTexture.
+
+    private field neutralNormalTexture type: TexturePtr.
+
+    const inline method neutralNormalTexture => TexturePtr const ref
+        := neutralNormalTexture.
+
+    method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+        engine := anEngine.
+
+        whiteTexture := self createTextureWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
+        blackTexture := self createTextureWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
+        transparentTexture := self createTextureWithSolidColor: UInt8x4 zeros format: PixelFormat R8G8B8A8_UNorm.
+        neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(128, 128, 255, 0) format: PixelFormat R8G8B8A8_UNorm.
+        checkboardTexture := self createCheckboardTexture.
+
+        defaultMaterial := (MetallicRoughnessMaterial for: engine) upCastFor: Material.
+        checkboardMaterial := {
+            let material := MetallicRoughnessMaterial for: engine.
+            material _ albedoTexture: checkboardTexture.
+            material upCastFor: Material
+        }
+    }.
+
+    method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TexturePtr := {
+        let device := engine _ renderingDevice.
+        let texture := device _ createTexture: (TextureDescription()
+            type: TextureType Texture2D;
+            width: 1;
+            height: 1;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: format;
+            usageModes: TextureUsageMode CopyDestination | TextureUsageMode Sampled;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: 1;
+            yourself).
+
+        let data mutable := color.
+        texture _ uploadTextureLevel: 0 layer: 0 pitch: 4 slicePitch: 4 data: data address.
+        texture
+    }.
+
+    method createCheckboardTexture => TexturePtr := {
+        let device := engine _ renderingDevice.
+        let texture := device _ createTexture: (TextureDescription()
+            type: TextureType Texture2D;
+            width: 64;
+            height: 64;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: PixelFormat R8G8B8A8_UNormSRGB;
+            usageModes: TextureUsageMode CopyDestination | TextureUsageMode Sampled;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: 1;
+            yourself).
+
+        let data mutable type: (UInt8x4 array: 64*64).
+
+        let destIndex mutable := 0.
+        0 until: 64 do: {:y :: Void |
+            let cellY := (y / 16) % 2.
+            0 until: 64 do: {:x :: Void |
+                let cellX := (x / 16) % 2.
+                let isWhite := (cellX ^ cellY) anyMask: 1.
+                data[destIndex] := isWhite ifTrue: UInt8x4(255, 255, 255, 255) ifFalse: UInt8x4(0, 0, 0, 255).
+                destIndex := destIndex + 1.
+            }
+        }.
+
+        texture _ uploadTextureLevel: 0 layer: 0 pitch: 4*64 slicePitch: 4*64*64 data: data address.
+        texture
+    }.
 }.
 
 compileTime constant ResourceCachePtr := ResourceCache sharedPointer.

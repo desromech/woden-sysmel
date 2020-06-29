@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+#**
+ * I represent a 3D scene with rendering only objects.
+ *#
+class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
+}.
+
+compileTime constant AbstractSpatialObjectPtr := AbstractSpatialObject sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

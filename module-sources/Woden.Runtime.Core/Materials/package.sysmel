@@ -1,1 +1,3 @@
 loadFileOnce: "Material.sysmel".
+loadFileOnce: "MetallicRoughnessMaterial.sysmel".
+loadFileOnce: "UnlitMaterial.sysmel".

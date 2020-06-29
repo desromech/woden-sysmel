@@ -49,6 +49,20 @@ class View superclass: EventHandler; definition: {
 
     virtual method buildWindowScene2DWith: (scene2DBuilder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr
         := Stdn Graphics Scene2D NodePtr nil.
+
+    virtual method prepareRendering => Void := {
+    }.
+
+    virtual method constructRenderingCommandList => Void := {
+    }.
+
+    virtual method sendRenderingCommandList => Void := {
+
+    }.
+
+    virtual method commitSurfaces => Void := {
+
+    }.
 }.
 
 compileTime constant ViewPtr := View sharedPointer

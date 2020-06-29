@@ -1,5 +1,4 @@
 Compiler importModulesNamed: #(
-    #"Sysmel.Graphics.Driver.Common" ## For GenericStateTracker
     #"Woden.Runtime.Core"
 ); loadPackages: #(
     ShaderSignature

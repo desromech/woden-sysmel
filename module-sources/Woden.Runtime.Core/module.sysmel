@@ -5,7 +5,9 @@ Compiler importModulesNamed: #(
     CoreResources
     GpuStructures
     Materials
+    SpatialObject
     Renderables
+    RenderingScene
     RenderableBuilders
     SceneGraph
     RenderingPipeline

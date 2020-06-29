@@ -7,7 +7,6 @@ useNamespace: Woden Runtime.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
     let scene := model newScene.
-    scene _ backgroundColor: 0.1f.
 
     ## Setup the camera
     {

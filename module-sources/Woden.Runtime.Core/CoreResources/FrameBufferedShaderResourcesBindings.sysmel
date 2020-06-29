@@ -1,0 +1,25 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I keep track of a state tracker and its corresponding command list allocator in a per frame basis.
+ *#
+class FrameBufferedShaderResourcesBindings superclass: FrameBufferedRenderingResource; definition: {
+    public field bindings type: (ShaderResourceBindingsPtr array: FrameBufferingCount).
+
+    method for: (anEngine: EnginePtr const ref) createForShaderSignature: (shaderSignature: ShaderSignaturePtr const ref) bindingSet: (bindingSetIndex: UInt32) ::=> Void := {
+        engine := anEngine.
+
+        0 until: FrameBufferingCount do: {:i :: Void |
+            bindings[i] := shaderSignature _ createShaderResourceBindings: bindingSetIndex
+        }
+    }.
+
+    method current => ShaderResourceBindingsPtr const ref
+        := bindings[self frameBufferingIndex].
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

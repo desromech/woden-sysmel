@@ -2,6 +2,12 @@ namespace Woden definition: {
 namespace Shaders definition: {
 
 class MaterialStateBinding definition: {
+    public field state type: MetallicRoughnessMaterialStateData uniformBufferPointer.
+    public field texture0 type: GPU Texture2D.
+    public field texture1 type: GPU Texture2D.
+    public field texture2 type: GPU Texture2D.
+    public field texture3 type: GPU Texture2D.
+    public field texture4 type: GPU Texture2D.
 }.
 
 }. ## End of namespace Shaders

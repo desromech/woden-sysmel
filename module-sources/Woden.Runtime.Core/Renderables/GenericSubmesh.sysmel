@@ -12,8 +12,11 @@ class GenericSubmesh definition: {
     public field primitiveTopology type: PrimitiveTopology.
     public field material type: MaterialPtr.
 
-    virtual method renderWithStateTracker: (stateTracker: StateTracker ref) ::=> Void := {
-        stateTracker
+    method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
+        material ifNil: {return: void}.
+        (context activateMaterial: material) ifFalse: { return: void }.
+
+        context stateTracker _
             primitiveTopology: primitiveTopology;
 			drawElements: indexCount instanceCount: 1 firstIndex: firstIndex baseVertex: 0 baseInstance: 0.
     }.
