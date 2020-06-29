@@ -232,7 +232,88 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     method computeTangentsBitangents => Void := {
         self finishLastSubmesh.
 
-        Stdn stdout << "TODO: computeTangentsBitangents"; nl.
+        let tangents mutable type: Stdn Collections Vector(Float32x3).
+        let bitangents mutable type: Stdn Collections Vector(Float32x3).
+        tangents resizeTo: vertices size.
+        bitangents resizeTo: vertices size.
+        submeshes do: {:each :: Void |
+            self computeTangentsBitangentsFor: each tangents: tangents bitangents: bitangents
+        }.
+
+        0 until: vertices size do: {:i :: Void |
+            let vertex ref := vertices[i].
+
+            let normal := vertex normal.
+            let tangent mutable := tangents[i].
+            let bitangent mutable := bitangents[i].
+
+            ## Gram schmidth orthogonalization
+            tangent := (tangent - (normal * (normal dot: tangent))) normalized.
+            bitangent := (bitangent - (normal * (normal dot: bitangent)) - (tangent * (tangent dot: bitangent))) normalized.
+            let scaleFactor := (normal cross: tangent) dot: bitangent.
+            vertex tangent4: Float32x4(tangent, scaleFactor)
+        }
+    }.
+
+    method computeTangentsBitangentsFor: (submesh: SubmeshType ref)
+        tangents: (tangents: Stdn Collections Vector(Float32x3) ref)
+        bitangents: (bitangents: Stdn Collections Vector(Float32x3) ref) ::=> Void := {
+        submesh primitiveTopology = PrimitiveTopology Triangles ifFalse: {
+            return: void
+        }.
+
+        let triangleCount := submesh indexCount / 3.
+        let indexBase := submesh firstIndex.
+
+        let i1 mutable := indexBase.
+        let i2 mutable := indexBase + 1.
+        let i3 mutable := indexBase + 2.
+        0 until: triangleCount do: {:ti :: Void |
+            let vi1 := indices[i1].
+            let vi2 := indices[i2].
+            let vi3 := indices[i3].
+
+            let v1 ref := vertices[vi1].
+            let v2 ref := vertices[vi2].
+            let v3 ref := vertices[vi3].
+
+            let p1 := v1 position.
+            let p2 := v2 position.
+            let p3 := v3 position.
+
+            let tc1 := v1 texcoord.
+            let tc2 := v2 texcoord.
+            let tc3 := v3 texcoord.
+
+            let u := p2 - p1.
+            let v := p3 - p1.
+
+            let du1 := tc2 x - tc1 x.
+            let dv1 := tc2 y - tc1 y.
+
+            let du2 := tc3 x - tc1 x.
+            let dv2 := tc3 y - tc1 y.
+
+            let det := (du1*dv2) - (du2*dv1).
+            (det closeTo: 0.0) ifFalse: {
+                let den := 1.0 / det.
+
+                let tangent := (u * (den*dv2))  - (v * (den*dv1)).
+                let bitangent := (v * (den*du1)) - (u * (den*du2)).
+
+                tangents[vi1] := tangents[vi1] + tangent.
+                tangents[vi2] := tangents[vi2] + tangent.
+                tangents[vi3] := tangents[vi3] + tangent.
+
+                bitangents[vi1] := bitangents[vi1] + bitangent.
+                bitangents[vi2] := bitangents[vi2] + bitangent.
+                bitangents[vi3] := bitangents[vi3] + bitangent.
+            }.
+
+            i1 := i1 + 3.
+            i2 := i2 + 3.
+            i3 := i3 + 3.
+        }.
     }.
 
     static global AxisVectors := Float32x3 array (

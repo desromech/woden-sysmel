@@ -1,1 +1,2 @@
+loadFileOnce: "ForwardLightingShader.sysmel".
 loadFileOnce: "GlobalLightingStateData.sysmel".

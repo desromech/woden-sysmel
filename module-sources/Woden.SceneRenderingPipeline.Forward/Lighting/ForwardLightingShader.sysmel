@@ -1,0 +1,158 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+function fresnelSchlick(F0: Float32x3, cosTheta: Float32) => Float32x3 := {
+    let powFactor := 1.0f - cosTheta.
+    let powFactor2 := powFactor * powFactor.
+    let powFactor4 := powFactor2 * powFactor2.
+    let powValue := powFactor4 * powFactor.
+
+    F0 + (Float32x3(1.0f, 1.0f, 1.0f) - F0) * powValue
+}.
+
+function fresnelSchlick(F0: Float32, cosTheta: Float32) => Float32 := {
+    let powFactor := 1.0f - cosTheta.
+    let powFactor2 := powFactor * powFactor.
+    let powFactor4 := powFactor2 * powFactor2.
+    let powValue := powFactor4 * powFactor.
+
+    F0 + (1.0f - F0) * powValue
+}.
+
+function computeLightFalloff(distance: Float32, radius: Float32) => Float32 := {
+	let a := distance / radius.
+	let a2 := a*a.
+	let a4 := a2*a2.
+	let num := 1.0f - a4 max: 0.0f.
+	num*num / (distance*distance + 1.0f).
+}.
+
+function ggxSpecularDistribution(alpha: Float32, cosTheta: Float32) => Float32 := {
+	let alphaSquare := alpha*alpha.
+	let den := cosTheta*cosTheta*(alphaSquare - 1.0f) + 1.0f.
+	alphaSquare / (Float32 pi * den*den).
+}.
+
+function specularDistribution(alpha: Float32, cosTheta: Float32) => Float32
+    := ggxSpecularDistribution(alpha, cosTheta).
+
+compileTime constant SquareRootOfTwoOverPi := 0.7978845608028654f.
+
+function smithSchlickBeckmannReciprocalFunction(k: Float32, cosTheta: Float32) => Float32
+    := cosTheta*(1.0f - k) + k.
+
+function cookTorranceSmithSchlickGGXMasking(alpha: Float32, NdotL: Float32, NdotV: Float32) => Float32 := {
+	let k := alpha * 0.5f.
+	1.0f / (4.0f*smithSchlickBeckmannReciprocalFunction(k, NdotL)*smithSchlickBeckmannReciprocalFunction(k, NdotV))
+}.
+
+function cookTorranceMasking(alpha: Float32, NdotL: Float32, NdotV: Float32) => Float32
+    := cookTorranceSmithSchlickGGXMasking(alpha, NdotL, NdotV).
+
+struct LightingParameters definition: {
+    public field P type: Float32x3.
+    public field V type: Float32x3.
+    public field N type: Float32x3.
+
+    public field emission type: Float32x3.
+    public field Cdiff type: Float32x3.
+    public field F0 type: Float32x3.
+    public field alpha type: Float32.
+    public field directAlpha type: Float32.
+}.
+
+struct MetallicRoughnessLightingParameters definition: {
+    public field P type: Float32x3.
+    public field V type: Float32x3.
+    public field N type: Float32x3.
+
+    public field emission type: Float32x3.
+    public field albedo type: Float32x3.
+    public field metallic type: Float32x3.
+    public field roughness type: Float32.
+
+    method asGenericLightingParameters => LightingParameters := {
+        let dielectricSpecular := Float32x3(0.04f, 0.04f, 0.04f).
+
+        let Cdiff := albedo rgb * (1.0f - dielectricSpecular r) interpolateTo: Float32x3 zeros at: metallic.
+        let F0 := dielectricSpecular interpolateTo: albedo rgb at: metallic.
+
+        let alpha := roughness * roughness.
+        let directRoughness := 0.05f interpolateTo: 1.0f at: roughness.
+        let directAlpha := directRoughness*directRoughness.
+        LightingParameters()
+            P: P;
+            V: V;
+            N: N;
+            emission: emission;
+            Cdiff: Cdiff;
+            F0: F0;
+            alpha: alpha;
+            directAlpha: directAlpha;
+            yourself
+    }.
+}.
+
+class ForwardSceneRenderingShaderSignature; definition: {
+
+    method computeForwardLightingWith: (lightingParameters: MetallicRoughnessLightingParameters) ::=> Float32x4 := {
+        self computeForwardLightingWith: lightingParameters asGenericLightingParameters
+    }.
+
+    method computeForwardLightingWith: (lightingParameters: LightingParameters) ::=> Float32x4 := {
+        let P := lightingParameters P.
+        let V := lightingParameters V.
+        let N := lightingParameters N.
+
+        let emission := lightingParameters emission.
+        let Cdiff := lightingParameters Cdiff.
+        let F0 := lightingParameters F0.
+        let alpha := lightingParameters alpha.
+        let directAlpha := lightingParameters directAlpha.
+
+        let diff := Cdiff * Float32 piReciprocal.
+        let NdotV := (N dot: V) max: 0.0f.
+
+        ## Ambient lighting
+        let hemiFactor := (N dot: self globalLightingState sunDirection)*0.5f + 0.5f.
+        let hemiLightingFactor := self globalLightingState groundLighting
+            interpolateTo: self globalLightingState skyLighting
+            at: hemiFactor.
+
+        let result mutable := hemiLightingFactor rgb * Cdiff.
+
+        ## Accumulate the different lights.
+        0 until: self globalLightingState numberOfLights do: {:i :: Void |
+            let lightSource ref := self globalLightingState lightSources[i].
+
+            let L mutable := lightSource position xyz.
+            let dist mutable := 0.0f.
+            lightSource position w ~= 0 ifTrue: {
+                L := L - P.
+                dist := L length.
+                L := L / dist.
+            }.
+
+            let NdotL := (N dot: L) max: 0.0f.
+            NdotL > 0.0f ifTrue: {
+                let attenuation := computeLightFalloff(dist, lightSource radius).
+
+                ## Compute the specular input factors.
+                let H := (L + V) normalized.
+                let NdotH := (N dot: H) max: 0.0f.
+        		let VdotH := (V dot: H) max: 0.0f.
+
+                let F := fresnelSchlick(F0, VdotH).
+                let D := specularDistribution(directAlpha, NdotH).
+                let G := cookTorranceMasking(directAlpha, NdotL, NdotV).
+
+                result := result + lightSource intensity rgb * (diff + F*D*G) * (attenuation * Float32 pi * NdotL).
+            }.
+        }.
+
+        Float32x4(result, 1.0f)
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

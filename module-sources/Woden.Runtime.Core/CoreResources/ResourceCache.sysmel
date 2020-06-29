@@ -119,6 +119,20 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ uploadTextureLevel: 0 layer: 0 pitch: 4*64 slicePitch: 4*64*64 data: data address.
         texture
     }.
+
+    method loadColorTextureFrom: (fileName: Stdn String const ref) ::=> TexturePtr := {
+        let textureData := TextureData readFromFileNamed: fileName.
+        textureData ifNil: {return: TexturePtr nil}.
+
+        engine _ renderingDevice _ createColorTextureWithData: textureData _.
+    }.
+
+    method loadTextureFrom: (fileName: Stdn String const ref) ::=> TexturePtr := {
+        let textureData := TextureData readFromFileNamed: fileName.
+        textureData ifNil: {return: TexturePtr nil}.
+
+        engine _ renderingDevice _ createTextureWithData: textureData _.
+    }.
 }.
 
 compileTime constant ResourceCachePtr := ResourceCache sharedPointer.
