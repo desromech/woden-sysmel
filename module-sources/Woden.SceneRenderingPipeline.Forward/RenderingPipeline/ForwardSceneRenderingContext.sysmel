@@ -39,8 +39,14 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
 
         stateTracker _
             useGraphicShaderBindings: material stateBinding;
-            vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address;
-            fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders fragment shaderEntryPointInfo address.
+            vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address.
+        material normalTexture ifNil: {
+            stateTracker _
+                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders flatNormalFragment shaderEntryPointInfo address.
+        } ifNotNil: {
+            stateTracker _
+                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders normalMappedFragment shaderEntryPointInfo address.
+        }.
 
         true
     }.

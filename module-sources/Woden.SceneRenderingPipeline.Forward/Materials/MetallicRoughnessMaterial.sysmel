@@ -55,7 +55,36 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         ).
     }.
 
-    function fragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+    function flatNormalFragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := stageIn receive.
+
+        let P := input position.
+        let V := P negated normalized.
+
+        let N := input normal normalized.
+
+        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
+        let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
+
+        let metallic := self materialState metallicFactor.
+        let roughness := self materialState roughnessFactor.
+
+        let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
+            P: P;
+            V: P negated normalized;
+            N: N;
+            emission: emission rgb;
+            albedo: albedo rgb;
+            metallic: metallic;
+            roughness: roughness;
+            yourself).
+
+        out send: (FragmentOutput()
+            color0: lightingResult;
+            yourself)
+    }.
+
+    function normalMappedFragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
         let input := stageIn receive.
 
         let P := input position.
