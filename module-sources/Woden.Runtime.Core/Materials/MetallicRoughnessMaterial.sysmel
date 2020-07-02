@@ -25,6 +25,18 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field emissionTexture type: TexturePtr.
     public field metallicRoughnessTexture type: TexturePtr.
 
+    const inline method albedoColor => Float32x4
+        := state albedo.
+
+    inline method albedoColor: (color: Float32x4) ::=> Void
+        := state albedo: color.
+
+    const inline method emissionColor => Float32x4
+        := state emission.
+
+    inline method emissionColor: (color: Float32x4) ::=> Void
+        := state emission: color.
+
     const inline method roughnessFactor => Float32
         := state roughnessFactor.
 

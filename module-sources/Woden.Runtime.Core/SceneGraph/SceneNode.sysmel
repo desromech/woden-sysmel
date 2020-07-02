@@ -102,6 +102,61 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         children add: aChild.
     }.
 
+    inline method rotateDegreesOnX: (x: Float32) ::=> Void := {
+        transform rotateDegreesOnX: x.
+        self transformChanged.
+    }.
+
+    inline method rotateDegreesOnY: (y: Float32) ::=> Void := {
+        transform rotateDegreesOnY: y.
+        self transformChanged.
+    }.
+
+    inline method rotateDegreesOnZ: (z: Float32) ::=> Void := {
+        transform rotateDegreesOnY: z.
+        self transformChanged.
+    }.
+
+    inline method rotateRadiansOnX: (x: Float32) ::=> Void := {
+        transform rotateRadiansOnX: x.
+        self transformChanged.
+    }.
+
+    inline method rotateRadiansOnY: (y: Float32) ::=> Void := {
+        transform rotateRadiansOnY: y.
+        self transformChanged.
+    }.
+
+    inline method rotateRadiansOnZ: (z: Float32) ::=> Void := {
+        transform rotateRadiansOnY: z.
+        self transformChanged.
+    }.
+
+    inline method translateToX: (x: Float32) ::=> Void := {
+        transform translateToX: x.
+        self transformChanged.
+    }.
+
+    inline method translateToY: (y: Float32) ::=> Void := {
+        transform translateToY: y.
+        self transformChanged.
+    }.
+
+    inline method translateToZ: (z: Float32) ::=> Void := {
+        transform translateToZ: z.
+        self transformChanged.
+    }.
+
+    inline method translateToX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
+        transform translateToX: x y: y z: z.
+        self transformChanged.
+    }.
+
+    inline method translateTo: (delta: Float32x3) ::=> Void := {
+        transform translateTo: delta.
+        self transformChanged.
+    }.
+
     inline method translateByX: (x: Float32) ::=> Void := {
         transform translateByX: x.
         self transformChanged.
@@ -126,7 +181,7 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         transform translateBy: delta.
         self transformChanged.
     }.
-    
+
     method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
         children do: {:each :: Void |
             each _ withAllNodesDo: aBlock

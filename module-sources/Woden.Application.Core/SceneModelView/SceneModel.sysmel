@@ -27,6 +27,7 @@ class SceneModel superclass: Model; definition: {
 
     virtual method newScene => ScenePtr := {
         let newScene := Scene sharedNew.
+        newScene _ engine: self engine.
         let newCamera := Camera sharedNew.
 
         mainCamera := newCamera.
@@ -56,7 +57,7 @@ class SceneModel superclass: Model; definition: {
 
     override method prepareRendering => Void := {
         super prepareRendering.
-        
+
     }.
 }.
 

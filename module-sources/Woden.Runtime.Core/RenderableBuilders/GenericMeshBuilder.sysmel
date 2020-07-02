@@ -79,6 +79,10 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         baseVertex := vertices size castTo: IndexType
     }.
 
+    method translateToX: (tx: Float32) y: (ty: Float32) z: (tz: Float32) ::=> Void := {
+        currentTransform translation: Float32x3(tx, ty, tz)
+    }.
+
     method addI1: (i1: IndexType) i2: (i2: IndexType) i3: (i3: IndexType) ::=> Void := {
         indices
             add: i1 + baseVertex;
@@ -104,6 +108,39 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
             texcoord: texcoord;
             color: currentColor;
             yourself)
+    }.
+
+    method addGridWithSize: (size: Float32x2) subdivisions: (subdivisions: UInt32) ::=> Void := {
+        self beginTriangles.
+
+        ## Add vertices
+        let ds := size / (subdivisions - 1f).
+        let startPosition := size * -0.5f.
+
+        vertices reserve: subdivisions*subdivisions.
+        indices reserve: (subdivisions - 1) * (subdivisions - 1) * 6.
+
+        let y mutable := startPosition y.
+        0 until: subdivisions do: {:j :: Void |
+            let x mutable := startPosition x.
+            let t := j / (subdivisions - 1f).
+            0 until: subdivisions do: {:i :: Void |
+                let s := i / (subdivisions - 1f).
+                self addP: Float32x3(x, 0, y) N: Float32x3(0, 1, 0) TC: Float32x2(s, t).
+                x := x + ds x.
+            }.
+
+            y := y + ds y.
+        }.
+
+        0 until: subdivisions - 1 do: {:j :: Void |
+            let rs := j * subdivisions.
+            let rd := (j + 1) * subdivisions.
+
+            0 until: subdivisions - 1 do: {:i :: Void |
+                self addI1: rd + i i2: rd + i + 1 i3: rs + i + 1 i4: rs + i
+            }.
+        }.
     }.
 
     method addCubeWithWidth: (width: Float32) height: (height: Float32) depth: (depth: Float32) ::=> Void := {
@@ -314,6 +351,10 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
             i2 := i2 + 3.
             i3 := i3 + 3.
         }.
+    }.
+
+    method addCollisionBox => Void := {
+
     }.
 
     static global AxisVectors := Float32x3 array (

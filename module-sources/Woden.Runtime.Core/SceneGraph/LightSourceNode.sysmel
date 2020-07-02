@@ -8,6 +8,12 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
     private field state type: Woden Shaders LightSourceData.
     private field lightSourceType type: LightSourceType.
 
+    override method initialize => Void := {
+        state
+            intensity: Float32x4 ones;
+            radius: 3.0.
+    }.
+
     method lightSourceData => Woden Shaders LightSourceData := {
         let result mutable := state.
         let globalTransform := self globalTransform.
@@ -44,12 +50,19 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         state radius: radius
     }.
 
-    method intensity: (intensity: Float32x4) ::=> Void := {
-        state intensity: intensity
+    method intensity: (intensity: Float32x3) ::=> Void := {
+        state intensity: Float32x4(intensity, 0.0f)
     }.
 
     const override method isLightSourceNode => Boolean8
         := true.
+
+    method castShadows ::=> Boolean8
+        := false.
+
+    method castShadows: (value: Boolean8) ::=> Void := {
+
+    }.
 
 }.
 

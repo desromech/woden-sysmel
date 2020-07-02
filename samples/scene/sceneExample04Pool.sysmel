@@ -1,0 +1,139 @@
+Compiler importModulesNamed: #(
+    #"Woden.Application.SampleScene"
+    #"Woden.Application.Headfull"
+).
+
+useNamespace: Woden Runtime.
+
+function constructPoolScene(scene: ScenePtr const ref) => Void := {
+    let engine := scene _ engine.
+
+    scene _ backgroundColor: Float32x4(0.3f, 0.7f, 0.6f, 1.0f).
+
+    ## Build the floor.
+    {
+        let material := MetallicRoughnessMaterial for: engine.
+        material _
+            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "resources/core-assets/textures/demos/tile-albedo.dds" asMutableString);
+            normalTexture: (engine _ resourceCache _ loadTextureFrom: "resources/core-assets/textures/demos/tile-normal.dds" asMutableString);
+            roughnessFactor: 0.45f.
+        let concreteMaterial := MetallicRoughnessMaterial for: engine.
+        concreteMaterial _
+            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "resources/core-assets/textures/demos/esug-floor.dds" asMutableString);
+            roughnessFactor: 0.70f.
+
+        let borderThickness := 0.5f.
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        meshBuilder _
+            currentMaterial: (material upCastFor: Material);
+
+            translateToX: borderThickness*0.5f negated - 4.5f y: -1.0f z: 0.0f;
+    		addCubeWithWidth: 4.0f - borderThickness height: 2.0f depth: 5.0f + borderThickness*2.0f;
+    		addCollisionBox;
+
+    		translateToX: borderThickness*0.5f+ 4.5f y: -1.0f z: 0.0f;
+    		addCubeWithWidth: 4.0f - borderThickness height: 2.0f depth: 5.0f + borderThickness*2.0f;
+    		addCollisionBox;
+
+    		translateToX: 0.0f y: -1.0f z: borderThickness + 4.5f;
+    		addCubeWithWidth: 13.0f height: 2.0f depth: 4.0f;
+    		addCollisionBox;
+
+    		translateToX: 0.0f y: -1.0f z: borderThickness negated - 4.5f;
+    		addCubeWithWidth: 13.0f height: 2.0f depth: 4.0f;
+    		addCollisionBox;
+
+    		## Bottom
+    		currentMaterial: (concreteMaterial upCastFor: Material);
+    		translateToX: 0.0f y: -2.05f z: 0.0f;
+    		addCubeWithWidth: 5.0f height: 0.1f depth: 5.0f;
+    		addCollisionBox;
+
+    		## Border
+    		translateToX: -2.5f - (borderThickness*0.5f) y: -1.0f z: 0.0f;
+    		addCubeWithWidth: borderThickness height: 2.2f depth: 5.0f + borderThickness*2.0f;
+    		addCollisionBox;
+
+    		translateToX: 2.5f + (borderThickness*0.5f) y: -1.0 z: 0.0f;
+    		addCubeWithWidth: borderThickness height: 2.2f depth: 5.0f + borderThickness*2.0f;
+    		addCollisionBox;
+
+    		translateToX: 0.0f y: -1.0f z: 2.5f + borderThickness*0.5f;
+    		addCubeWithWidth: 5.0f height: 2.2f depth: borderThickness;
+    		addCollisionBox;
+
+    		translateToX: 0.0f y: -1.0f z: -2.5f - borderThickness*0.5f;
+    		addCubeWithWidth: 5.0f height: 2.2f depth: borderThickness;
+    		addCollisionBox;
+
+    		## Use a planar texture coordinates
+    		planeTextureScale: 2.0f offset: 0.0f;
+    		computeTangentsBitangents.
+
+        let renderable := meshBuilder _ renderable.
+
+        let floor := SpatialObjectNode sharedNew.
+        floor _ renderable: renderable.
+        scene _ add: (floor upCastFor: SceneNode).
+    }.
+
+    ## Build and add the cube to the scene.
+    {
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        meshBuilder _ addCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
+        let renderable := meshBuilder _ renderable.
+
+        let cube := SpatialObjectNode sharedNew.
+        cube _
+            renderable: renderable;
+            translateByX: 4.5f y: 0.5f z: 0.0f.
+        scene _ add: (cube upCastFor: SceneNode).
+    }.
+
+    ## Build the water.
+    {
+        let material := MetallicRoughnessMaterial for: engine.
+        material _
+            albedoColor: Float32x4(0, 0, 0, 1);
+            roughnessFactor: 0.0f.
+
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        meshBuilder _
+            currentMaterial: (material upCastFor: Material);
+            addGridWithSize: 5.0f subdivisions: 64.
+
+        let renderable := meshBuilder _ renderable.
+
+        let water := SpatialObjectNode sharedNew.
+        water _
+            renderable: renderable;
+            translateToX: 0.0f y: -0.3 z: 0.0f.
+        scene _ add: (water upCastFor: SceneNode).
+    }.
+
+    ## Add the light source.
+    {
+        let sunLight := LightSourceNode sharedNew.
+        sunLight _
+            makeDirectional;
+            castShadows: true;
+            intensity: Float32x3(1f, 1f, 0.8f) normalized * 0.7f;
+            rotateDegreesOnX: -35;
+            translateToX: 0.0f y: 1.5f z: 2.5f.
+        scene _ add: (sunLight upCastFor: SceneNode).
+    }.
+
+}.
+
+Woden Application sampleSceneMainWith: {:model :: Void |
+    let scene := model newScene.
+    let engine := model engine.
+
+    constructPoolScene(scene).
+
+    ## Setup the camera
+    {
+        let camera := model mainCamera.
+        camera _ translateByX: 0.0f y: 1.0f z: -4.0f.
+    }.
+}.
