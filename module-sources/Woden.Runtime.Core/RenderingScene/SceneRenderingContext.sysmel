@@ -31,6 +31,8 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
 
     abstract method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8.
     abstract method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8.
+    abstract method activateSkyMaterial: (material: SkyMaterial ref) ::=> Boolean8.
+    abstract method activateWaterMaterial: (material: WaterMaterial ref) ::=> Boolean8.
 }.
 
 }. ## End of namespace Runtime

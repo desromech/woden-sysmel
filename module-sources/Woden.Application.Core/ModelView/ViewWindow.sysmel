@@ -15,6 +15,9 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
     const inline method view => ViewPtr const ref
         := view.
 
+    virtual method extent => UInt32x2
+        := UInt32x2(640, 480).
+        
     virtual method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
         view := theView.
         true

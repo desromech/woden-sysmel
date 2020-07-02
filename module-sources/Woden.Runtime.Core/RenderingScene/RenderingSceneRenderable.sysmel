@@ -7,7 +7,11 @@ useNamespace: Stdn Math LinearAlgebra.
 #**
  * I represent a 3D scene with rendering only objects.
  *#
-class RenderingSceneRenderable superclass: AbstractRenderingSceneObject; definition: {
+class RenderingSceneRenderable superclass: RenderingSceneObject; definition: {
+    public field renderable type: RenderablePtr.
+
+    const override method isLightSource => Boolean8
+        := true.
 
 }.
 

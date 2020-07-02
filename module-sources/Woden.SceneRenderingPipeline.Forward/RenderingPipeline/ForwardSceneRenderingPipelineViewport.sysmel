@@ -12,6 +12,9 @@ useNamespace: Stdn Math Geometry.
 class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
     protected field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
+    protected field lightSources type: Stdn Collections Vector(RenderingSceneLightSourcePtr).
+    protected field renderableSceneObject type: Stdn Collections Vector(RenderingSceneRenderablePtr).
+
     protected field cameraStateBuffers type: FrameBufferedBuffer.
     protected field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
 
@@ -57,7 +60,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 depth: 1;
                 layers: 1;
                 miplevels: 1;
-                format: PixelFormat B8G8R8A8_UNormSRGB;
+                format: PixelFormat R16G16B16A16_Float;
                 usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
                 mainUsageMode: TextureUsageMode Sampled;
                 heapType: MemoryHeapType DeviceLocal;
@@ -90,7 +93,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         renderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
-                    format: PixelFormat B8G8R8A8_UNormSRGB;
+                    format: PixelFormat R16G16B16A16_Float;
                     beginAction: RenderPassAttachmentAction Clear;
                     endAction: RenderPassAttachmentAction Keep;
                     yourself
@@ -174,6 +177,26 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
+    method gatherVisibleRenderingObjects => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        lightSources removeAll.
+        renderableSceneObject removeAll.
+
+        scene _ sceneLayersDo: {:(SceneLayer ref)sceneLayer :: Void |
+            sceneLayer renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
+                each _ isRenderable ifTrue: {
+                    lightSources add: (each downCastFor: RenderingSceneLightSource)
+                }.
+
+                each _ isLightSource ifTrue: {
+                    renderableSceneObject add: (each downCastFor: RenderingSceneRenderable)
+                }.
+            }
+        }.
+    }.
+
     method gatherSceneLightingState => Void := {
         lightingState := Woden Shaders GlobalLightingStateData().
 
@@ -188,41 +211,56 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             skyLighting: scene _ skyLighting;
             sunDirection: scene _ sunDirection.
 
-        scene _ allNodesDo: {:(SceneNode ref)each :: Void |
-            each isLightSourceNode && lightingState numberOfLights < Woden Shaders MaxNumberOfLights ifTrue: {
-                let lightSourceData mutable := (each address reinterpretCastTo: LightSourceNode pointer) _ lightSourceData.
-                lightSourceData
-                    position: viewMatrix * lightSourceData position;
-                    spotDirection: (viewMatrix * Float32x4(lightSourceData spotDirection, 0)) xyz.
+        let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
+        lightingState numberOfLights: (lightCount castTo: Int32).
+        0 until: lightCount do: {:i :: Void |
+            let lightSourceObject ref := lightSources[i].
+            let lightSourceState mutable := lightSourceObject _ lightSourceObject _ lightState.
+            lightSourceState
+                position: viewMatrix * lightSourceState position;
+                spotDirection: (viewMatrix * Float32x4(lightSourceState spotDirection, 0)) xyz.
 
-                lightingState lightSources[lightingState numberOfLights] := lightSourceData.
-                lightingState numberOfLights := lightingState numberOfLights + 1.
-            }
+            lightingState lightSources[i] := lightSourceState.
         }.
-
     }.
 
     method uploadSceneLightingState => Void := {
         lightingStateBuffers current _ uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
     }.
 
-    method renderSpatialObjectNode: (objectNode: SpatialObjectNode pointer) with: (context: SceneRenderingContext ref) ::=> Void := {
-        let renderable := objectNode _ renderable.
-        renderable ifNotNil: {
-            renderable _ renderWithContext: context.
-        }
+    method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
+        renderObject spatialObject _ isGPUSpatialObject ifFalse: {return: void}.
+
+        let spatialObject := renderObject spatialObject downCastFor: AbstractGPUSpatialObject.
+        spatialObject _ objectStateBuffers isCreated ifFalse: {
+            spatialObject _ objectStateBuffers  for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders ObjectStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
+            spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+            }.
+        }.
+
+        spatialObject _ objectStateBuffers current _
+            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
+
+        context stateTracker _
+            useGraphicShaderBindings: spatialObject _ objectStateBindings current.
+
+        renderObject renderable _ renderWithContext: context.
     }.
 
-    method renderSceneNodesWith: (context: SceneRenderingContext ref) ::=> Void := {
-        let scene := sceneRenderingPipeline _ scene.
-        camera ifNil: {return: void}.
-        scene ifNil: {return: void}.
-
-        scene _ allNodesDo: {:(SceneNode ref)each :: Void |
-            each isSpatialObjectNode ifTrue: {
-                self renderSpatialObjectNode: (each address castTo: SpatialObjectNode pointer) with: context
-            }
-        }.
+    method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+        renderableSceneObject do: {:each :: Void |
+            self renderSceneObject: each _ with: context
+        }
     }.
 
     override method render => Void := {
@@ -236,6 +274,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let stateTracker := stateTrackers currentReseted.
 
         self
+            gatherVisibleRenderingObjects;
             gatherSceneLightingState;
             uploadSceneLightingState.
 
@@ -260,7 +299,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             sceneRenderingPipeline: sceneRenderingPipeline getPointer;
             yourself.
 
-        self renderSceneNodesWith: renderingContext.
+        self renderSceneObjectsWith: renderingContext.
 
         stateTracker _
             endRenderPass;

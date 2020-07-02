@@ -8,6 +8,27 @@ useNamespace: Stdn Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
+    public field state type: Woden Shaders ObjectStateData.
+
+    virtual method isGPUSpatialObject => Boolean8
+        := false.
+        
+    override method initialize => Void := {
+        state
+            visible: 1;
+            color: Float32x4 ones.
+    }.
+
+    virtual method setCurrentTransform: (transform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        state
+            matrix: transform matrix4;
+            inverseMatrix: transform inverseMatrix4.
+        self objectStateChanged.
+    }.
+
+    method objectStateChanged => Void := {
+
+    }.
 }.
 
 compileTime constant AbstractSpatialObjectPtr := AbstractSpatialObject sharedPointer.

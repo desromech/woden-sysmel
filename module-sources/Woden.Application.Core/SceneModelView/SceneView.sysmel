@@ -29,15 +29,16 @@ class SceneView superclass: View; definition: {
         }.
 
         sceneRenderingPipelineViewport _ extent: requiredExtent.
+        currentExtent := requiredExtent.
     }.
 
     virtual method prepareViewCamera => Void := {
 
     }.
-    
+
     override method buildWindowScene2DWith: (scene2DBuilder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
         self prepareViewCamera.
-        self ensureRenderingViewportWithExtent: UInt32x2(640, 480).
+        self ensureRenderingViewportWithExtent: viewWindow _ extent.
         sceneRenderingPipelineViewport ifNil: {
             return: Stdn Graphics Scene2D NodePtr nil.
         }.
@@ -52,7 +53,7 @@ class SceneView superclass: View; definition: {
             render.
 
         (scene2DBuilder _ blendingMode: BlendingMode Copy node: ((
-		     scene2DBuilder _ texture: textureHandle rectangle: (RectangleF32 extent: Float32x2(640, 480))
+		     scene2DBuilder _ texture: textureHandle rectangle: (RectangleF32 extent: (currentExtent castTo: Float32x2))
 		) upCastFor: Stdn Graphics Scene2D Node))
             upCastFor: Stdn Graphics Scene2D Node
     }.

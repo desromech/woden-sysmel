@@ -1,1 +1,4 @@
 loadFileOnce: "AbstractSpatialObject.sysmel".
+loadFileOnce: "AbstractGPUSpatialObject.sysmel".
+loadFileOnce: "LightSourceObject.sysmel".
+loadFileOnce: "SpatialObject.sysmel".

@@ -8,6 +8,25 @@ useNamespace: Stdn Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class LightSourceObject superclass: AbstractSpatialObject; definition: {
+    public field lightState type: Woden Shaders LightSourceData.
+    public field lightType type: LightSourceType.
+
+    override method setCurrentTransform: (transform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        super setCurrentTransform: transform.
+
+        lightType selectCase: #{
+        LightSourceType Point : {
+            lightState position: Float32x4(transform translation, 1.0)
+        }.
+        LightSourceType Directional : {
+            lightState position: Float32x4(transform transformVector: Float32x3(0, 0, 1), 0.0).
+        }.
+        LightSourceType Spot : {
+            lightState position: Float32x4(transform translation, 0.0).
+            lightState spotDirection: (transform transformVector: Float32x3(0, 0, 1)).
+        }.
+        }.
+    }.
 }.
 
 compileTime constant LightSourceObjectPtr := LightSourceObject sharedPointer.

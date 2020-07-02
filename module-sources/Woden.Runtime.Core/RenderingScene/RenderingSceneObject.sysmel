@@ -1,0 +1,46 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+#**
+ * I represent a 3D scene with rendering only objects.
+ *#
+class RenderingSceneObject superclass: Stdn SharedObject; definition: {
+    public field spatialObject type: AbstractSpatialObjectPtr.
+    public field boundingBox type: BoxF32.
+    public field node type: SceneNode weakPointer.
+    protected field transformValidated type: Boolean8.
+
+    const virtual method isLightSource => Boolean8
+        := false.
+
+    const virtual method isRenderable => Boolean8
+        := false.
+
+    method transformChanged => Void := {
+        transformValidated := false.
+    }.
+
+    method markTransformValidated => Void := {
+        transformValidated := true.
+    }.
+
+    method validateGlobalTransform => Void := {
+        transformValidated ifFalse: {
+            node lock ifNotNil: {:n :: Void |
+                n _ validateRenderingSceneObjectTransform: self.
+                self markTransformValidated
+            }.
+        }.
+    }.
+}.
+
+compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject sharedPointer const ref) => Void) nativeBlockClosure.
+compileTime constant RenderingSceneObjectList := Stdn Collections Vector(RenderingSceneObject sharedPointer).
+
+compileTime constant RenderingSceneObjectPtr := RenderingSceneObject sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

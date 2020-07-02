@@ -5,19 +5,57 @@ namespace Runtime definition: {
  * I am a node that poses a local coordinate system that is associated with a model matrix in the GPU.
  *#
 class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
+    protected field objectState type: SpatialObjectPtr.
     protected field renderable type: RenderablePtr.
+    protected field renderingSceneObjects type: RenderingSceneObjectList.
+
+    override method initialize => Void := {
+        objectState := SpatialObject sharedNew.
+    }.
 
     const inline method renderable => RenderablePtr const ref
         := renderable.
 
-    const inline method renderable: (theRenderable: RenderablePtr const ref) ::=> Void := {
+    inline method renderable: (theRenderable: RenderablePtr const ref) ::=> Void := {
+        let layer := self sceneLayer.
+        layer ifNotNil: {
+            self removeRenderingSceneObjectsFromSceneLayer: layer _.
+            renderingSceneObjects removeAll
+        }.
+
         renderable := theRenderable.
 
-        ## TODO: Create the rendering renderables and etc.
+        renderable ifNotNil: {
+            renderingSceneObjects := renderable _ createRenderingSceneObjectsFor: (objectState upCastFor: AbstractSpatialObject).
+            renderingSceneObjects do: {:each :: Void |
+                each _ node: (self asWeakPointer upCastFor: SceneNode)
+            }.
+
+            layer ifNotNil: {
+                self addRenderingSceneObjectsToSceneLayer: layer _.
+            }.
+        }.
+
+        renderable _
     }.
 
     const override method isSpatialObjectNode => Boolean8
         := true.
+
+    override method globalTransformChanged => Void := {
+        super globalTransformChanged.
+        renderingSceneObjects do: {:each :: Void |
+            each _ transformChanged.
+        }.
+    }.
+
+    override method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+        sceneLayer addRenderingSceneObjects: renderingSceneObjects.
+    }.
+
+    override method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+        sceneLayer removeRenderingSceneObjects: renderingSceneObjects.
+    }.
 }.
 
 compileTime constant SpatialObjectNodePtr := SpatialObjectNode sharedPointer.

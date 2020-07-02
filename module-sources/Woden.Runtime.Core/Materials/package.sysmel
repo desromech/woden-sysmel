@@ -1,3 +1,5 @@
 loadFileOnce: "Material.sysmel".
 loadFileOnce: "MetallicRoughnessMaterial.sysmel".
 loadFileOnce: "UnlitMaterial.sysmel".
+loadFileOnce: "SkyMaterial.sysmel".
+loadFileOnce: "WaterMaterial.sysmel".

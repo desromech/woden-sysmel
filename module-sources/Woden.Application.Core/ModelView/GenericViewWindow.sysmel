@@ -13,6 +13,15 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     protected field window type: Window sharedPointer.
 	protected field windowRenderer type: WindowScene2DRendererPtr.
 
+
+    override method extent => UInt32x2 := {
+        window ifNotNil: {
+            return: window _ extent
+        }.
+
+        return: super extent
+    }.
+
     override method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
         (super openForView: theView) ifFalse: {
             return: false.

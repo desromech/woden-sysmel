@@ -5,9 +5,39 @@ namespace Runtime definition: {
  * I represent a 3D scene with rendering only objects.
  *#
 class SceneLayer superclass: SceneNode; definition: {
+    private field renderingSceneObjects type: RenderingSceneObjectList.
+
     const override method isSceneLayer => Boolean8
         := true.
+
+    override method sceneLayer => SceneLayer pointer
+        := self address.
+
+    method addRenderingSceneObject: (object: RenderingSceneObjectPtr const ref) ::=> Void := {
+        renderingSceneObjects add: object
+    }.
+
+    method removeRenderingSceneObject: (object: RenderingSceneObjectPtr const ref) ::=> Void := {
+        renderingSceneObjects remove: object
+    }.
+
+    method addRenderingSceneObjects: (objects: RenderingSceneObjectList const ref) ::=> Void := {
+        renderingSceneObjects addAll: objects asArraySlice
+    }.
+
+    method removeRenderingSceneObjects: (objects: RenderingSceneObjectList const ref) ::=> Void := {
+        renderingSceneObjects removeAll: objects asArraySlice
+    }.
+
+    method renderingSceneObjectsDo: (aBlock: RenderingSceneObjectIterationBlock) ::=> Void := {
+        renderingSceneObjects do: {:each :: Void |
+            each _ validateGlobalTransform.
+            aBlock(each)
+        }.
+    }.
 }.
+
+compileTime constant SceneLayerIterationBlock := ((SceneLayer ref) => Void) nativeBlockClosure.
 
 compileTime constant SceneLayerPtr := SceneLayer sharedPointer.
 

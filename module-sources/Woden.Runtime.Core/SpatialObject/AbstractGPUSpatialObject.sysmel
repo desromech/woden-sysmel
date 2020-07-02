@@ -8,6 +8,12 @@ useNamespace: Stdn Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class AbstractGPUSpatialObject superclass: AbstractSpatialObject; definition: {
+    public field objectStateBuffers type: FrameBufferedBuffer.
+    public field objectStateBindings type: FrameBufferedShaderResourcesBindings.
+
+    override method isGPUSpatialObject => Boolean8
+        := true.
+
 }.
 
 compileTime constant AbstractGPUSpatialObjectPtr := AbstractGPUSpatialObject sharedPointer.

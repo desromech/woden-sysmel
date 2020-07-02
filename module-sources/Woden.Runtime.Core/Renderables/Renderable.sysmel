@@ -8,6 +8,17 @@ useNamespace: Stdn Graphics Core.
  *#
 class Renderable superclass: Stdn SharedObject; definition: {
 
+    virtual method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Stdn Collections Vector(RenderingSceneObject sharedPointer) := {
+        let renderingSceneObject := RenderingSceneRenderable sharedNew.
+        renderingSceneObject _
+            spatialObject: spatialObject;
+            renderable: self asSharedPointer.
+
+        let result mutable := RenderingSceneObjectList().
+        result add: (renderingSceneObject upCastFor: RenderingSceneObject).
+        result asMoveReference
+    }.
+
     virtual method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
 
     }.

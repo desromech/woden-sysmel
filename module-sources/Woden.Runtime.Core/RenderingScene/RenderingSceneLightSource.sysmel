@@ -7,8 +7,12 @@ useNamespace: Stdn Math LinearAlgebra.
 #**
  * I represent a 3D scene with rendering only objects.
  *#
-class RenderingSceneLightSource superclass: AbstractRenderingSceneObject; definition: {
+class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
+    const override method isRenderable => Boolean8
+        := true.
 
+    method lightSourceObject => LightSourceObjectPtr
+        := spatialObject downCastFor: LightSourceObject.
 }.
 
 compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource sharedPointer.

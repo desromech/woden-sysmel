@@ -6,8 +6,11 @@ struct ObjectStateData definition: {
     public field matrix type: Float32x4x4.
     public field inverseMatrix type: Float32x4x4.
     public field color type: Float32x4.
+
     public field visible type: UInt32.
-    public field reserved type: (UInt32 array: 3).
+    public field reserved type: UInt32.
+	public field reserved2 type: UInt32.
+	public field reserved3 type: UInt32.
 }.
 
 }. ## End of namespace GpuStructures

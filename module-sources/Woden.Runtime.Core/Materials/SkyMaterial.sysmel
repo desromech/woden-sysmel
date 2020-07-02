@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a material that performs flat shading in a surface.
+ *#
+class SkyMaterial superclass: Material; definition: {
+    meta definition: {
+        method for: (anEngine: EnginePtr const ref) ::=> SkyMaterial sharedPointer := {
+            let result := SkyMaterial sharedNew.
+            result _ initializeWithEngine: anEngine.
+            result
+        }.
+    }.
+
+    override method initialize => Void := {
+
+    }.
+
+    override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
+        := context activateSkyMaterial: self.
+}.
+
+compileTime constant SkyMaterialPtr := SkyMaterial sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -8,8 +8,8 @@ useNamespace: Stdn Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class SceneNode superclass: Stdn SharedObject; definition: {
-    protected field parentWeakPtr type: SceneNodeWeakPtr.
-    protected field sceneWeakPtr type: SceneWeakPtr.
+    protected field parentWeakPtr type: SceneNode weakPointer.
+    protected field sceneWeakPtr type: Scene weakPointer.
     protected field children type: Stdn Collections Vector(SceneNodePtr).
     protected field transform type: ReversibleAffineTransform3dF32.
 
@@ -25,6 +25,15 @@ class SceneNode superclass: Stdn SharedObject; definition: {
 
     const inline method scene => ScenePtr
         := sceneWeakPtr lock.
+
+    virtual method sceneLayer => SceneLayer pointer := {
+        let p := self parent.
+        p ifNotNil: {
+            return: p _ sceneLayer
+        }.
+
+        nil
+    }.
 
     const inline method transform => ReversibleAffineTransform3dF32
         := transform.
@@ -46,8 +55,12 @@ class SceneNode superclass: Stdn SharedObject; definition: {
 
     }.
 
-    method parentTransformChanged => Void := {
+    virtual method globalTransformChanged => Void := {
         globalTransformIsValid := false.
+    }.
+
+    method parentTransformChanged => Void := {
+        self globalTransformChanged.
         children do: {:each :: Void |
             each _ parentTransformChanged
         }
@@ -70,12 +83,20 @@ class SceneNode superclass: Stdn SharedObject; definition: {
 
     virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {
         sceneWeakPtr := aScene asWeakPointer.
+        self sceneLayer ifNotNil: {:layer :: Void |
+            self addRenderingSceneObjectsToSceneLayer: layer _
+        }.
+
         children do: {:each :: Void |
             each _ addedToScene: aScene
-        }
+        }.
     }.
 
     virtual method removedFromScene: (aScene: ScenePtr const ref) ::=> Void := {
+        self sceneLayer ifNotNil: {:layer :: Void |
+            self removeRenderingSceneObjectsFromSceneLayer: layer _
+        }.
+
         children do: {:each :: Void |
             each _ removedFromScene: aScene
         }.
@@ -95,6 +116,14 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         let oldScene := self scene.
         oldScene ifNotNil: { self removedFromScene: oldScene }.
         parentWeakPtr reset
+    }.
+
+    virtual method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+
+    }.
+
+    virtual method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+
     }.
 
     method addChild: (aChild: SceneNodePtr const ref) ::=> Void := {
@@ -208,6 +237,9 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     const virtual method isSpatialObjectNode => Boolean8
         := false.
 
+    virtual method validateRenderingSceneObjectTransform: (renderingSceneObject: RenderingSceneObject ref) ::=> Void := {
+        renderingSceneObject spatialObject _ setCurrentTransform: self globalTransform
+    }.
 }.
 
 compileTime constant SceneNodeIterationBlock := ((SceneNode ref) => Void) nativeBlockClosure.
