@@ -8,6 +8,9 @@ class MaterialStateBinding definition: {
     public field texture2 type: GPU Texture2D.
     public field texture3 type: GPU Texture2D.
     public field texture4 type: GPU Texture2D.
+
+    public field textureCube0 type: GPU TextureCube; location: 1.
+
 }.
 
 }. ## End of namespace Shaders

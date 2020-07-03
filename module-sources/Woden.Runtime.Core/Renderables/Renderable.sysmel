@@ -7,6 +7,18 @@ useNamespace: Stdn Graphics Core.
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#
 class Renderable superclass: Stdn SharedObject; definition: {
+    public field renderPriority type: RenderPriority.
+    public field depthWriteMask type: OverrideableBoolean.
+    public field depthTestingEnabled type: OverrideableBoolean.
+
+    override method initialize => Void := {
+        renderPriority := RenderPriority Default
+    }.
+
+    method withoutDepth => Void := {
+        depthWriteMask := OverrideableBoolean False.
+        depthTestingEnabled := OverrideableBoolean False.
+    }.
 
     virtual method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Stdn Collections Vector(RenderingSceneObject sharedPointer) := {
         let renderingSceneObject := RenderingSceneRenderable sharedNew.
@@ -17,6 +29,12 @@ class Renderable superclass: Stdn SharedObject; definition: {
         let result mutable := RenderingSceneObjectList().
         result add: (renderingSceneObject upCastFor: RenderingSceneObject).
         result asMoveReference
+    }.
+
+    virtual method setObjectRenderContextFlags: (context: SceneRenderingContext ref) ::=> Void := {
+        context
+            objectDepthWriteMask: depthWriteMask;
+            objectDepthTestingEnabled: depthTestingEnabled
     }.
 
     virtual method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {

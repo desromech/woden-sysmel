@@ -18,6 +18,10 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     }.
 
     override method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
+        material doubleSided ifTrue: {
+            self materialFaceCullingMode: FaceCullingMode None
+        }.
+
         material stateBinding ifNil: {
             material stateBuffer := self device _ createBuffer: (BufferDescription()
                 size: Woden Shaders MetallicRoughnessMaterialStateData instanceSize;
@@ -52,7 +56,18 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     }.
 
     override method activateSkyMaterial: (material: SkyMaterial ref) ::=> Boolean8 := {
-        false
+        material stateBinding ifNil: {
+            material stateBinding := self createMaterialStateBinding.
+            material stateBinding _
+                bindOn: 1 sampledTextureView: material textureView.
+        }.
+
+        stateTracker _
+            useGraphicShaderBindings: material stateBinding;
+            vertexShader: Woden Shaders SkyMaterialShaders vertex shaderEntryPointInfo address;
+            fragmentShader: Woden Shaders SkyMaterialShaders fragment shaderEntryPointInfo address.
+
+        true
     }.
 
     override method activateWaterMaterial: (material: WaterMaterial ref) ::=> Boolean8 := {

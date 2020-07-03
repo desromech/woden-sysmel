@@ -1,3 +1,6 @@
+loadFileOnce: "RenderPriority.sysmel".
+loadFileOnce: "OverrideableBoolean.sysmel".
+
 loadFileOnce: "Renderable.sysmel".
 loadFileOnce: "ImmutableRenderable.sysmel".
 loadFileOnce: "NullRenderable.sysmel".

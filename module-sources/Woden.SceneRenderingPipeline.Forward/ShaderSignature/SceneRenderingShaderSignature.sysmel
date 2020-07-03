@@ -7,8 +7,12 @@ class CommonSceneRenderingShaderSignature definition: {
 
     macro method albedoSampler := ``(`,self samplingStateBinding _ albedoSampler).
     macro method normalSampler := ``(`,self samplingStateBinding _ normalSampler).
+    macro method cubeMapSampler := ``(`,self samplingStateBinding _ cubeMapSampler).
 
     macro method cameraState := ``(`,self cameraStateBinding _ state _ ).
+
+    method cameraWorldPosition => Float32x3
+        := self cameraState matrix fourthColumn xyz.
 }.
 
 class ForwardSceneRenderingShaderSignature superclass: CommonSceneRenderingShaderSignature; definition: {

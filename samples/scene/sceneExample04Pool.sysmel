@@ -8,8 +8,6 @@ useNamespace: Woden Runtime.
 function constructPoolScene(scene: ScenePtr const ref) => Void := {
     let engine := scene _ engine.
 
-    scene _ backgroundColor: Float32x4(0.3f, 0.7f, 0.6f, 1.0f).
-
     ## Build the floor.
     {
         let material := MetallicRoughnessMaterial for: engine.
@@ -95,7 +93,8 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
         let material := MetallicRoughnessMaterial for: engine.
         material _
             albedoColor: Float32x4(0, 0, 0, 1);
-            roughnessFactor: 0.0f.
+            roughnessFactor: 0.0f;
+            doubleSided: true.
 
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
@@ -121,6 +120,25 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
             rotateDegreesOnX: -35;
             translateToX: 0.0f y: 1.5f z: 2.5f.
         scene _ add: (sunLight upCastFor: SceneNode).
+    }.
+
+    ## Add the sky box.
+    {
+        let material := SkyMaterial for: engine.
+        material _
+            texture: (engine _ resourceCache _ loadColorTextureFrom: "resources/core-assets/textures/demos/skybox.dds" asMutableString).
+
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        meshBuilder _
+            currentMaterial: (material upCastFor: Material);
+            addInteriorCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
+        let renderable := meshBuilder _ renderable.
+        renderable _ withoutDepth.
+
+        let cube := SpatialObjectNode sharedNew.
+        cube _
+            renderable: renderable.
+        scene _ backgroundLayer _ addChild: (cube upCastFor: SceneNode).
     }.
 
 }.

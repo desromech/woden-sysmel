@@ -1,0 +1,28 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * Overrideable boolean flags.
+ *#
+enum OverrideableBoolean valueType: UInt8; values: #{
+    Default: 0.
+    False: 1.
+    True: 2.
+}; definition: {
+    method asBoolean8 => Boolean8 := {
+        self selectCase: #{
+        Default : false.
+        False : false.
+        True : true.
+        }
+    }.
+
+    method -> (nextValue: SelfType) => SelfType := {
+        nextValue = Default ifTrue: self ifFalse: nextValue.
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

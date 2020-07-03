@@ -196,6 +196,59 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         self addI1: 20 i2: 21 i3: 22 i4: 23.
     }.
 
+    method addInteriorCubeWithWidth: (width: Float32) height: (height: Float32) depth: (depth: Float32) ::=> Void := {
+    	self beginTriangles.
+
+    	let px := width * 0.5f.
+    	let py := height * 0.5f.
+    	let pz := depth * 0.5f.
+    	let nx := width * -0.5f.
+    	let ny := height * -0.5f.
+    	let nz := depth * -0.5f.
+
+    	## Back Face
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: 0.0 y: 0.0 z: 1.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+    	self addI1: 3 i2: 2 i3: 1 i4: 0.
+
+    	## Front Face
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: 0.0 y: 0.0 z: -1.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 7 i2: 6 i3: 5 i4: 4.
+
+    	## Top Face
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: 0.0 y: -1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 11 i2: 10 i3: 9 i4: 8.
+
+    	## Bottom Face
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: 0.0 y: 1.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 15 i2: 14 i3: 13 i4: 12.
+
+    	## Left Face
+    	self addP: (Float32x3 x: nx y: ny z: pz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: pz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: nx y: py z: nz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: nx y: ny z: nz) N: (Float32x3 x: 1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 19 i2: 18 i3: 17 i4: 16.
+
+    	## Right Face
+    	self addP: (Float32x3 x: px y: py z: pz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: pz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 1.0).
+    	self addP: (Float32x3 x: px y: ny z: nz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 1.0 y: 0.0).
+    	self addP: (Float32x3 x: px y: py z: nz) N: (Float32x3 x: -1.0 y: 0.0 z: 0.0 ) TC: (Float32x2 x: 0.0 y: 0.0).
+        self addI1: 23 i2: 22 i3: 21 i4: 20.
+    }.
+
     method vertexLayout => VertexLayoutPtr := {
         vertexLayout ifNil: {
             vertexLayout := engine _ renderingDevice _ getDefaultVertexLayoutCache _ getOrCreateWithDescription: VertexType vertexLayoutDescription

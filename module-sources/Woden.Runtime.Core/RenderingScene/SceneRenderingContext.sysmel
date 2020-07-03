@@ -11,6 +11,16 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
     public field stateTracker type: StateTrackerPtr.
     protected field activeMaterial type: MaterialPtr.
 
+    protected field sceneFaceCullingMode type: FaceCullingMode.
+    protected field materialFaceCullingMode type: FaceCullingMode.
+    protected field materialFaceCullingModeValid type: Boolean8.
+
+    protected field sceneDepthWriteMask type: OverrideableBoolean.
+    protected field sceneDepthTestingEnabled type: OverrideableBoolean.
+
+    protected field objectDepthWriteMask type: OverrideableBoolean.
+    protected field objectDepthTestingEnabled type: OverrideableBoolean.
+
     virtual method reset => Void := {
         activeMaterial reset.
     }.
@@ -20,6 +30,7 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
             return: true.
         }.
 
+        self resetMaterialAttributes.
         (material _ activateWithSceneRenderingContext: self) ifTrue: {
             activeMaterial := material.
             return: true.
@@ -27,6 +38,59 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
             activeMaterial reset.
             return: false.
         }
+    }.
+
+    method sceneFaceCullingMode: (mode: FaceCullingMode) ::=> Void := {
+        sceneFaceCullingMode := mode.
+
+        stateTracker _ faceCullingMode: self faceCullingMode.
+    }.
+
+    method materialFaceCullingMode: (mode: FaceCullingMode) ::=> Void := {
+        materialFaceCullingMode := mode.
+        materialFaceCullingModeValid := true.
+
+        stateTracker _ faceCullingMode: self faceCullingMode.
+    }.
+
+    method faceCullingMode => FaceCullingMode
+        := materialFaceCullingModeValid ifTrue: materialFaceCullingMode ifFalse: sceneFaceCullingMode.
+
+    method sceneDepthWriteMask: (depthWriteMask: OverrideableBoolean) ::=> Void := {
+        sceneDepthWriteMask := depthWriteMask.
+        stateTracker _ depthWriteMask: self depthWriteMask.
+    }.
+
+    method sceneDepthTestingEnabled: (depthTestingEnabled: OverrideableBoolean) ::=> Void := {
+        sceneDepthTestingEnabled := depthTestingEnabled.
+        stateTracker _ depthTestingEnabled: self depthTestingEnabled.
+    }.
+
+    method resetObjectAttributes ::=> Void := {
+        self
+            objectDepthWriteMask: OverrideableBoolean Default;
+            objectDepthTestingEnabled: OverrideableBoolean Default.
+    }.
+
+    method objectDepthWriteMask: (depthWriteMask: OverrideableBoolean) ::=> Void := {
+        objectDepthWriteMask := depthWriteMask.
+        stateTracker _ depthWriteMask: self depthWriteMask.
+    }.
+
+    method objectDepthTestingEnabled: (depthTestingEnabled: OverrideableBoolean) ::=> Void := {
+        objectDepthTestingEnabled := depthTestingEnabled.
+        stateTracker _ depthTestingEnabled: self depthTestingEnabled.
+    }.
+
+    method depthWriteMask => Boolean8
+        := (sceneDepthWriteMask -> objectDepthWriteMask) asBoolean8.
+
+    method depthTestingEnabled => Boolean8
+        := (sceneDepthTestingEnabled -> objectDepthTestingEnabled) asBoolean8.
+
+    method resetMaterialAttributes ::=> Void := {
+        materialFaceCullingModeValid := false.
+        stateTracker _ faceCullingMode: self faceCullingMode.
     }.
 
     abstract method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8.

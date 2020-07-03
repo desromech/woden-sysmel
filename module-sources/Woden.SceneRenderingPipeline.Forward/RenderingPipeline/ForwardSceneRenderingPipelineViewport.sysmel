@@ -5,6 +5,135 @@ useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Graphics GUI.
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+class ForwardSceneRenderingPipelineViewportLayer definition: {
+    public field cameraState type: Woden Shaders CameraStateData.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+
+    public field lightSources type: Stdn Collections Vector(RenderingSceneLightSourcePtr).
+    public field renderableSceneObject type: Stdn Collections Vector(RenderingSceneRenderablePtr).
+
+    public field cameraStateBuffers type: FrameBufferedBuffer.
+    public field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
+
+    public field lightingStateBuffers type: FrameBufferedBuffer.
+    public field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
+    public field lightingState type: Woden Shaders GlobalLightingStateData.
+
+    const inline method engine => EnginePtr
+        := sceneRenderingPipeline _ engine.
+
+    method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) ::=> Void := {
+        sceneRenderingPipeline := theSceneRenderingPipeline.
+
+        ## Create the camera state buffer and binding.
+        cameraStateBuffers isCreated ifFalse: {
+            cameraStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders CameraStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
+            cameraStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
+            }.
+        }.
+
+        ## Create the lighting state buffer and binding.
+        lightingStateBuffers isCreated ifFalse: {
+            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders GlobalLightingStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
+            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index]
+            }.
+        }.
+    }.
+
+    method gatherSceneLightingState => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        lightingState := Woden Shaders GlobalLightingStateData().
+
+        lightingState
+            groundLighting: scene _ groundLighting;
+            skyLighting: scene _ skyLighting;
+            sunDirection: scene _ sunDirection.
+
+        let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
+        lightingState numberOfLights: (lightCount castTo: Int32).
+        0 until: lightCount do: {:i :: Void |
+            let lightSourceObject ref := lightSources[i].
+            let lightSourceState mutable := lightSourceObject _ lightSourceObject _ lightState.
+            lightSourceState
+                position: cameraState viewMatrix * lightSourceState position;
+                spotDirection: (cameraState viewMatrix * Float32x4(lightSourceState spotDirection, 0)) xyz.
+
+            lightingState lightSources[i] := lightSourceState.
+        }.
+    }.
+
+    method uploadSceneLightingState => Void := {
+        lightingStateBuffers current _ uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+    }.
+
+    method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
+        renderObject spatialObject _ isGPUSpatialObject ifFalse: {return: void}.
+
+        let spatialObject := renderObject spatialObject downCastFor: AbstractGPUSpatialObject.
+        spatialObject _ objectStateBuffers isCreated ifFalse: {
+            spatialObject _ objectStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders ObjectStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
+            spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+            }.
+        }.
+
+        spatialObject _ objectStateBuffers current _
+            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
+
+        context stateTracker _
+            useGraphicShaderBindings: spatialObject _ objectStateBindings current.
+
+        renderObject renderable _ renderWithContext: context.
+    }.
+
+    method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+        context stateTracker _
+            useGraphicShaderBindings: cameraStateBindings current;
+            useGraphicShaderBindings: lightingStateBindings current.
+
+        renderableSceneObject do: {:each :: Void |
+            context resetObjectAttributes.
+            self renderSceneObject: each _ with: context
+        }.
+    }.
+
+    method uploadCameraState => Void := {
+        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+    }.
+}.
 
 #**
  * An abstract pipeline for rendering a null scene.
@@ -12,15 +141,9 @@ useNamespace: Stdn Math Geometry.
 class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
     protected field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
-    protected field lightSources type: Stdn Collections Vector(RenderingSceneLightSourcePtr).
-    protected field renderableSceneObject type: Stdn Collections Vector(RenderingSceneRenderablePtr).
-
-    protected field cameraStateBuffers type: FrameBufferedBuffer.
-    protected field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
-
-    protected field lightingStateBuffers type: FrameBufferedBuffer.
-    protected field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
-    protected field lightingState type: Woden Shaders GlobalLightingStateData.
+    protected field backgroundLayer type: ForwardSceneRenderingPipelineViewportLayer.
+    protected field normalLayer type: ForwardSceneRenderingPipelineViewportLayer.
+    protected field foregroundLayer type: ForwardSceneRenderingPipelineViewportLayer.
 
     protected field currentExtent type: UInt32x2.
     protected field renderingCommandQueue type: CommandQueuePtr.
@@ -107,39 +230,9 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             renderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
-        ## Create the camera state buffer and binding.
-        cameraStateBuffers isCreated ifFalse: {
-            cameraStateBuffers for: self engine createWithDescription: (BufferDescription()
-                size: Woden Shaders CameraStateData instanceSize;
-                heapType: MemoryHeapType HostToDevice;
-                usageModes: BufferUsageMode Uniform;
-                mainUsageMode: BufferUsageMode Uniform;
-                mappingFlags: BufferMappingFlags DynamicStorage;
-                yourself
-            ) initialData: nil.
-
-            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
-            cameraStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
-            }.
-        }.
-
-        ## Create the lighting state buffer and binding.
-        lightingStateBuffers isCreated ifFalse: {
-            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
-                size: Woden Shaders GlobalLightingStateData instanceSize;
-                heapType: MemoryHeapType HostToDevice;
-                usageModes: BufferUsageMode Uniform;
-                mainUsageMode: BufferUsageMode Uniform;
-                mappingFlags: BufferMappingFlags DynamicStorage;
-                yourself
-            ) initialData: nil.
-
-            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
-            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index]
-            }.
-        }.
+        backgroundLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
+        normalLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
+        foregroundLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
 
         ## Get the rendering command queue.
         renderingCommandQueue := device _ getDefaultCommandQueue.
@@ -155,15 +248,18 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     method uploadCameraState => Void := {
         camera ifNil: {return: void}.
 
-        let cameraTransform := camera _ globalTransform.
+        let normalCameraTransform := camera _ globalTransform.
+        let backgroundCameraTransform mutable := normalCameraTransform.
+        backgroundCameraTransform translation: Float32x3 zeros.
+        let foregroundCameraTransform := ReversibleAffineTransform3dF32 identity.
 
         let screenSize := (currentExtent castTo: Float32x2).
         let aspect := screenSize x / screenSize y.
         let projectionMatrix := Float32x4x4 reversePerspectiveFovY: 60.0f aspect: aspect near: 0.1f far: 100.0f invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
 
-        let cameraState mutable := Woden Shaders CameraStateData()
-            matrix: cameraTransform matrix4;
-            inverseMatrix: cameraTransform inverseMatrix4;
+        let normalCameraState mutable := Woden Shaders CameraStateData()
+            matrix: normalCameraTransform matrix4;
+            inverseMatrix: normalCameraTransform inverseMatrix4;
 
             projectionMatrix: projectionMatrix;
             inverseProjectionMatrix: projectionMatrix inverse;
@@ -174,93 +270,51 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             exposure: 1;
             yourself.
 
-        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+        let backgroundCameraState mutable := normalCameraState.
+        backgroundCameraState
+            matrix: backgroundCameraTransform matrix4;
+            inverseMatrix: backgroundCameraTransform inverseMatrix4.
+
+        let foregroundCameraState mutable := normalCameraState.
+        foregroundCameraState
+            matrix: foregroundCameraTransform matrix4;
+            inverseMatrix: foregroundCameraTransform inverseMatrix4.
+
+        backgroundLayer
+            cameraState: backgroundCameraState;
+            uploadCameraState.
+        normalLayer
+            cameraState: normalCameraState;
+            uploadCameraState.
+        foregroundLayer
+            cameraState: foregroundCameraState;
+            uploadCameraState.
     }.
 
-    method gatherVisibleRenderingObjects => Void := {
+    method gatherVisibleRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
         let scene := sceneRenderingPipeline _ scene.
         scene ifNil: {return: void}.
 
-        lightSources removeAll.
-        renderableSceneObject removeAll.
+        viewportLayer lightSources removeAll.
+        viewportLayer renderableSceneObject removeAll.
 
-        scene _ sceneLayersDo: {:(SceneLayer ref)sceneLayer :: Void |
-            sceneLayer renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
-                each _ isRenderable ifTrue: {
-                    lightSources add: (each downCastFor: RenderingSceneLightSource)
-                }.
+        sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
+            each _ isRenderable ifTrue: {
+                viewportLayer lightSources add: (each downCastFor: RenderingSceneLightSource)
+            }.
 
-                each _ isLightSource ifTrue: {
-                    renderableSceneObject add: (each downCastFor: RenderingSceneRenderable)
-                }.
-            }
-        }.
-    }.
-
-    method gatherSceneLightingState => Void := {
-        lightingState := Woden Shaders GlobalLightingStateData().
-
-        let scene := sceneRenderingPipeline _ scene.
-        scene ifNil: {return: void}.
-        camera ifNil: {return: void}.
-
-        let viewMatrix := camera _ globalTransform inverseMatrix4.
-
-        lightingState
-            groundLighting: scene _ groundLighting;
-            skyLighting: scene _ skyLighting;
-            sunDirection: scene _ sunDirection.
-
-        let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
-        lightingState numberOfLights: (lightCount castTo: Int32).
-        0 until: lightCount do: {:i :: Void |
-            let lightSourceObject ref := lightSources[i].
-            let lightSourceState mutable := lightSourceObject _ lightSourceObject _ lightState.
-            lightSourceState
-                position: viewMatrix * lightSourceState position;
-                spotDirection: (viewMatrix * Float32x4(lightSourceState spotDirection, 0)) xyz.
-
-            lightingState lightSources[i] := lightSourceState.
-        }.
-    }.
-
-    method uploadSceneLightingState => Void := {
-        lightingStateBuffers current _ uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
-    }.
-
-    method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
-        renderObject spatialObject _ isGPUSpatialObject ifFalse: {return: void}.
-
-        let spatialObject := renderObject spatialObject downCastFor: AbstractGPUSpatialObject.
-        spatialObject _ objectStateBuffers isCreated ifFalse: {
-            spatialObject _ objectStateBuffers  for: self engine createWithDescription: (BufferDescription()
-                size: Woden Shaders ObjectStateData instanceSize;
-                heapType: MemoryHeapType HostToDevice;
-                usageModes: BufferUsageMode Uniform;
-                mainUsageMode: BufferUsageMode Uniform;
-                mappingFlags: BufferMappingFlags DynamicStorage;
-                yourself
-            ) initialData: nil.
-
-            spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
-            spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+            each _ isLightSource ifTrue: {
+                viewportLayer renderableSceneObject add: (each downCastFor: RenderingSceneRenderable)
             }.
         }.
-
-        spatialObject _ objectStateBuffers current _
-            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
-
-        context stateTracker _
-            useGraphicShaderBindings: spatialObject _ objectStateBindings current.
-
-        renderObject renderable _ renderWithContext: context.
     }.
 
-    method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
-        renderableSceneObject do: {:each :: Void |
-            self renderSceneObject: each _ with: context
-        }
+    method prepareSceneLayer: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+        self gatherVisibleRenderingObjectsOf: sceneLayer on: viewportLayer.
+
+        viewportLayer
+            gatherSceneLightingState;
+            uploadSceneLightingState.
     }.
 
     override method render => Void := {
@@ -274,32 +328,32 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let stateTracker := stateTrackers currentReseted.
 
         self
-            gatherVisibleRenderingObjects;
-            gatherSceneLightingState;
-            uploadSceneLightingState.
+            prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
+            prepareSceneLayer: scene _ normalLayer on: normalLayer;
+            prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
 
         stateTracker _
 			useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
-            useGraphicShaderBindings: cameraStateBindings current;
-            useGraphicShaderBindings: lightingStateBindings current;
 
             frontFaceOrientation: FrontFaceOrientation CounterClockwise;
-    		faceCullingMode: FaceCullingMode Back;
-            depthTestingEnabled: true;
-            depthWriteMask: true;
             depthFunction: CompareFunction GreaterOrEqual;
 
             beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
     		setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
     		setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
 
-        let renderingContext mutable := ForwardSceneRenderingContext()
+        let renderingContext mutable := ForwardSceneRenderingContext().
+        renderingContext
             stateTracker: stateTracker;
             sceneRenderingPipeline: sceneRenderingPipeline getPointer;
-            yourself.
+            sceneFaceCullingMode: FaceCullingMode Back;
+            sceneDepthTestingEnabled: OverrideableBoolean True;
+            sceneDepthWriteMask: OverrideableBoolean True.
 
-        self renderSceneObjectsWith: renderingContext.
+        backgroundLayer renderSceneObjectsWith: renderingContext.
+        normalLayer renderSceneObjectsWith: renderingContext.
+        foregroundLayer renderSceneObjectsWith: renderingContext.
 
         stateTracker _
             endRenderPass;

@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * Render priority
+ *#
+enum RenderPriority valueType: UInt8; values: #{
+    Opaque: 1.
+
+    TranslucentSorted: 2.
+
+    Default: 0.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

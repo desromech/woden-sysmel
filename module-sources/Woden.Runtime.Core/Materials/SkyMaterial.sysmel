@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Graphics Core.
+
 #**
  * I am a material that performs flat shading in a surface.
  *#
@@ -13,9 +15,20 @@ class SkyMaterial superclass: Material; definition: {
         }.
     }.
 
+    public field stateBinding type: ShaderResourceBindingsPtr.
+    public field texture type: TexturePtr.
+
     override method initialize => Void := {
 
     }.
+
+    method validTexture => TexturePtr := {
+        texture ifNil: {return: engine _ resourceCache _ whiteTextureCube}.
+        texture
+    }.
+
+    method textureView => TextureViewPtr
+        := self validTexture _ getOrCreateFullView.
 
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
         := context activateSkyMaterial: self.

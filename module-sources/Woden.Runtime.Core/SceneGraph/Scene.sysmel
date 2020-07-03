@@ -18,6 +18,15 @@ class Scene superclass: Stdn SharedObject; definition: {
     field normalLayer type: SceneLayerPtr.
     field foregroundLayer type: SceneLayerPtr.
 
+    const inline method backgroundLayer => SceneLayerPtr const ref
+        := backgroundLayer.
+
+    const inline method normalLayer => SceneLayerPtr const ref
+        := normalLayer.
+
+    const inline method foregroundLayer => SceneLayerPtr const ref
+        := foregroundLayer.
+
     override method initialize => Void := {
         backgroundColor := Float32x4 black.
         skyLighting := 0.1f.

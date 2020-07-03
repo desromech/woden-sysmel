@@ -55,13 +55,17 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         ).
     }.
 
-    function flatNormalFragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
-        let input := stageIn receive.
+    function flatNormalFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+        let stageInput := stageIn receive.
 
         let P := input position.
         let V := P negated normalized.
 
-        let N := input normal normalized.
+        let N mutable := input normal normalized.
+        stageInput isFrontFacing ifFalse: {
+            N := N negated.
+        }.
 
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
@@ -84,8 +88,9 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
             yourself)
     }.
 
-    function normalMappedFragment fragmentShader(stageIn: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
-        let input := stageIn receive.
+    function normalMappedFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+        let stageInput := stageIn receive.
 
         let P := input position.
         let V := P negated normalized.
@@ -96,7 +101,10 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
 
         let tangentNormal := decodeNormalTexel(self normalSampler sample: self normalTexture at: input texcoord).
         let TBN := Float32x3x3(t, b, n).
-        let N := (TBN*tangentNormal) normalized.
+        let N mutable := (TBN*tangentNormal) normalized.
+        stageInput isFrontFacing ifFalse: {
+            N := N negated.
+        }.
 
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).

@@ -6,7 +6,7 @@ class SamplingStateBinding definition: {
     public field normalSampler type: GPUSampler.
     public field displacementSampler type: GPUSampler.
     public field shadowSampler type: GPUSampler.
-    public field cubeMapSample type: GPUSampler.
+    public field cubeMapSampler type: GPUSampler.
     public field brdfLutSampler type: GPUSampler.
 }.
 

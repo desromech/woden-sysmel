@@ -49,6 +49,11 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     const inline method neutralNormalTexture => TexturePtr const ref
         := neutralNormalTexture.
 
+    private field whiteTextureCube type: TexturePtr.
+
+    const inline method whiteTextureCube => TexturePtr const ref
+        := whiteTextureCube.
+
     method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         engine := anEngine.
 
@@ -56,6 +61,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         blackTexture := self createTextureWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
         transparentTexture := self createTextureWithSolidColor: UInt8x4 zeros format: PixelFormat R8G8B8A8_UNorm.
         neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(128, 128, 255, 0) format: PixelFormat R8G8B8A8_UNorm.
+        whiteTextureCube := self createTextureCubeWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
         checkboardTexture := self createCheckboardTexture.
 
         defaultMaterial := (MetallicRoughnessMaterial for: engine) upCastFor: Material.
@@ -87,6 +93,29 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture
     }.
 
+    method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TexturePtr := {
+        let device := engine _ renderingDevice.
+        let texture := device _ createTexture: (TextureDescription()
+            type: TextureType TextureCube;
+            width: 1;
+            height: 1;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: format;
+            usageModes: TextureUsageMode CopyDestination | TextureUsageMode Sampled;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: 1;
+            yourself).
+
+        let data mutable := color.
+        0 until: 6 do: {:i :: Void |
+            texture _ uploadTextureLevel: 0 layer: i pitch: 4 slicePitch: 4 data: data address.
+        }.
+
+        texture
+    }.
     method createCheckboardTexture => TexturePtr := {
         let device := engine _ renderingDevice.
         let texture := device _ createTexture: (TextureDescription()

@@ -1,0 +1,50 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class SkyMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+    macro method skyTexture := ``(`,self materialStateBinding _ textureCube0).
+
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+    class VertexIO definition: {
+        public field position type: Float32x3; location: 0.
+    }.
+
+    method transformNormal: (vector: Float32x3) ::=> Float32x3 := {
+        let worldNormal := Float32x4(vector, 0.0f).
+        (worldNormal * self cameraState inverseViewMatrix) xyz
+    }.
+
+    function vertex vertexShader(in: GenericVertexInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
+        let viewPosition := self cameraState viewMatrix * worldPosition.
+        let screenPosition := self cameraState projectionMatrix * viewPosition.
+
+        out send: (VertexIO()
+            position: worldPosition xyz - self cameraWorldPosition;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: screenPosition;
+            yourself
+        ).
+    }.
+
+    function fragment fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let P := input position.
+
+        let skyTextureColor := self cubeMapSampler sample: self skyTexture at: P.
+        out send: (FragmentOutput()
+            color0: skyTextureColor;
+            yourself)
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden
