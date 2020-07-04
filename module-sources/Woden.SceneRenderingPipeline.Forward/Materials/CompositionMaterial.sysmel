@@ -1,0 +1,48 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class CompositionMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+
+    class VertexIO definition: {
+        public field texcoord type: Float32x2; location: 0.
+    }.
+
+    let screenQuadVertices := Float32x2 array(
+        Float32x2(-1, -1),
+        Float32x2(-1, 3),
+        Float32x2(3, -1)
+    ).
+
+    function screenQuad vertexShader(stageIn: GPU VertexStageInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let stageInput := stageIn receive.
+
+        let vertex := screenQuadVertices[stageInput vertexID].
+
+        out send: (VertexIO()
+            texcoord: vertex*0.5f + 0.5f;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: Float32x4(vertex, 0, 1);
+            yourself
+        ).
+    }.
+
+    function screenQuadFlippedY vertexShader(stageIn: GPU VertexStageInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let stageInput := stageIn receive.
+
+        let vertex := screenQuadVertices[stageInput vertexID].
+
+        out send: (VertexIO()
+            texcoord: vertex * -0.5f + 0.5f;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: Float32x4(vertex, 0, 1);
+            yourself
+        ).
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

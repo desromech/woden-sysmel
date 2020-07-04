@@ -5,6 +5,8 @@ namespace Runtime definition: {
  * I represent a 3D scene with rendering only objects.
  *#
 class Camera superclass: SceneNode; definition: {
+    public field toneMappingOperator type: ToneMappingOperator.
+
     override method isCamera => Boolean8
         := true.
 }.

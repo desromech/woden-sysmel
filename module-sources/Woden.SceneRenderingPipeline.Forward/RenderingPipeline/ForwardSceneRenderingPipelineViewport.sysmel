@@ -146,12 +146,18 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field foregroundLayer type: ForwardSceneRenderingPipelineViewportLayer.
 
     protected field currentExtent type: UInt32x2.
+    protected field toneMappingOperator type: ToneMappingOperator.
     protected field renderingCommandQueue type: CommandQueuePtr.
     protected field stateTrackers type: FrameBufferedStateTracker.
+
+    protected field hdrFramebuffer type: FramebufferPtr.
+    protected field hdrRenderPass type: RenderPassPtr.
+    protected field hdrColorBufferBinding type: ShaderResourceBindingsPtr.
 
     protected field colorBufferTextureHandle type: StrongTextureHandlePtr.
     protected field framebuffer type: FramebufferPtr.
     protected field renderPass type: RenderPassPtr.
+
 
     const inline method engine => EnginePtr
         := sceneRenderingPipeline _ engine.
@@ -173,6 +179,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         colorBufferTextureHandle reset.
         framebuffer reset.
+        hdrFramebuffer reset.
 
         ## Create the main framebuffer.
         {
@@ -191,8 +198,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 yourself).
             let colorBufferTextureView := colorBuffer _ getOrCreateFullView.
 
-            colorBufferTextureHandle := device _ createScene2DBuilder _
-                createTextureHandleFor: (colorBuffer upCastFor: Stdn SharedObject) view: (colorBufferTextureView upCastFor: Stdn SharedObject).
+            hdrColorBufferBinding ifNil: {
+                hdrColorBufferBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+            }.
+            hdrColorBufferBinding _ bindOn: 1 sampledTextureView: colorBuffer _ getOrCreateFullView.
 
             let depthBuffer := device _ createTexture: (TextureDescription()
                 type: TextureType Texture2D;
@@ -210,10 +219,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
 
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
-            framebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+            hdrFramebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
         }.
 
-        renderPass ifNil: {
+        hdrRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
                     format: PixelFormat R16G16B16A16_Float;
@@ -227,7 +236,42 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 beginAction: RenderPassAttachmentAction Clear;
                 endAction: RenderPassAttachmentAction Discard;
                 yourself.
-            renderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+            hdrRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+        }.
+
+        ## Create the main framebuffer.
+        {
+            let colorBuffer := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: requiredExtent x;
+                height: requiredExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat B8G8R8A8_UNormSRGB;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            let colorBufferTextureView := colorBuffer _ getOrCreateFullView.
+
+            colorBufferTextureHandle := device _ createScene2DBuilder _
+                createTextureHandleFor: (colorBuffer upCastFor: Stdn SharedObject) view: (colorBufferTextureView upCastFor: Stdn SharedObject).
+
+            let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
+            framebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        renderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat B8G8R8A8_UNormSRGB;
+                    beginAction: RenderPassAttachmentAction Clear;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+            renderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
 
         backgroundLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
@@ -250,6 +294,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         scene ifNil: {return: void}.
         camera ifNil: {return: void}.
 
+        toneMappingOperator := camera _ toneMappingOperator.
+        
         let normalCameraTransform := camera _ globalTransform.
         let backgroundCameraTransform mutable := normalCameraTransform.
         backgroundCameraTransform translation: Float32x3 zeros.
@@ -320,31 +366,29 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             uploadSceneLightingState.
     }.
 
-    override method render => Void := {
-        self uploadCameraState.
-
+    method renderHDRScene => Void := {
         let scene := sceneRenderingPipeline _ scene.
         scene ifNotNil: {
             renderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
         }.
-
-        let stateTracker := stateTrackers currentReseted.
 
         self
             prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
             prepareSceneLayer: scene _ normalLayer on: normalLayer;
             prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
 
+        let stateTracker := stateTrackers current.
+
         stateTracker _
-			useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
 
             frontFaceOrientation: FrontFaceOrientation CounterClockwise;
             depthFunction: CompareFunction GreaterOrEqual;
 
-            beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
-    		setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
-    		setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
+            beginRenderPass: hdrRenderPass on: hdrFramebuffer contentOnBundle: false;
+            setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
+            setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
 
         let renderingContext mutable := ForwardSceneRenderingContext().
         renderingContext
@@ -360,7 +404,56 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         foregroundLayer renderSceneObjectsWith: renderingContext.
 
         stateTracker _
-            endRenderPass;
+            endRenderPass.
+    }.
+
+    method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
+        self engine _ renderingDevice _ shouldInvertProjectionY ifTrue: {
+            Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
+        } ifFalse: {
+            Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
+        }.
+    }.
+
+    method toneMappingShader => GPU ShaderEntryPointInfo const pointer := {
+        toneMappingOperator selectCase: #{
+            ToneMappingOperator Linear : Woden Shaders ToneMappingMaterialShaders linear shaderEntryPointInfo address.
+            ToneMappingOperator Reinhard : Woden Shaders ToneMappingMaterialShaders reinhard shaderEntryPointInfo address.
+            ToneMappingOperator Exponential : Woden Shaders ToneMappingMaterialShaders exponential shaderEntryPointInfo address.
+            ToneMappingOperator Filmic : Woden Shaders ToneMappingMaterialShaders filmic shaderEntryPointInfo address.
+            _ : Woden Shaders ToneMappingMaterialShaders filmic shaderEntryPointInfo address.
+        }.
+    }.
+
+    method toneMapAndComposeHDRScene => Void := {
+        let stateTracker := stateTrackers current.
+        stateTracker _
+            resetState;
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: normalLayer cameraStateBindings current;
+            useGraphicShaderBindings: hdrColorBufferBinding;
+
+            beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
+            setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
+            setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
+
+            vertexShader: self screenQuadShader;
+            fragmentShader: self toneMappingShader;
+            primitiveTopology: PrimitiveTopology Triangles;
+            drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+
+            endRenderPass
+    }.
+
+    override method render => Void := {
+        self uploadCameraState.
+
+        let stateTracker := stateTrackers currentReseted.
+        self renderHDRScene;
+            toneMapAndComposeHDRScene.
+
+        stateTracker _
             close.
 
         renderingCommandQueue _

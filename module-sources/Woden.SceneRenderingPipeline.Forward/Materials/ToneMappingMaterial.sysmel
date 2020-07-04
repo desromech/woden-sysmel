@@ -1,0 +1,80 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+function filmicCurve(x: Float32x3) => Float32x3 := {
+	## Filmic tone mapping curve from: https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+	let a := 2.51f.
+    let b := 0.03f.
+    let c := 2.43f.
+    let d := 0.59f.
+    let e := 0.14f.
+    ( ((x*(a*x + b)) / (x*(c*x + d) + e)) max: 0.0f) min: 1.0f
+}.
+
+class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definition: {
+    macro method screenTexture := ``(`,self materialStateBinding _ texture0).
+
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+    let screenQuadVertices := Float32x2 array(
+        Float32x2(-1, -1),
+        Float32x2(-1, 3),
+        Float32x2(3, -1)
+    ).
+
+    function linear fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let screenColor := self albedoSampler sample: self screenTexture at: input texcoord.
+        let exposedColor := screenColor rgb * self cameraState exposure.
+        let toneMapped := exposedColor.
+
+        out send: (FragmentOutput()
+            color0: Float32x4(toneMapped, screenColor a);
+            yourself)
+    }.
+
+    function reinhard fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        ## Tone mapping operator from: https://learnopengl.com/Advanced-Lighting/HDR
+        let screenColor := self albedoSampler sample: self screenTexture at: input texcoord.
+        let exposedColor := screenColor rgb * self cameraState exposure.
+        let toneMapped := exposedColor / (exposedColor + 1).
+
+        out send: (FragmentOutput()
+            color0: Float32x4(toneMapped, screenColor a);
+            yourself)
+    }.
+
+    function exponential fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        ## Tone mapping operator from: https://learnopengl.com/Advanced-Lighting/HDR
+        let screenColor := self albedoSampler sample: self screenTexture at: input texcoord.
+        let exposedColor := screenColor rgb * self cameraState exposure.
+        let toneMapped := 1.0f - (exposedColor negated) exp.
+
+        out send: (FragmentOutput()
+            color0: Float32x4(toneMapped, screenColor a);
+            yourself)
+    }.
+
+    function filmic fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let screenColor := self albedoSampler sample: self screenTexture at: input texcoord.
+        let exposedColor := screenColor rgb * self cameraState exposure.
+        let toneMapped := filmicCurve(exposedColor).
+
+        out send: (FragmentOutput()
+            color0: Float32x4(toneMapped, screenColor a);
+            yourself)
+    }.
+
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

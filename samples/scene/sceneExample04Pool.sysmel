@@ -161,6 +161,8 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     ## Setup the camera
     {
         let camera := model mainCamera.
-        camera _ translateByX: 0.0f y: 1.0f z: -4.0f.
+        camera _
+            toneMappingOperator: ToneMappingOperator Filmic;
+            translateByX: 0.0f y: 1.0f z: -4.0f.
     }.
 }.

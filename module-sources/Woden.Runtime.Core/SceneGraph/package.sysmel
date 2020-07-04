@@ -1,5 +1,6 @@
 loadFileOnce: "Scene.sysmel".
 loadFileOnce: "SceneNode.sysmel".
+loadFileOnce: "ToneMappingOperator.sysmel".
 loadFileOnce: "Camera.sysmel".
 loadFileOnce: "SceneLayer.sysmel".
 loadFileOnce: "AbstractSpatialObjectNode.sysmel".
