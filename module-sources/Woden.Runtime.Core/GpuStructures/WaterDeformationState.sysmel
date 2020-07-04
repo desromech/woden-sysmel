@@ -1,0 +1,44 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct WaterDeformationStateHarmonic definition: {
+	<gpu>
+    public field centerOrDirection type: Float32x2.
+    public field amplitude type: Float32.
+    public field frequency type: Float32.
+
+    public field padding1 type: Float32.
+    public field padding2 type: Float32.
+    public field padding3 type: Float32.
+    public field isRadial type: Int32.
+}.
+
+struct WaterDeformationState definition: {
+	<gpu>
+    compileTime constant HarmonicCount := 5.
+
+    public field clipMapPeriod type: Float32x2.
+    public field padding type: Float32x4.
+
+    public field harmonics type: (WaterDeformationStateHarmonic array: HarmonicCount).
+
+    method harmonicAt: (index: UInt32) amplitude: (amplitude: Float32) frequency: (frequency: Float32) center: (center: Float32x2) ::=> Void := {
+        harmonics[index]
+            centerOrDirection: center;
+            amplitude: amplitude;
+            frequency: frequency;
+            isRadial: 1.
+    }.
+
+    method harmonicAt: (index: UInt32) amplitude: (amplitude: Float32) frequency: (frequency: Float32) direction: (direction: Float32x2) ::=> Void := {
+        harmonics[index]
+            centerOrDirection: direction;
+            amplitude: amplitude;
+            frequency: frequency;
+            isRadial: 0.
+    }.
+
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

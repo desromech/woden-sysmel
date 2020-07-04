@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a renderable with additional deformation state.
+ *#
+class SurfaceDeformationRenderableMesh superclass: MeshWithExtraDeformationRenderable; definition: {
+
+}.
+
+compileTime constant SurfaceDeformationRenderableMeshPtr := SurfaceDeformationRenderableMesh sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

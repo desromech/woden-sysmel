@@ -59,6 +59,7 @@ struct LightingParameters definition: {
     public field F0 type: Float32x3.
     public field alpha type: Float32.
     public field directAlpha type: Float32.
+    public field opacityFactor type: Float32.
 }.
 
 struct MetallicRoughnessLightingParameters definition: {
@@ -70,6 +71,7 @@ struct MetallicRoughnessLightingParameters definition: {
     public field albedo type: Float32x3.
     public field metallic type: Float32x3.
     public field roughness type: Float32.
+    public field opacityFactor type: Float32.
 
     method asGenericLightingParameters => LightingParameters := {
         let dielectricSpecular := Float32x3(0.04f, 0.04f, 0.04f).
@@ -89,6 +91,7 @@ struct MetallicRoughnessLightingParameters definition: {
             F0: F0;
             alpha: alpha;
             directAlpha: directAlpha;
+            opacityFactor: opacityFactor;
             yourself
     }.
 }.
@@ -121,6 +124,9 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
         let result mutable := hemiLightingFactor rgb * Cdiff.
 
+        ## Opacity factor
+        let opacityWithFresnel := fresnelSchlick(lightingParameters opacityFactor, NdotV).
+
         ## Accumulate the different lights.
         0 until: self globalLightingState numberOfLights do: {:i :: Void |
             let lightSource ref := self globalLightingState lightSources[i].
@@ -150,7 +156,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
             }.
         }.
 
-        Float32x4(result, 1.0f)
+        Float32x4(result, opacityWithFresnel)
     }.
 }.
 

@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics GUI.
 
 #**
  * I am the model that lies underlying a Woden application.
@@ -58,6 +59,14 @@ class SceneModel superclass: Model; definition: {
     override method prepareRendering => Void := {
         super prepareRendering.
 
+    }.
+
+    override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
+        scene ifNotNil: {
+            scene _ currentTime: (event seconds castTo: Float32)
+        }.
+
+        super onStartFrameTick: event.
     }.
 }.
 

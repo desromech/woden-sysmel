@@ -20,6 +20,10 @@ class Renderable superclass: Stdn SharedObject; definition: {
         depthTestingEnabled := OverrideableBoolean False.
     }.
 
+    method withoutDepthWrite => Void := {
+        depthWriteMask := OverrideableBoolean False.
+    }.
+
     virtual method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Stdn Collections Vector(RenderingSceneObject sharedPointer) := {
         let renderingSceneObject := RenderingSceneRenderable sharedNew.
         renderingSceneObject _

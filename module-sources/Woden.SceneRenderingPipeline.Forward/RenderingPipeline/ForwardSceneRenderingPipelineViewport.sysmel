@@ -246,6 +246,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     method uploadCameraState => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
         camera ifNil: {return: void}.
 
         let normalCameraTransform := camera _ globalTransform.
@@ -268,6 +270,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             inverseScreenSize: 1 / screenSize;
 
             exposure: 1;
+            currentTime: scene _ currentTime;
             yourself.
 
         let backgroundCameraState mutable := normalCameraState.
@@ -347,6 +350,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         renderingContext
             stateTracker: stateTracker;
             sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
             sceneFaceCullingMode: FaceCullingMode Back;
             sceneDepthTestingEnabled: OverrideableBoolean True;
             sceneDepthWriteMask: OverrideableBoolean True.

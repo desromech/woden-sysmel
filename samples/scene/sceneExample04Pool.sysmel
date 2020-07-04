@@ -90,22 +90,31 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     ## Build the water.
     {
-        let material := MetallicRoughnessMaterial for: engine.
+        let material := WaterMaterial for: engine.
         material _
-            albedoColor: Float32x4(0, 0, 0, 1);
-            roughnessFactor: 0.0f;
-            doubleSided: true.
+            albedoColor: Float32x4(0.01f, 0.01f, 0.01f, 0.04f);
+            roughnessFactor: 0.02f.
 
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
             currentMaterial: (material upCastFor: Material);
             addGridWithSize: 5.0f subdivisions: 64.
 
-        let renderable := meshBuilder _ renderable.
+        let renderable := WaterRenderableMesh sharedNew.
+        renderable _
+            engine: engine;
+            mesh: meshBuilder _ renderable.
+        renderable _ mesh _ withoutDepthWrite.
+
+        renderable _ waterDeformationState
+            harmonicAt: 0 amplitude: 0.05f frequency: -1.1f center: Float32x2(0, 0);
+            harmonicAt: 1 amplitude: 0.02f frequency: 2.23f direction: Float32x2(0, -1);
+            harmonicAt: 2 amplitude: 0.015f frequency: 1.80f direction: Float32x2(1, 0).
 
         let water := SpatialObjectNode sharedNew.
+
         water _
-            renderable: renderable;
+            renderable: (renderable upCastFor: Renderable);
             translateToX: 0.0f y: -0.3 z: 0.0f.
         scene _ add: (water upCastFor: SceneNode).
     }.

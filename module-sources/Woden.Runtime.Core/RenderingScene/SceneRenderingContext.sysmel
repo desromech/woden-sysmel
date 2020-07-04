@@ -21,9 +21,21 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
     protected field objectDepthWriteMask type: OverrideableBoolean.
     protected field objectDepthTestingEnabled type: OverrideableBoolean.
 
+    protected field sceneBlendingEquation type: BlendingEquation.
+    protected field materialBlendingEquation type: BlendingEquation.
+    protected field materialBlendingEquationValid type: Boolean8.
+
     virtual method reset => Void := {
         activeMaterial reset.
+        self resetMaterialAttributes.
+        self resetObjectAttributes.
     }.
+
+    virtual method uploadDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8
+        := false.
+
+    virtual method uploadAndActivateDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8
+        := false.
 
     virtual method activateMaterial: (material: MaterialPtr const ref) ::=> Boolean8 := {
         activeMaterial = material ifTrue: {
@@ -88,9 +100,35 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
     method depthTestingEnabled => Boolean8
         := (sceneDepthTestingEnabled -> objectDepthTestingEnabled) asBoolean8.
 
+    method sceneBlendingEquation: (blendingEquation: BlendingEquation) ::=> Void := {
+        sceneBlendingEquation := blendingEquation.
+        stateTracker _ blendingEquation: self blendingEquation.
+    }.
+
+    method materialBlendingEquation: (blendingEquation: BlendingEquation) ::=> Void := {
+        materialBlendingEquation := blendingEquation.
+        materialBlendingEquationValid := true.
+        stateTracker _ blendingEquation: self blendingEquation.
+    }.
+
+    method blendingEquation => BlendingEquation := {
+        materialBlendingEquationValid ifTrue: {
+            return: materialBlendingEquation
+        }.
+
+        sceneBlendingEquation
+    }.
+
     method resetMaterialAttributes ::=> Void := {
-        materialFaceCullingModeValid := false.
-        stateTracker _ faceCullingMode: self faceCullingMode.
+        materialFaceCullingModeValid ifTrue: {
+            materialFaceCullingModeValid := false.
+            stateTracker _ faceCullingMode: self faceCullingMode.
+        }.
+
+        materialBlendingEquationValid ifTrue: {
+            materialBlendingEquationValid := false.
+            stateTracker _ blendingEquation: self blendingEquation.
+        }.
     }.
 
     abstract method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8.

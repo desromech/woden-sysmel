@@ -1,0 +1,18 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a renderable with additional deformation state.
+ *#
+class DeformableRenderable superclass: MutableRenderable; definition: {
+    public field engine type: EnginePtr.
+    public field deformationStateCache type: DeformationStateCache.
+
+    virtual method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8
+        := false.
+}.
+
+compileTime constant DeformableRenderablePtr := DeformableRenderable sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

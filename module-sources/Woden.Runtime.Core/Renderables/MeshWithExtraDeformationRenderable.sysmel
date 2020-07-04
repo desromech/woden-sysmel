@@ -1,0 +1,24 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a renderable with additional deformation state.
+ *#
+class MeshWithExtraDeformationRenderable superclass: DeformableRenderable; definition: {
+    public field mesh type: RenderablePtr.
+
+    override method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
+        (self activateDeformationStateOn: context) ifFalse: {
+            return: void
+        }.
+
+        mesh ifNotNil: {
+            mesh _ renderWithContext: context
+        }.
+    }.
+}.
+
+compileTime constant MeshWithExtraDeformationRenderablePtr := MeshWithExtraDeformationRenderable sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

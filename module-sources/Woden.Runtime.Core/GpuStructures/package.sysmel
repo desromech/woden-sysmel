@@ -8,3 +8,5 @@ loadFileOnce: "ObjectStateData.sysmel".
 loadFileOnce: "CameraStateData.sysmel".
 loadFileOnce: "LightSourceData.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialStateData.sysmel".
+
+loadFileOnce: "WaterDeformationState.sysmel".

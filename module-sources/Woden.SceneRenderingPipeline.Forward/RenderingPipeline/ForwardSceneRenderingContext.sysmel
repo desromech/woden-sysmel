@@ -13,15 +13,42 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     method device => RenderingDevicePtr const ref
         := sceneRenderingPipeline _ engine _ renderingDevice.
 
+    override method uploadDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
+        deformationStateCache buffers isCreated ifFalse: {
+            let engine := sceneRenderingPipeline _ engine.
+
+            deformationStateCache buffers for: engine createWithDescription: (BufferDescription()
+                size: deformationStateSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            deformationStateCache bindings for: engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 4.
+            deformationStateCache bindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: deformationStateCache buffers buffers[index]
+            }.
+        }.
+
+        deformationStateCache buffers current _ uploadAt: 0 size: deformationStateSize data: deformationStateData.
+        true
+    }.
+
+    override method uploadAndActivateDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
+        (self uploadDeformationState: deformationStateData size: deformationStateSize on: deformationStateCache) && {
+            stateTracker _
+                useGraphicShaderBindings: deformationStateCache bindings current.
+            true
+        }
+    }.
+
     override method activateUnlitMaterial: (material: UnlitMaterial ref) ::=> Boolean8 := {
         false
     }.
 
-    override method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
-        material doubleSided ifTrue: {
-            self materialFaceCullingMode: FaceCullingMode None
-        }.
-
+    method validateMetallicRoughnessMaterialStateBinding: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
         material stateBinding ifNil: {
             material stateBuffer := self device _ createBuffer: (BufferDescription()
                 size: Woden Shaders MetallicRoughnessMaterialStateData instanceSize;
@@ -39,6 +66,18 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
                 bindOn: 2 sampledTextureView: material normalTextureView;
                 bindOn: 3 sampledTextureView: material emissionTextureView;
                 bindOn: 4 sampledTextureView: material metallicRoughnessTextureView.
+        }.
+
+        true
+    }.
+
+    override method activateMetallicRoughnessMaterial: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
+        material doubleSided ifTrue: {
+            self materialFaceCullingMode: FaceCullingMode None
+        }.
+
+        (self validateMetallicRoughnessMaterialStateBinding: material) ifFalse: {
+            return: false.
         }.
 
         stateTracker _
@@ -71,7 +110,19 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     }.
 
     override method activateWaterMaterial: (material: WaterMaterial ref) ::=> Boolean8 := {
-        false
+        ## Always double sided.
+        self materialFaceCullingMode: FaceCullingMode None.
+        self materialBlendingEquation: BlendingMode CompositePremultipliedAlphaOver asBlendingEquation.
+
+        (self validateMetallicRoughnessMaterialStateBinding: material) ifFalse: {
+            return: false.
+        }.
+
+        stateTracker _
+            useGraphicShaderBindings: material stateBinding;
+            vertexShader: Woden Shaders WaterMaterialShaders vertex shaderEntryPointInfo address;
+            fragmentShader: Woden Shaders WaterMaterialShaders fragment shaderEntryPointInfo address.
+        true
     }.
 
     method createMaterialStateBinding => ShaderResourceBindingsPtr

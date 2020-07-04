@@ -6,3 +6,11 @@ loadFileOnce: "ImmutableRenderable.sysmel".
 loadFileOnce: "NullRenderable.sysmel".
 loadFileOnce: "GenericMeshRenderable.sysmel".
 loadFileOnce: "GenericSubmesh.sysmel".
+
+loadFileOnce: "MutableRenderable.sysmel".
+loadFileOnce: "DeformationStateCache.sysmel".
+loadFileOnce: "DeformableRenderable.sysmel".
+loadFileOnce: "MeshWithExtraDeformationRenderable.sysmel".
+loadFileOnce: "SurfaceDeformationRenderableMesh.sysmel".
+loadFileOnce: "WaterRenderableMesh.sysmel".
+loadFileOnce: "TerrainRenderableMesh.sysmel".

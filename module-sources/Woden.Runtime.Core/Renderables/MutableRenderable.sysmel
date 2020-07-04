@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am an mutable renderable object. I have data on the gpu that may change.
+ *#
+class MutableRenderable superclass: Renderable; definition: {
+}.
+
+compileTime constant MutableRenderablePtr := MutableRenderable sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

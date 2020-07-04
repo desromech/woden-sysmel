@@ -4,7 +4,7 @@ namespace Runtime definition: {
 #**
  * I am a material that performs flat shading in a surface.
  *#
-class WaterMaterial superclass: Material; definition: {
+class WaterMaterial superclass: MetallicRoughnessMaterial; definition: {
     meta definition: {
         method for: (anEngine: EnginePtr const ref) ::=> WaterMaterial sharedPointer := {
             let result := WaterMaterial sharedNew.
@@ -14,7 +14,10 @@ class WaterMaterial superclass: Material; definition: {
     }.
 
     override method initialize => Void := {
-
+        state
+            albedo: Float32x4 zeros;
+            metallicFactor: 0.0f;
+            roughnessFactor: 0.0f.
     }.
 
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8

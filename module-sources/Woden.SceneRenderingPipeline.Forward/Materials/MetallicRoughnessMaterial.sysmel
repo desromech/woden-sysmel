@@ -120,6 +120,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
             albedo: albedo rgb;
             metallic: metallic;
             roughness: roughness;
+            opacityFactor: albedo a;
             yourself).
 
         out send: (FragmentOutput()

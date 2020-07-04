@@ -1,0 +1,19 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a renderable with additional deformation state.
+ *#
+class WaterRenderableMesh superclass: SurfaceDeformationRenderableMesh; definition: {
+    public field waterDeformationState type: Woden Shaders WaterDeformationState.
+
+    override method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8 := {
+        context uploadAndActivateDeformationState: waterDeformationState address size: Woden Shaders WaterDeformationState instanceSize
+            on: deformationStateCache
+    }.
+}.
+
+compileTime constant WaterRenderableMeshPtr := WaterRenderableMesh sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden
