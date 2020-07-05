@@ -9,6 +9,10 @@ useNamespace: Stdn Graphics Core.
  *#
 class SceneRenderingContext superclass: Stdn Object; definition: {
     public field stateTracker type: StateTrackerPtr.
+
+    public field renderPass type: SceneRenderPass.
+    public field renderMode type: SceneRenderMode.
+
     protected field activeMaterial type: MaterialPtr.
 
     protected field sceneFaceCullingMode type: FaceCullingMode.

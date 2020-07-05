@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+class SceneRenderingContext.
+
 #**
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#

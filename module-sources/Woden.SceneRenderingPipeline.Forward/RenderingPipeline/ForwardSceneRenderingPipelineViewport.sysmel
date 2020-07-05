@@ -86,8 +86,14 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
         }.
     }.
 
+    method setSSAOTextureView: (textureView: TextureViewPtr const ref) ::=> Void := {
+        lightingStateBindings current _
+            bindOn: 3 sampledTextureView: textureView.
+    }.
+
     method uploadSceneLightingState => Void := {
-        lightingStateBuffers current _ uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+        lightingStateBuffers current _
+            uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
     }.
 
     method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
@@ -150,14 +156,22 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field renderingCommandQueue type: CommandQueuePtr.
     protected field stateTrackers type: FrameBufferedStateTracker.
 
-    protected field hdrFramebuffer type: FramebufferPtr.
-    protected field hdrRenderPass type: RenderPassPtr.
+    protected field depthNormalFramebuffer type: FramebufferPtr.
+    protected field depthNormalRenderPass type: RenderPassPtr.
+
+    protected field ssaoTextureExtent type: UInt32x2.
+    protected field ssaoTextureView type: TextureViewPtr.
+    protected field ssaoFramebuffer type: FramebufferPtr.
+    protected field ssaoComputationRenderPass type: RenderPassPtr.
+    protected field ssaoComputationBinding type: ShaderResourceBindingsPtr.
+
+    protected field hdrColorFramebuffer type: FramebufferPtr.
+    protected field hdrColorRenderPass type: RenderPassPtr.
     protected field hdrColorBufferBinding type: ShaderResourceBindingsPtr.
 
     protected field colorBufferTextureHandle type: StrongTextureHandlePtr.
     protected field framebuffer type: FramebufferPtr.
     protected field renderPass type: RenderPassPtr.
-
 
     const inline method engine => EnginePtr
         := sceneRenderingPipeline _ engine.
@@ -179,7 +193,103 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         colorBufferTextureHandle reset.
         framebuffer reset.
-        hdrFramebuffer reset.
+        hdrColorFramebuffer reset.
+
+        let depthBuffer := device _ createTexture: (TextureDescription()
+            type: TextureType Texture2D;
+            width: requiredExtent x;
+            height: requiredExtent y;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: PixelFormat D32_Float;
+            usageModes: TextureUsageMode Sampled | TextureUsageMode DepthAttachment;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: 1;
+            yourself).
+        let normalBuffer := device _ createTexture: (TextureDescription()
+            type: TextureType Texture2D;
+            width: requiredExtent x;
+            height: requiredExtent y;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: PixelFormat R10G10B10A2_UNorm;
+            usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: 1;
+            yourself).
+
+        let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
+        let normalBufferTextureView := normalBuffer _ getOrCreateFullView.
+
+        ## Create the depth normal framebuffer.
+        {
+            let colorAttachments mutable := TextureViewPtr array(normalBufferTextureView).
+            depthNormalFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+        }.
+
+        depthNormalRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat R10G10B10A2_UNorm;
+                    beginAction: RenderPassAttachmentAction Clear;
+                    endAction: RenderPassAttachmentAction Keep;
+                    clearValue: Float32x4(0.5f, 0.5f, 1.0f, 0.0f);
+                    yourself
+            ).
+
+            let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
+                format: PixelFormat D32_Float;
+                beginAction: RenderPassAttachmentAction Clear;
+                endAction: RenderPassAttachmentAction Keep;
+                yourself.
+            depthNormalRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+        }.
+
+        ssaoComputationBinding ifNil: {
+            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoComputationBinding _
+            bindOn: 1 sampledTextureView: depthBufferTextureView;
+            bindOn: 2 sampledTextureView: normalBufferTextureView.
+
+        ## Create the SSAO computation framebuffer.
+        ssaoTextureExtent := requiredExtent / 2 max: UInt32x2(4, 4).
+        ##ssaoTextureExtent := requiredExtent max: UInt32x2(4, 4).
+        {
+            let ssaoTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: ssaoTextureExtent x;
+                height: ssaoTextureExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat R8_UNorm;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            ssaoTextureView := ssaoTexture _ getOrCreateFullView.
+
+            let colorAttachments mutable := TextureViewPtr array(ssaoTextureView).
+            ssaoFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        ssaoComputationRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat R8_UNorm;
+                    beginAction: RenderPassAttachmentAction Keep;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+
+            ssaoComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
 
         ## Create the main framebuffer.
         {
@@ -203,26 +313,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             }.
             hdrColorBufferBinding _ bindOn: 1 sampledTextureView: colorBuffer _ getOrCreateFullView.
 
-            let depthBuffer := device _ createTexture: (TextureDescription()
-                type: TextureType Texture2D;
-                width: requiredExtent x;
-                height: requiredExtent y;
-                depth: 1;
-                layers: 1;
-                miplevels: 1;
-                format: PixelFormat D32_Float;
-                usageModes: TextureUsageMode DepthAttachment;
-                mainUsageMode: TextureUsageMode DepthAttachment;
-                heapType: MemoryHeapType DeviceLocal;
-                sampleCount: 1;
-                yourself).
-            let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
-
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
-            hdrFramebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+            hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferTextureView.
         }.
 
-        hdrRenderPass ifNil: {
+        hdrColorRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
                     format: PixelFormat R16G16B16A16_Float;
@@ -233,10 +328,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
                 format: PixelFormat D32_Float;
-                beginAction: RenderPassAttachmentAction Clear;
-                endAction: RenderPassAttachmentAction Discard;
+                beginAction: RenderPassAttachmentAction Keep;
+                endAction: RenderPassAttachmentAction Keep;
                 yourself.
-            hdrRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+            hdrColorRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
         ## Create the main framebuffer.
@@ -260,7 +355,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 createTextureHandleFor: (colorBuffer upCastFor: Stdn SharedObject) view: (colorBufferTextureView upCastFor: Stdn SharedObject).
 
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
-            framebuffer := device _ createFramebuffer: UInt32x2(640, 480) colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+            framebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
         }.
 
         renderPass ifNil: {
@@ -295,7 +390,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         camera ifNil: {return: void}.
 
         toneMappingOperator := camera _ toneMappingOperator.
-        
+
         let normalCameraTransform := camera _ globalTransform.
         let backgroundCameraTransform mutable := normalCameraTransform.
         backgroundCameraTransform translation: Float32x3 zeros.
@@ -363,7 +458,92 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         viewportLayer
             gatherSceneLightingState;
+            setSSAOTextureView: ssaoTextureView;
             uploadSceneLightingState.
+    }.
+
+    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref) on: (framebuffer: FramebufferPtr const ref) ::=> Void := {
+        stateTracker _
+            resetState;
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+
+            frontFaceOrientation: FrontFaceOrientation CounterClockwise;
+            depthFunction: CompareFunction GreaterOrEqual;
+
+            beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
+            setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
+            setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
+    }.
+
+    method renderSceneObjectsWith: (renderingContext: SceneRenderingContext ref) ::=> Void := {
+        backgroundLayer renderSceneObjectsWith: renderingContext.
+        normalLayer renderSceneObjectsWith: renderingContext.
+        foregroundLayer renderSceneObjectsWith: renderingContext.
+    }.
+
+    method renderDepthNormalPass => Void := {
+        let stateTracker := stateTrackers current.
+
+        self setupStateTracker: stateTracker forRenderPass: depthNormalRenderPass on: depthNormalFramebuffer.
+
+        let renderingContext mutable := ForwardSceneRenderingContext().
+        renderingContext
+            stateTracker: stateTracker;
+            renderPass: SceneRenderPass DepthNormal;
+            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
+            sceneFaceCullingMode: FaceCullingMode Back;
+            sceneDepthTestingEnabled: OverrideableBoolean True;
+            sceneDepthWriteMask: OverrideableBoolean True.
+
+        self renderSceneObjectsWith: renderingContext.
+
+        stateTracker _
+            endRenderPass.
+    }.
+
+    method computeScreenSpaceAmbientOcclusion => Void := {
+        let stateTracker := stateTrackers current.
+
+        stateTracker _
+            resetState;
+
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: normalLayer cameraStateBindings current;
+            useGraphicShaderBindings: ssaoComputationBinding;
+
+            beginRenderPass: ssaoComputationRenderPass on: ssaoFramebuffer contentOnBundle: false;
+            setViewport: (RectangleI32 min: Int32x2 zeros max: (ssaoTextureExtent castTo: Int32x2));
+            setScissor: (RectangleI32 min: Int32x2 zeros max: (ssaoTextureExtent castTo: Int32x2));
+
+            vertexShader: self screenQuadShader;
+            fragmentShader: Woden Shaders SSAOComputationMaterialShaders ssaoComputation shaderEntryPointInfo address;
+            primitiveTopology: PrimitiveTopology Triangles;
+            drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+
+            endRenderPass
+    }.
+
+    method renderColorPass => Void := {
+        let stateTracker := stateTrackers current.
+
+        self setupStateTracker: stateTracker forRenderPass: hdrColorRenderPass on: hdrColorFramebuffer.
+
+        let renderingContext mutable := ForwardSceneRenderingContext().
+        renderingContext
+            stateTracker: stateTracker;
+            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
+            sceneFaceCullingMode: FaceCullingMode Back;
+            sceneDepthTestingEnabled: OverrideableBoolean True;
+            sceneDepthWriteMask: OverrideableBoolean True.
+
+        self renderSceneObjectsWith: renderingContext.
+
+        stateTracker _
+            endRenderPass.
     }.
 
     method renderHDRScene => Void := {
@@ -377,34 +557,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             prepareSceneLayer: scene _ normalLayer on: normalLayer;
             prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
 
-        let stateTracker := stateTrackers current.
-
-        stateTracker _
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
-
-            frontFaceOrientation: FrontFaceOrientation CounterClockwise;
-            depthFunction: CompareFunction GreaterOrEqual;
-
-            beginRenderPass: hdrRenderPass on: hdrFramebuffer contentOnBundle: false;
-            setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
-            setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
-
-        let renderingContext mutable := ForwardSceneRenderingContext().
-        renderingContext
-            stateTracker: stateTracker;
-            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
-            sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
-            sceneFaceCullingMode: FaceCullingMode Back;
-            sceneDepthTestingEnabled: OverrideableBoolean True;
-            sceneDepthWriteMask: OverrideableBoolean True.
-
-        backgroundLayer renderSceneObjectsWith: renderingContext.
-        normalLayer renderSceneObjectsWith: renderingContext.
-        foregroundLayer renderSceneObjectsWith: renderingContext.
-
-        stateTracker _
-            endRenderPass.
+        self
+            renderDepthNormalPass;
+            computeScreenSpaceAmbientOcclusion;
+            renderColorPass
     }.
 
     method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {

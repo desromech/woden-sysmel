@@ -1,0 +1,152 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+## FIXME: Use Stdn hashForUInt32
+function randomNoiseHash(v: UInt32) => UInt32 := {
+	let r mutable := v ^ (v >> 16).
+    r := r * 16r7feb352d.
+    r := r ^ (r >> 15).
+    r := r * 16r846ca68b.
+    r := r ^ (r >> 16).
+	r
+}.
+
+function randomNoiseHashNormalized(x: UInt32) => Float32
+	:= (randomNoiseHash(x) castTo: Float32) / 4294967295.0f.
+
+function randomNoise(position: Float32x2) => Float32 := {
+	let ip := position floor castTo: UInt32x2.
+	randomNoiseHashNormalized(randomNoiseHash(ip x) * 27972u + randomNoiseHash(ip y) * 8516u).
+}.
+
+function signedRandomNoise(position: Float32x2) ::=> Float32
+	:= randomNoise(position)*2.0f - 1.0f.
+
+class SSAOComputationMaterialShaders superclass: CompositionMaterialShaders; definition: {
+    macro method depthTexture := ``(`,self materialStateBinding _ texture0).
+	macro method normalTexture := ``(`,self materialStateBinding _ texture1).
+
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+	meta definition: {
+		static method rotationMatrixFor: (s: Float32) ::=> Float32x3x3 := {
+			let c := (1.0f - s*s) sqrt.
+			Float32x3x3(
+		        Float32x3(c, s, 0.0f),
+		        Float32x3(-s, c, 0.0f),
+		        Float32x3(0.0f, 0.0f, 1.0f)
+		    ).
+		}.
+
+		let VectorAxis := Float32x3 array(
+			Float32x3(1, 0, 0),
+			Float32x3(0, 1, 0),
+			Float32x3(0, 0, 1),
+			Float32x3(1, 0, 0),
+			Float32x3(0, 1, 0),
+			Float32x3(0, 0, 1)
+		).
+
+		static method findBestAxisFor: (v: Float32x3) ::=> Int32 := {
+			let bestAxis mutable := 0.
+			let bestAxisAmount mutable := v x abs.
+
+			let yAxisAmount := v y abs.
+			yAxisAmount > bestAxisAmount ifTrue: {
+				bestAxis := 1.
+				bestAxisAmount := yAxisAmount.
+			}.
+
+			let zAxisAmount := v z abs.
+			zAxisAmount > bestAxisAmount ifTrue: {
+				bestAxis := 2.
+				bestAxisAmount := zAxisAmount.
+			}.
+
+			bestAxis
+		}.
+
+		static method computeTBNForNormal: (normal: Float32x3) ::=> Float32x3x3 := {
+		    let normalAxis := InstanceType findBestAxisFor: normal.
+
+		    ## Axis[normalAxis + 1] and axis[normalAxis + 2] are not parallel to the
+		    ## normal value. However, they do not necesarily form an orthogonal basis,
+		    ## so we apply the Gram-schmidth orthogonalization.
+		    let tangent mutable := VectorAxis[normalAxis + 1].
+		    tangent := (tangent - normal*(normal dot: tangent)) normalized.
+
+		    let bitangent mutable := VectorAxis[normalAxis + 2].
+		    bitangent := (bitangent - normal*(normal dot: bitangent) - tangent*(tangent dot: bitangent)) normalized.
+
+		    Float32x3x3(tangent, bitangent, normal).
+		}
+	}.
+
+	method sampleAmbientOcclusionAt: (position: Float32x3) with: (eyeDepth: Float32) ::=> Float32 :=  {
+	    let projectedPosition := self cameraState projectionMatrix * Float32x4(position, 1.0f).
+	    let samplePoint := projectedPosition xyz / projectedPosition w.
+		let sampleDepth := (self deferredSampler sample: self depthTexture at: samplePoint xy*0.5f + 0.5f lod: 0.0f) r.
+
+	    ## Large variations of depth can introduce some false positives.
+	    let threshold := (eyeDepth - samplePoint z) abs * 10.0f.
+	    let attenuation := 1.0f - (threshold smoothStepTo: threshold*2.0f value: (sampleDepth - samplePoint z) abs).
+
+		(sampleDepth - 0.00001f < samplePoint z
+			ifTrue: 0.0f
+			ifFalse: 1.0f)*attenuation
+	}.
+
+	compileTime constant SamplingDistributionSize := 8.
+	let SamplingDistribution := Float32x3 array(
+	    Float32x3( -0.6877715587615967f, -0.506843626499176f, 0.5196920037269592f ),
+	    Float32x3( -0.34024709463119507f, 0.2696249485015869f, 0.9008519649505615f ),
+	    Float32x3( 0.8366008996963501f, -0.2242094725370407f, 0.4998289942741394f ),
+	    Float32x3( 0.5788835287094116f, -0.8140687346458435f, 0.04675422981381416f ),
+	    Float32x3( 0.1709364503622055f, 0.9850329756736755f, 0.022153066471219063f ),
+	    Float32x3( 0.8136236667633057f, 0.519911527633667f, 0.2602085471153259f ),
+	    Float32x3( -0.8440455198287964f, 0.44032758474349976f, 0.3061026632785797f ),
+	    Float32x3( 0.1833304911851883f, -0.7002113461494446f, 0.6899957060813904f )
+	).
+
+    function ssaoComputation fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let uv := in receive texcoord.
+
+		## Compute the eye position, in view space.
+	    let eyeDepth := (self deferredSampler sample: self depthTexture at: uv lod: 0.0f) r.
+	    let screenPosition := Float32x4(uv*2.0f - 1.0f, eyeDepth, 1.0f).
+
+	    let eyePosition4 := self cameraState inverseProjectionMatrix * screenPosition.
+	    let eyePosition := eyePosition4 xyz / eyePosition4 w.
+
+		## Read the normal
+	    let eyeNormal := ((self deferredSampler sample: self normalTexture at: uv lod: 0.0f) rgb*2.0f - 1.0f) normalized.
+
+	    ## Compute the TBN matrix.
+	    let normalAxis := SelfType findBestAxisFor: eyeNormal.
+	    let TBN := SelfType computeTBNForNormal: eyeNormal.
+
+		## Compute a noise rotation matrix
+	    let noiseRotation := SelfType rotationMatrixFor: signedRandomNoise(uv*123456.0f).
+
+	    ## Compute the full sample tangent to view matrix.
+		let sampleTangentToView := TBN*noiseRotation.
+
+		let outSampleCount mutable := 0.0f.
+		0 until: SamplingDistributionSize do: {:i :: Void |
+			let delta := sampleTangentToView*(SamplingDistribution[i]*0.1f).
+			outSampleCount := outSampleCount + (self sampleAmbientOcclusionAt: eyePosition + delta with: eyeDepth).
+		}.
+
+		let value := 1.0f - outSampleCount / (SamplingDistributionSize castTo: Float32).
+
+        out send: (FragmentOutput()
+            color0: value;
+            yourself)
+    }.
+
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

@@ -10,6 +10,7 @@ useNamespace: Stdn Graphics Core.
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
     public field shaderSignature type: ShaderSignaturePtr.
     protected field sampler type: SamplerPtr.
+    protected field deferredSampler type: SamplerPtr.
     public field samplingStateBinding type: ShaderResourceBindingsPtr.
 
     override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
@@ -28,6 +29,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 addElementWithType: ShaderBindingType Sampler;
                 addElementWithType: ShaderBindingType Sampler;
                 addElementWithType: ShaderBindingType Sampler;
+                addElementWithType: ShaderBindingType Sampler;
                 yourself
             );
 
@@ -39,7 +41,21 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
 
             ## LightingState.
             addBank: (ShaderSignatureBankDescription()
+                ## State
                 addElementWithType: ShaderBindingType UniformBuffer;
+                ## spotShadowMaps
+                addElementWithType: ShaderBindingType SampledImage;
+
+                ## pointShadowMaps
+                addElementWithType: ShaderBindingType SampledImage;
+                ## screenSpaceAmbientOcclusion
+                addElementWithType: ShaderBindingType SampledImage;
+                ## specularBRDFLut
+                addElementWithType: ShaderBindingType SampledImage;
+                ## diffuseIrradianceMap
+                addElementWithType: ShaderBindingType SampledImage;
+                ## specularIrradianceMap
+                addElementWithType: ShaderBindingType SampledImage;
                 yourself
             );
 
@@ -84,6 +100,15 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             0 until: 6 do: {:(UInt32)i :: Void |
                 samplingStateBinding _ bindOn: i sampler: sampler.
             }.
+
+            deferredSampler := device _ createSampler: (SamplerDescription()
+                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapNearest;
+                addressU: TextureAddressMode Clamp;
+                addressV: TextureAddressMode Clamp;
+                addressW: TextureAddressMode Clamp;
+                maxLod: 10000.0f;
+                yourself).
+            samplingStateBinding _ bindOn: 6 sampler: deferredSampler.
         }.
     }.
 

@@ -1,3 +1,7 @@
+loadFileOnce: "SceneRenderPass.sysmel".
+loadFileOnce: "SceneRenderMode.sysmel".
+loadFileOnce: "SceneRenderingContext.sysmel".
+
 loadFileOnce: "SceneRenderingPipeline.sysmel".
 loadFileOnce: "SceneRenderingPipelineViewport.sysmel".
 loadFileOnce: "SceneRenderingPipelineRegistry.sysmel".

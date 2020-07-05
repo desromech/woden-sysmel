@@ -9,7 +9,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
     macro method albedoTexture := ``(`,self materialStateBinding _ texture0).
     macro method normalTexture := ``(`,self materialStateBinding _ texture1).
     macro method emissionTexture := ``(`,self materialStateBinding _ texture2).
-    macro method metallicRoughnessTexture := ``(`,self materialStateBinding _ texture3).
+    macro method occlusionRoughnessMetallicTexture := ``(`,self materialStateBinding _ texture3).
 
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
@@ -70,15 +70,19 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
 
-        let metallic := self materialState metallicFactor.
-        let roughness := self materialState roughnessFactor.
+        let occlusionRoughnessMetallicSample := self albedoSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
+        let occlusion := occlusionRoughnessMetallicSample r.
+        let roughness := self materialState roughnessFactor * occlusionRoughnessMetallicSample g.
+        let metallic := self materialState metallicFactor * occlusionRoughnessMetallicSample b.
 
         let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
             P: P;
             V: P negated normalized;
             N: N;
+            fragCoord: stageInput fragCoord;
             emission: emission rgb;
             albedo: albedo rgb;
+            occlusion: occlusion;
             metallic: metallic;
             roughness: roughness;
             yourself).
@@ -109,15 +113,19 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
 
-        let metallic := self materialState metallicFactor.
-        let roughness := self materialState roughnessFactor.
+        let occlusionRoughnessMetallicSample := self albedoSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
+        let occlusion := occlusionRoughnessMetallicSample r.
+        let roughness := self materialState roughnessFactor * occlusionRoughnessMetallicSample g.
+        let metallic := self materialState metallicFactor * occlusionRoughnessMetallicSample b.
 
         let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
             P: P;
             V: P negated normalized;
             N: N;
+            fragCoord: stageInput fragCoord;
             emission: emission rgb;
             albedo: albedo rgb;
+            occlusion: occlusion;
             metallic: metallic;
             roughness: roughness;
             opacityFactor: albedo a;
@@ -127,6 +135,21 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
             color0: lightingResult;
             yourself)
     }.
+
+    function surfaceNormalValueFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+        let stageInput := stageIn receive.
+
+        let N mutable := input normal normalized.
+        stageInput isFrontFacing ifFalse: {
+            N := N negated.
+        }.
+
+        out send: (FragmentOutput()
+            color0: Float32x4(N * 0.5f + 0.5f, 1);
+            yourself)
+    }.
+
 }.
 
 }. ## End of namespace Shaders

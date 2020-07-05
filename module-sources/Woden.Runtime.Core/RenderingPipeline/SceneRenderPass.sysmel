@@ -1,0 +1,18 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am name for a specific scene rendering pass.
+ *#
+enum SceneRenderPass valueType: UInt8; values: #{
+    ForwardShaded: 0.
+    DepthOnly: 1.
+    DepthNormal: 2.
+}; definition: {
+
+    const inline method isDepthPass => Boolean8
+        := self = DepthOnly || self = DepthNormal.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

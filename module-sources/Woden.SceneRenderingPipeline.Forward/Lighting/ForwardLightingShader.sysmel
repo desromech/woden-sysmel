@@ -53,10 +53,14 @@ struct LightingParameters definition: {
     public field P type: Float32x3.
     public field V type: Float32x3.
     public field N type: Float32x3.
+    public field fragCoord type: Float32x4.
 
     public field emission type: Float32x3.
+    public field occlusion type: Float32.
+
     public field Cdiff type: Float32x3.
     public field F0 type: Float32x3.
+
     public field alpha type: Float32.
     public field directAlpha type: Float32.
     public field opacityFactor type: Float32.
@@ -66,10 +70,13 @@ struct MetallicRoughnessLightingParameters definition: {
     public field P type: Float32x3.
     public field V type: Float32x3.
     public field N type: Float32x3.
+    public field fragCoord type: Float32x4.
 
     public field emission type: Float32x3.
     public field albedo type: Float32x3.
-    public field metallic type: Float32x3.
+
+    public field occlusion type: Float32.
+    public field metallic type: Float32.
     public field roughness type: Float32.
     public field opacityFactor type: Float32.
 
@@ -86,9 +93,11 @@ struct MetallicRoughnessLightingParameters definition: {
             P: P;
             V: V;
             N: N;
+            fragCoord: fragCoord;
             emission: emission;
             Cdiff: Cdiff;
             F0: F0;
+            occlusion: occlusion;
             alpha: alpha;
             directAlpha: directAlpha;
             opacityFactor: opacityFactor;
@@ -123,6 +132,14 @@ class ForwardSceneRenderingShaderSignature; definition: {
             at: hemiFactor.
 
         let result mutable := hemiLightingFactor rgb * Cdiff.
+
+        ## Apply the ambient occlusion.
+        let ssao := (self albedoSampler sample: self lightingStateBinding _ ssaoTexture at: lightingParameters fragCoord xy * self cameraState inverseScreenSize) r.
+        let occlusion := lightingParameters occlusion * ssao.
+        result := result * occlusion.
+
+        ## Add the emission.
+        result := result + emission.
 
         ## Opacity factor
         let opacityWithFresnel := fresnelSchlick(lightingParameters opacityFactor, NdotV).

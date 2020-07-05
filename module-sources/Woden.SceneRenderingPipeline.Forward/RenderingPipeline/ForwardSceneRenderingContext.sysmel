@@ -83,18 +83,26 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
         stateTracker _
             useGraphicShaderBindings: material stateBinding;
             vertexShader: Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address.
-        material normalTexture ifNil: {
+
+        renderPass isDepthPass ifTrue: {
             stateTracker _
-                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders flatNormalFragment shaderEntryPointInfo address.
-        } ifNotNil: {
-            stateTracker _
-                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders normalMappedFragment shaderEntryPointInfo address.
+                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders surfaceNormalValueFragment shaderEntryPointInfo address.
+        } ifFalse: {
+            material normalTexture ifNil: {
+                stateTracker _
+                    fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders flatNormalFragment shaderEntryPointInfo address.
+            } ifNotNil: {
+                stateTracker _
+                    fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders normalMappedFragment shaderEntryPointInfo address.
+            }.
         }.
 
         true
     }.
 
     override method activateSkyMaterial: (material: SkyMaterial ref) ::=> Boolean8 := {
+        renderPass isDepthPass ifTrue: { return: false. }.
+
         material stateBinding ifNil: {
             material stateBinding := self createMaterialStateBinding.
             material stateBinding _
@@ -110,6 +118,8 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     }.
 
     override method activateWaterMaterial: (material: WaterMaterial ref) ::=> Boolean8 := {
+        renderPass isDepthPass ifTrue: { return: false. }.
+
         ## Always double sided.
         self materialFaceCullingMode: FaceCullingMode None.
         self materialBlendingEquation: BlendingMode CompositePremultipliedAlphaOver asBlendingEquation.

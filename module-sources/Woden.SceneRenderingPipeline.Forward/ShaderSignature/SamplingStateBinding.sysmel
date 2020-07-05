@@ -8,6 +8,7 @@ class SamplingStateBinding definition: {
     public field shadowSampler type: GPUSampler.
     public field cubeMapSampler type: GPUSampler.
     public field brdfLutSampler type: GPUSampler.
+    public field deferredSampler type: GPUSampler.
 }.
 
 }. ## End of namespace Shaders
