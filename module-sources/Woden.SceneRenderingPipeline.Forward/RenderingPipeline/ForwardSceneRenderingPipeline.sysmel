@@ -3,6 +3,7 @@ namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
 
 #**
  * An abstract pipeline for rendering a null scene.
@@ -12,6 +13,21 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     protected field sampler type: SamplerPtr.
     protected field deferredSampler type: SamplerPtr.
     public field samplingStateBinding type: ShaderResourceBindingsPtr.
+
+    public field specularBRDFLutTexture type: TexturePtr.
+    public field specularBRDFLutTextureView type: TextureViewPtr.
+
+    compileTime constant LuminanceComputationTextureCount := 9.
+    let LuminanceComputationTextureSizes := UInt32x2 array(
+        256, 128, 64, 32, 16, 8, 4, 2, 1
+    ).
+
+    public field luminanceComputationRenderPass type: RenderPassPtr.
+    public field luminanceComputationFramebuffers type: (FramebufferPtr array: LuminanceComputationTextureCount).
+    public field luminanceComputationMaterialBindings type: (ShaderResourceBindingsPtr array: LuminanceComputationTextureCount).
+
+    method luminanceComputationResultMaterialBindings => ShaderResourceBindingsPtr const ref
+        := luminanceComputationMaterialBindings[LuminanceComputationTextureCount - 1].
 
     override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         super initializeForEngine: anEngine.
@@ -36,6 +52,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             ## CameraState.
             addBank: (ShaderSignatureBankDescription()
                 addElementWithType: ShaderBindingType UniformBuffer;
+                addElementWithType: ShaderBindingType StorageBuffer;
                 yourself
             );
 
@@ -110,12 +127,117 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 yourself).
             samplingStateBinding _ bindOn: 6 sampler: deferredSampler.
         }.
+
+        ## Create the specularBRDFLut texture.
+        {
+            specularBRDFLutTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: 512;
+                height: 512;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat R16G16_UNorm;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+
+            specularBRDFLutTextureView := specularBRDFLutTexture _ getOrCreateFullView.
+            ## TODO: generate the content of the lut texture.
+        }.
+
+        ## Create the luminance computation textures and framebuffers.
+        {
+            LuminanceComputationTextureSizes doWithIndex: {:textureExtent :i :: Void |
+                let luminanceIntermediateTexture := device _ createTexture: (TextureDescription()
+                    type: TextureType Texture2D;
+                    width: textureExtent x;
+                    height: textureExtent y;
+                    depth: 1;
+                    layers: 1;
+                    miplevels: 1;
+                    format: PixelFormat R16_Float;
+                    usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                    mainUsageMode: TextureUsageMode Sampled;
+                    heapType: MemoryHeapType DeviceLocal;
+                    sampleCount: 1;
+                    yourself).
+                let luminanceIntermediateTextureView := luminanceIntermediateTexture _ getOrCreateFullView.
+
+                let colorAttachments mutable := TextureViewPtr array(luminanceIntermediateTextureView).
+                luminanceComputationFramebuffers[i] := device _ createFramebuffer: textureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+
+                luminanceComputationMaterialBindings[i] := shaderSignature _ createShaderResourceBindings: 5.
+                luminanceComputationMaterialBindings[i] _
+                    bindOn: 1 sampledTextureView: luminanceIntermediateTextureView.
+            }.
+        }.
+
+        {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat R16_Float;
+                    beginAction: RenderPassAttachmentAction Clear;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+
+            luminanceComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
     }.
 
     override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr := {
         let result := ForwardSceneRenderingPipelineViewport sharedNew.
         result _ initializeWithSceneRenderingPipeline: self asSharedPointer.
         result upCastFor: SceneRenderingPipelineViewport
+    }.
+
+    method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
+        self engine _ renderingDevice _ shouldInvertProjectionY ifTrue: {
+            Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
+        } ifFalse: {
+            Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
+        }.
+    }.
+
+    method performAverageLuminanceComputationWith: (stateTracker: StateTrackerPtr const ref) ::=> Void := {
+        ## Color to luma conversion
+        stateTracker _
+            beginRenderPass: luminanceComputationRenderPass on: luminanceComputationFramebuffers first contentOnBundle: false;
+            setViewport: (RectangleI32 min: Int32x2 zeros max: (LuminanceComputationTextureSizes first castTo: Int32x2));
+            setScissor: (RectangleI32 min: Int32x2 zeros max: (LuminanceComputationTextureSizes first castTo: Int32x2));
+
+            vertexShader: self screenQuadShader;
+            fragmentShader: Woden Shaders ToneMappingMaterialShaders colorToLuminanceConversion shaderEntryPointInfo address;
+            primitiveTopology: PrimitiveTopology Triangles;
+            drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+
+            endRenderPass;
+
+            fragmentShader: Woden Shaders ToneMappingMaterialShaders luminanceDownSample shaderEntryPointInfo address.
+
+        ## Down sampling until single pixel.
+        1 until: LuminanceComputationTextureCount do: {:i :: Void |
+
+            let extent := LuminanceComputationTextureSizes[i].
+            stateTracker _
+                useGraphicShaderBindings: luminanceComputationMaterialBindings[i - 1];
+                beginRenderPass: luminanceComputationRenderPass on: luminanceComputationFramebuffers[i] contentOnBundle: false;
+                setViewport: (RectangleI32 min: Int32x2 zeros max: (extent castTo: Int32x2));
+                setScissor: (RectangleI32 min: Int32x2 zeros max: (extent castTo: Int32x2));
+
+                vertexShader: self screenQuadShader;
+                drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+                endRenderPass.
+        }.
+    }.
+
+    method performCameraAutoExposureStateComputationWith: (stateTracker: StateTrackerPtr const ref) ::=> Void := {
+        stateTracker _
+            computeShader: Woden Shaders ToneMappingMaterialShaders cameraAutoExposureStateComputation shaderEntryPointInfo address;
+            dispatchCompute: 1.
     }.
 }.
 

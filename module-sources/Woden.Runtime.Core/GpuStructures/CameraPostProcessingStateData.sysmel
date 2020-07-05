@@ -1,0 +1,10 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct CameraPostProcessingStateData definition: {
+	<gpu>
+    public field currentAverageLuminance type: Float32.
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

@@ -57,8 +57,16 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
 
             lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
             lightingStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index]
+                each _
+                    bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
+                    bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
             }.
+        }.
+    }.
+
+    method cameraPostProcessingStateBuffer: (buffer: BufferPtr const ref) ::=> Void := {
+        cameraStateBindings bindings do: {:each :: Void |
+            each _ bindOn: 1 storageBuffer: buffer
         }.
     }.
 
@@ -72,6 +80,12 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
             groundLighting: scene _ groundLighting;
             skyLighting: scene _ skyLighting;
             sunDirection: scene _ sunDirection.
+
+        ## TODO: Support light probes properly.
+        let blackTextureView := self engine _ resourceCache _ blackTexture _ getOrCreateFullView.
+        lightingStateBindings current _
+            bindOn: 5 sampledTextureView: blackTextureView;
+            bindOn: 6 sampledTextureView: blackTextureView.
 
         let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
         lightingState numberOfLights: (lightCount castTo: Int32).
@@ -156,6 +170,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field renderingCommandQueue type: CommandQueuePtr.
     protected field stateTrackers type: FrameBufferedStateTracker.
 
+    protected field cameraPostProcessingStateBuffer type: BufferPtr.
     protected field depthNormalFramebuffer type: FramebufferPtr.
     protected field depthNormalRenderPass type: RenderPassPtr.
 
@@ -369,9 +384,29 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             renderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
 
-        backgroundLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
-        normalLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
-        foregroundLayer ensureResourcesAreCreatedFor: sceneRenderingPipeline.
+        cameraPostProcessingStateBuffer ifNil: {
+            let initialState mutable := Woden Shaders CameraPostProcessingStateData()
+                currentAverageLuminance: 1.0f;
+                yourself.
+
+            cameraPostProcessingStateBuffer := device _ createBuffer: (BufferDescription()
+                size: Woden Shaders CameraPostProcessingStateData instanceSize;
+                heapType: MemoryHeapType DeviceLocal;
+                usageModes: BufferUsageMode Storage | BufferUsageMode CopyDestinationBuffer;
+                mainUsageMode: BufferUsageMode Storage;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself) initialData: initialState address.
+        }.
+
+        backgroundLayer
+            ensureResourcesAreCreatedFor: sceneRenderingPipeline;
+            cameraPostProcessingStateBuffer: cameraPostProcessingStateBuffer.
+        normalLayer
+            ensureResourcesAreCreatedFor: sceneRenderingPipeline;
+            cameraPostProcessingStateBuffer: cameraPostProcessingStateBuffer.
+        foregroundLayer
+            ensureResourcesAreCreatedFor: sceneRenderingPipeline;
+            cameraPostProcessingStateBuffer: cameraPostProcessingStateBuffer.
 
         ## Get the rendering command queue.
         renderingCommandQueue := device _ getDefaultCommandQueue.
@@ -581,6 +616,32 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
     }.
 
+    method computeAverageLuminance => Void := {
+        let stateTracker := stateTrackers current.
+        stateTracker _
+            resetState;
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: normalLayer cameraStateBindings current;
+            useGraphicShaderBindings: hdrColorBufferBinding.
+
+        sceneRenderingPipeline _
+            performAverageLuminanceComputationWith: stateTracker.
+
+        stateTracker _
+            useComputeShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useComputeShaderBindings: normalLayer cameraStateBindings current;
+            useComputeShaderBindings: sceneRenderingPipeline _ luminanceComputationResultMaterialBindings.
+
+        sceneRenderingPipeline _
+            performCameraAutoExposureStateComputationWith: stateTracker.
+
+        stateTracker _
+            buffer: cameraPostProcessingStateBuffer offset: 0 size: Woden Shaders CameraPostProcessingStateData instanceSize
+            memoryBarrierFrom: PipelineStageMask ComputeShader accesses: AccessMask ShaderWrite | AccessMask ShaderRead
+                to: PipelineStageMask FragmentShader accesses: AccessMask ShaderRead
+    }.
+
     method toneMapAndComposeHDRScene => Void := {
         let stateTracker := stateTrackers current.
         stateTracker _
@@ -607,6 +668,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         let stateTracker := stateTrackers currentReseted.
         self renderHDRScene;
+            computeAverageLuminance;
             toneMapAndComposeHDRScene.
 
         stateTracker _

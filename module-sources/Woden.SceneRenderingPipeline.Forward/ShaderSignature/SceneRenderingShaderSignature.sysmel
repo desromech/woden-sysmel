@@ -11,6 +11,7 @@ class CommonSceneRenderingShaderSignature definition: {
     macro method deferredSampler := ``(`,self samplingStateBinding _ deferredSampler).
 
     macro method cameraState := ``(`,self cameraStateBinding _ state _ ).
+    macro method cameraPostProcessingState := ``(`,self cameraStateBinding _ postProcessingState _ ).
 
     method cameraWorldPosition => Float32x3
         := self cameraState matrix fourthColumn xyz.

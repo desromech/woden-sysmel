@@ -13,16 +13,59 @@ function filmicCurve(x: Float32x3) => Float32x3 := {
 
 class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definition: {
     macro method screenTexture := ``(`,self materialStateBinding _ texture0).
+	macro method sceneAverageLuminanceTexture := ``(`,self materialStateBinding _ texture0).
 
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
     }.
 
+	function colorToLuminanceConversion fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
+
+		## https://en.wikipedia.org/wiki/Relative_luminance
+        let luma := (screenColor rgb dot: Float32x3(0.2126f, 0.7152f, 0.0722f)) max: 0.0f.
+		let logLuma := (1.0f + luma) log2.
+
+        out send: (FragmentOutput()
+            color0: Float32x4(logLuma, 0, 0, 1);
+            yourself)
+    }.
+
+	function luminanceDownSample fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
+
+        out send: (FragmentOutput()
+            color0: screenColor;
+            yourself)
+    }.
+
+	function cameraAutoExposureStateComputation computeShader() => Void := {
+		<localSize: 1>
+		let sceneAverageLuminance := (self albedoSampler sample: self sceneAverageLuminanceTexture at: Float32x2(0.5f, 0.5f) lod: 0.0f) r.
+		let currentAverageLuminance := self cameraPostProcessingState currentAverageLuminance.
+
+		## https://placeholderart.wordpress.com/2014/12/15/implementing-a-physically-based-camera-automatic-exposure/
+		## FIXME: Use the actual time since the last frame here.
+		let newAverageLuminance := currentAverageLuminance + (sceneAverageLuminance - currentAverageLuminance) * (1.0f - (-1.0f/60.0f) exp).
+		self cameraPostProcessingState currentAverageLuminance := newAverageLuminance clampMin: 0.04f max: 200.0f.
+    }.
+
+	method currentExposureWithAutoExposureTarget: (autoExposureTarget: Float32) ::=> Float32 := {
+		let averageLuminance := self cameraPostProcessingState currentAverageLuminance exp2 - 1.0 max: 0.00001f.
+		let autoExposure := autoExposureTarget / averageLuminance.
+
+		self cameraState exposure * autoExposure
+	}.
+
     function linear fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
         let input := in receive.
 
         let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
-        let exposedColor := screenColor rgb * self cameraState exposure.
+        let exposedColor := screenColor rgb * (self currentExposureWithAutoExposureTarget: 0.5f).
         let toneMapped := exposedColor.
 
         out send: (FragmentOutput()
@@ -35,7 +78,7 @@ class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definit
 
         ## Tone mapping operator from: https://learnopengl.com/Advanced-Lighting/HDR
         let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
-        let exposedColor := screenColor rgb * self cameraState exposure.
+        let exposedColor := screenColor rgb * (self currentExposureWithAutoExposureTarget: 0.5f).
         let toneMapped := exposedColor / (exposedColor + 1).
 
         out send: (FragmentOutput()
@@ -48,7 +91,7 @@ class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definit
 
         ## Tone mapping operator from: https://learnopengl.com/Advanced-Lighting/HDR
         let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
-        let exposedColor := screenColor rgb * self cameraState exposure.
+        let exposedColor := screenColor rgb * (self currentExposureWithAutoExposureTarget: 0.693147f).
         let toneMapped := 1.0f - (exposedColor negated) exp.
 
         out send: (FragmentOutput()
@@ -60,7 +103,7 @@ class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definit
         let input := in receive.
 
         let screenColor := self deferredSampler sample: self screenTexture at: input texcoord.
-        let exposedColor := screenColor rgb * self cameraState exposure.
+        let exposedColor := screenColor rgb * (self currentExposureWithAutoExposureTarget: 0.5f).
         let toneMapped := filmicCurve(exposedColor).
 
         out send: (FragmentOutput()

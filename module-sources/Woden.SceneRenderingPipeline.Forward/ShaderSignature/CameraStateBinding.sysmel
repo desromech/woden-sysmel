@@ -3,6 +3,7 @@ namespace Shaders definition: {
 
 class CameraStateBinding definition: {
     public field state type: CameraStateData uniformBufferPointer.
+    public field postProcessingState type: CameraPostProcessingStateData storageBufferPointer.
 }.
 
 }. ## End of namespace Shaders

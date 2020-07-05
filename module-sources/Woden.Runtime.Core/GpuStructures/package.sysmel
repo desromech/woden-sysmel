@@ -6,6 +6,7 @@ loadFileOnce: "GenericVertexInput.sysmel".
 ## Structures that are shared by shaders.
 loadFileOnce: "ObjectStateData.sysmel".
 loadFileOnce: "CameraStateData.sysmel".
+loadFileOnce: "CameraPostProcessingStateData.sysmel".
 loadFileOnce: "LightSourceData.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialStateData.sysmel".
 
