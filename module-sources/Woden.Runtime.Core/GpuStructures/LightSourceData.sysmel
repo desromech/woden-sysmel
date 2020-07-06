@@ -6,14 +6,8 @@ struct LightSourceData definition: {
     public field position type: Float32x4.
     public field intensity type: Float32x4.
 
-    ## FIXME: Support this kind of layouts properly with LLVM!
-    ##public field spotDirection type: Float32x3.
-    ##public field shadowMapLayer type: Float32.
-    macro method spotDirection := `'(Float32x3(0, 1, 0)).
-    method spotDirection: (v: Float32x3) ::=> Void := {}.
-
-    macro method shadowMapLayer := `'0.
-    method shadowMapLayer: (v: Float32) ::=> Void := {}.
+    public field spotDirection type: Float32x3.
+    public field shadowMapLayer type: Float32.
 
     public field innerCosCutoff type: Float32.
     public field outerCosCutoff type: Float32.

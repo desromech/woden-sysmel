@@ -14,11 +14,7 @@ struct GlobalLightingStateData definition: {
     public field shadowMapInverseExtent type: Float32x2.
 
     ## Normal lights
-    ## FIXME: support this kind of layouts properly with LLVM!
-    ##public sunDirection type: Float32x3;
-    macro method sunDirection := `'(Float32x3(0, 1, 0)).
-    method sunDirection: (value: Float32x3) ::=> Void := {}.
-
+    public field sunDirection type: Float32x3.
     public field numberOfLights type: Int32.
     public field lightSources type: (LightSourceData array: MaxNumberOfLights).
 }.
