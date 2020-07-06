@@ -386,7 +386,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         cameraPostProcessingStateBuffer ifNil: {
             let initialState mutable := Woden Shaders CameraPostProcessingStateData()
-                currentAverageLuminance: 1.0f;
+                currentAverageLuminance: 0.5f;
                 yourself.
 
             cameraPostProcessingStateBuffer := device _ createBuffer: (BufferDescription()
@@ -445,8 +445,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             screenSize: screenSize;
             inverseScreenSize: 1 / screenSize;
 
-            exposure: 1;
             currentTime: scene _ currentTime;
+            currentFrameDeltaTime: 1.0f/60.0f; ## TODO: Compute this properly
+
+            exposure: camera _ exposure;
+            autoExposureInfluenceFactor: camera _ autoExposureInfluenceFactor;
             yourself.
 
         let backgroundCameraState mutable := normalCameraState.
@@ -617,6 +620,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     method computeAverageLuminance => Void := {
+        camera isNil || camera _ hasNoAutoExposure ifTrue: {return: void}.
+
         let stateTracker := stateTrackers current.
         stateTracker _
             resetState;

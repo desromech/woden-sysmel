@@ -15,9 +15,15 @@ struct CameraStateData definition: {
     public field screenSize type: Float32x2.
     public field inverseScreenSize type: Float32x2.
 
+	## The absolute time for this frame.
     public field currentTime type: Float32.
-
+	## The time since the last frame.
+	public field currentFrameDeltaTime type: Float32.
+	## The influence factor of the auto exposure. 0 for turning off auto-exposure.
+	public field autoExposureInfluenceFactor type: Float32.
 	public field exposure type: Float32.
+
+	public field reserved type: Float32.
 	public field fogMode type: Float32.
 	public field fogFactor1 type: Float32.
 	public field fogFactor2 type: Float32.

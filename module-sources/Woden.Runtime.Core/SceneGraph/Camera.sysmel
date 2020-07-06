@@ -7,8 +7,23 @@ namespace Runtime definition: {
 class Camera superclass: SceneNode; definition: {
     public field toneMappingOperator type: ToneMappingOperator.
 
+    public field exposure type: Float32.
+    public field autoExposureInfluenceFactor type: Float32.
+
+    override method initialize => Void := {
+        exposure := 1.0f.
+    }.
+
     override method isCamera => Boolean8
         := true.
+
+    method withAutoExposure => Void := {
+        autoExposureInfluenceFactor := 1.0f.
+    }.
+
+    const inline method hasNoAutoExposure => Boolean8
+        := autoExposureInfluenceFactor <= 0.0f
+
 }.
 
 compileTime constant CameraPtr := Camera sharedPointer.
