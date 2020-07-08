@@ -63,6 +63,11 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     }.
 
     method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
+        window ifNil: {return: void}.
+        (window _ eventHandler getPointer castTo: GenericViewEventHandler pointer) ifNotNil: {:eventHandler :: Void |
+            eventHandler _ viewWindow := nil
+        }.
+
         window _ close.
         window reset.
         view _ viewWindowDestroyed.
