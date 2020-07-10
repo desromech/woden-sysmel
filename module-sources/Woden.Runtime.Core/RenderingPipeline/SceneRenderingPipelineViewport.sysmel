@@ -29,8 +29,12 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
 
     virtual method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
         := Stdn Graphics Scene2D BuilderPtr nil.
-        
+
     virtual method setScene2D: (scene2D: Stdn Graphics Scene2D NodePtr const ref) ::=> Void := {
+
+    }.
+
+    virtual method prepareRendering ::=> Void := {
 
     }.
 

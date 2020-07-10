@@ -546,16 +546,21 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             endRenderPass.
     }.
 
-    method renderHDRScene => Void := {
+    override method prepareRendering ::=> Void := {
         let scene := sceneRenderingPipeline _ scene.
-        scene ifNotNil: {
-            hdrColorRenderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
-        }.
+        scene ifNil: {return: void}.
 
         self
             prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
             prepareSceneLayer: scene _ normalLayer on: normalLayer;
             prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
+    }.
+
+    method renderHDRScene => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNotNil: {
+            hdrColorRenderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
+        }.
 
         self
             renderDepthNormalPass;
