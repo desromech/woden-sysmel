@@ -11,6 +11,7 @@ useNamespace: Stdn Math Geometry.
  *#
 class SceneView superclass: View; definition: {
     protected field currentExtent type: UInt32x2.
+    protected field currentBackbuffer type: FramebufferPtr.
 
     method sceneModel => SceneModel pointer
         := model getPointer castTo: SceneModel pointer.
@@ -36,26 +37,58 @@ class SceneView superclass: View; definition: {
 
     }.
 
-    override method buildWindowScene2DWith: (scene2DBuilder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
-        self prepareViewCamera.
-        self ensureRenderingViewportWithExtent: viewWindow _ extent.
-        sceneRenderingPipelineViewport ifNil: {
-            return: Stdn Graphics Scene2D NodePtr nil.
+    protected field framePreparationTime type: Float32.
+    protected field commandListConstructionTime type: Float32.
+
+    override method prepareRendering => Void := {
+        viewWindow ifNil: {return: void}.
+
+        framePreparationTime := (Stdn Chrono profileTimeToRun: {
+            self ensureRenderingViewportWithExtent: viewWindow _ validatedExtent.
+            currentBackbuffer := viewWindow _ getCurrentBackBuffer.
+            self prepareViewCamera.
+            sceneRenderingPipelineViewport _
+                camera: self camera.
+        }) castTo: Float32..
+    }.
+
+    override method constructRenderingCommandList => Void := {
+        currentBackbuffer isNil || viewWindow isNil ifTrue: {return: void}.
+        commandListConstructionTime := (Stdn Chrono profileTimeToRun: {
+            sceneRenderingPipelineViewport _
+                setCurrentBackBuffer: currentBackbuffer renderPass: viewWindow _ getDisplayRenderPass;
+                setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport _ scene2DBuilder);
+                constructAndEnqueueCommandList.
+        }) castTo: Float32.
+    }.
+
+    override method commitSurfaces => Void := {
+        currentBackbuffer isNil || viewWindow isNil ifTrue: {return: void}.
+        viewWindow _ swapBuffers.
+    }.
+
+    private field defaultFontFaceWithSize type: FontFaceWithSizePtr.
+
+    method defaultFontFaceWithSize => FontFaceWithSizePtr const ref := {
+        defaultFontFaceWithSize ifNil: {
+            let fontFace mutable := FontRegistry default defaultSans _ normalFace.
+            defaultFontFaceWithSize := fontFace _ getOrCreateFaceWithSize: 12.
         }.
 
-        let textureHandle := sceneRenderingPipelineViewport _ mainColorBufferTextureHandle.
-        textureHandle ifNil: {
-            return: Stdn Graphics Scene2D NodePtr nil.
+        defaultFontFaceWithSize
+    }.
+
+    virtual method buildOverlayFPSDisplayWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+        let frameTimeString := Stdn String textStreamContents: {:out :: Void |
+            out << "Preparation time " << (framePreparationTime * 1000.0f) << " ms "; nl.
+            out << "3D CMDLIST time " << (commandListConstructionTime* 1000.0f) << " ms "; nl.
         }.
 
-        sceneRenderingPipelineViewport _
-            camera: self camera;
-            render.
+        (builder _ text: frameTimeString asArraySlice at: Float32x2(15.0f, 30.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Stdn Graphics Scene2D Node
+    }.
 
-        (scene2DBuilder _ blendingMode: BlendingMode Copy node: ((
-		     scene2DBuilder _ texture: textureHandle rectangle: (RectangleF32 extent: (currentExtent castTo: Float32x2))
-		) upCastFor: Stdn Graphics Scene2D Node))
-            upCastFor: Stdn Graphics Scene2D Node
+    virtual method buildOverlayScene2DWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+        self buildOverlayFPSDisplayWith: builder
     }.
 }.
 

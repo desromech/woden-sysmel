@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
 
 #**
  * I am a generic interface for a window that is used by a view.
@@ -15,12 +16,29 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
     const inline method view => ViewPtr const ref
         := view.
 
+
     virtual method extent => UInt32x2
         := UInt32x2(640, 480).
-        
+
+    virtual method validatedExtent => UInt32x2
+        := self extent.
+
     virtual method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
         view := theView.
         true
+    }.
+
+    virtual method getCurrentBackBuffer => FramebufferPtr
+        := FramebufferPtr nil.
+
+    virtual method getDisplayRenderPass => RenderPassPtr
+        := RenderPassPtr nil.
+    virtual method swapBuffers => Void := {
+
+    }.
+
+    virtual method close => Void := {
+
     }.
 }.
 

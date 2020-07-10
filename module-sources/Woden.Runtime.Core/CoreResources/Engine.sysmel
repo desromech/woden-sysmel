@@ -19,6 +19,7 @@ class Engine superclass: Stdn SharedObject; definition: {
 
     protected field frameBufferingIndex type: UInt32.
     protected field syncronizationFences type: (FencePtr array: FrameBufferingCount).
+    protected field pendingCommandLists type: Stdn Collections Vector(CommandListPtr ).
 
     const inline method windowSystem => WindowSystemRef const ref
         := windowSystem.
@@ -84,9 +85,24 @@ class Engine superclass: Stdn SharedObject; definition: {
         resourceCache reset.
     }.
 
+    method enqueueCommandList: (commandList: CommandListPtr const ref) ::=> Void := {
+        pendingCommandLists add: commandList
+    }.
+
+    method submitPendingCommandLists => Void := {
+        pendingCommandLists ifEmpty: {return: void}.
+
+        let commandQueue := renderingDevice _ getDefaultCommandQueue.
+        pendingCommandLists do: {:each :: Void |
+            commandQueue _ submitCommandList: each
+        }.
+        pendingCommandLists removeAll.
+    }.
+
     method onTickEvent: (event: TickEvent ref) ::=> Void := {
         let thisFrameProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
         let thisFrameRenderingProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
+        pendingCommandLists removeAll.
 
         ## Get a copy of the rendering processes for this frame.
         renderingProcessesMutex withLock: {
@@ -132,9 +148,7 @@ class Engine superclass: Stdn SharedObject; definition: {
         }.
 
         ## Third phase: command list submission
-        thisFrameRenderingProcesses do: {:each :: Void |
-            each _ sendRenderingCommandList.
-        }.
+        self submitPendingCommandLists.
 
         ## Fourth phase: drawing surface commiting
         thisFrameRenderingProcesses do: {:each :: Void |

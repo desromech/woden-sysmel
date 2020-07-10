@@ -23,8 +23,19 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
         camera := theCamera
     }.
 
-    virtual method render ::=> Void := {
-        ## By default do nothing.
+    virtual method setCurrentBackBuffer: (backBuffer: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
+
+    }.
+
+    virtual method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
+        := Stdn Graphics Scene2D BuilderPtr nil.
+        
+    virtual method setScene2D: (scene2D: Stdn Graphics Scene2D NodePtr const ref) ::=> Void := {
+
+    }.
+
+    virtual method constructAndEnqueueCommandList => Void := {
+
     }.
 }.
 

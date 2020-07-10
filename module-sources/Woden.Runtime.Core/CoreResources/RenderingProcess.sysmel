@@ -22,10 +22,6 @@ class RenderingProcess superclass: Stdn SharedObject; definition: {
     virtual method constructRenderingCommandList => Void := {
     }.
 
-    virtual method sendRenderingCommandList => Void := {
-
-    }.
-
     virtual method commitSurfaces => Void := {
 
     }.

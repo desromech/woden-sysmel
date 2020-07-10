@@ -90,12 +90,6 @@ class Model superclass: RenderingProcess; definition: {
         }
     }.
 
-    override method sendRenderingCommandList => Void := {
-        views do: {:each :: Void |
-            each _ sendRenderingCommandList.
-        }
-    }.
-
     override method commitSurfaces => Void := {
         views do: {:each :: Void |
             each _ commitSurfaces.

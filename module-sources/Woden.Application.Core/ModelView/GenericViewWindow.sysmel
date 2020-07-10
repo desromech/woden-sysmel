@@ -11,15 +11,37 @@ useNamespace: Stdn Graphics GUI.
  *#
 class GenericViewWindow superclass: ViewWindow; definition: {
     protected field window type: Window sharedPointer.
-	protected field windowRenderer type: WindowScene2DRendererPtr.
+    protected field swapChain type: SwapChainPtr.
+    protected field currentSwapChainExtent type: UInt32x2.
+    protected field displayRenderPass type: RenderPassPtr.
 
+    override method extent => UInt32x2
+        := currentSwapChainExtent.
 
-    override method extent => UInt32x2 := {
+    override method validatedExtent => UInt32x2 := {
         window ifNotNil: {
-            return: window _ extent
+            let newExtent := window _ extent.
+            currentSwapChainExtent = newExtent ifFalse: {
+                self createSwapChainWithExtent: newExtent
+            }.
         }.
 
-        return: super extent
+        currentSwapChainExtent
+    }.
+
+    ## For displaying we only need a swap chain with the color buffer, by default.
+    method createSwapChainWithExtent: (newExtent: UInt32x2) ::=> Void := {
+        let device := self engine _ renderingDevice.
+
+        let swapChainCreationInfo mutable := SwapChainCreationInfo()
+            colorBufferFormat: PixelFormat B8G8R8A8_UNormSRGB;
+            extent: newExtent;
+            bufferCount: FrameBufferingCount;
+            yourself.
+
+        let defaultCommandQueue := device _ getDefaultCommandQueue.
+        swapChain := window _ createSwapChain: swapChainCreationInfo for: defaultCommandQueue.
+        currentSwapChainExtent := newExtent.
     }.
 
     override method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
@@ -27,9 +49,11 @@ class GenericViewWindow superclass: ViewWindow; definition: {
             return: false.
         }.
 
+        let initialExtent := Int32x2(640, 480).
+
         window := self engine _ windowSystem _ createWindow: (WindowCreationInfo()
 			resizable: true;
-			extent: Int32x2(640, 480);
+			extent: initialExtent;
 			title: "Test Window" asMutableString;
 			yourself).
 	    window ifNil: {
@@ -38,10 +62,10 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
         window _ renderingDevice: self engine _ renderingDevice.
 
-        ## Create the window scene 2D renderer.
-        windowRenderer := window _ createScene2DRenderer.
-        windowRenderer ifNil: {
-            return: false.
+        ## Create the window swap chain.
+        self createSwapChainWithExtent: (initialExtent castTo: UInt32x2).
+        swapChain ifNil: {
+            return: false
         }.
 
         ## Create the event handler.
@@ -54,15 +78,36 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         true
     }.
 
-    method render ::=> Void := {
-        view _ renderWithWindowRenderer: windowRenderer.
+    override method getCurrentBackBuffer => FramebufferPtr := {
+        swapChain ifNil: {
+            return: FramebufferPtr nil
+        }.
+
+        swapChain _ getCurrentBackBuffer
     }.
 
-    method onTickEvent: (event: TickEvent ref) ::=> Void := {
-        self render
+    override method getDisplayRenderPass => RenderPassPtr := {
+        displayRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat B8G8R8A8_UNormSRGB;
+                    beginAction: RenderPassAttachmentAction Clear;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+            displayRenderPass := self engine _ renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
+
+        displayRenderPass
     }.
 
-    method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
+    override method swapBuffers => Void := {
+        swapChain ifNotNil: {
+            swapChain _ swapBuffers
+        }
+    }.
+
+    override method close => Void := {
         window ifNil: {return: void}.
         (window _ eventHandler getPointer castTo: GenericViewEventHandler pointer) ifNotNil: {:eventHandler :: Void |
             eventHandler _ viewWindow := nil
@@ -72,20 +117,10 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         window reset.
         view _ viewWindowDestroyed.
     }.
-
-    method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
-    }.
-
-    method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
-    }.
 }.
 
 class GenericViewEventHandler superclass: EventHandler; definition: {
 	public field viewWindow type: GenericViewWindow pointer.
-
-    method render ::=> Void := {
-		viewWindow _ render.
-    }.
 
     override method processEvent: (event: Event ref) ::=> Void := {
         super processEvent: event.
@@ -96,26 +131,6 @@ class GenericViewEventHandler superclass: EventHandler; definition: {
                 view _ processEvent: event.
             }
         }.
-    }.
-
-    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
-		viewWindow _ onTickEvent: event.
-    }.
-
-    override method onExposeEvent: (event: ExposeEvent ref) ::=> Void := {
-        self render
-    }.
-
-    override method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
-		viewWindow _ onWindowCloseRequestEvent: event.
-    }.
-
-	override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
-		viewWindow _ onMouseMoveEvent: event.
-    }.
-
-	override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
-		viewWindow _ onMouseWheelEvent: event.
     }.
 }.
 
