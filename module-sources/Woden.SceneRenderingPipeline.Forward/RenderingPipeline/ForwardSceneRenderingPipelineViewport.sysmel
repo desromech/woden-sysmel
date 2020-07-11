@@ -92,9 +92,16 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
         0 until: lightCount do: {:i :: Void |
             let lightSourceObject ref := lightSources[i].
             let lightSourceState mutable := lightSourceObject _ lightSourceObject _ lightState.
-            lightSourceState
-                position: cameraState viewMatrix * lightSourceState position;
-                spotDirection: (cameraState viewMatrix * Float32x4(lightSourceState spotDirection, 0)) xyz.
+
+            lightSourceState position w = 0 ifTrue: {
+                lightSourceState
+                    position: Float32x4((lightSourceState position * cameraState inverseViewMatrix) xyz normalized, 0);
+                    spotDirection: Float32x3 zeros.
+            } ifFalse: {
+                lightSourceState
+                    position: cameraState viewMatrix * lightSourceState position;
+                    spotDirection: (Float32x4(lightSourceState spotDirection, 0) * cameraState inverseViewMatrix) xyz.
+            }.
 
             lightingState lightSources[i] := lightSourceState.
         }.
@@ -105,7 +112,7 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
             bindOn: 3 sampledTextureView: textureView.
     }.
 
-    method uploadSceneLightingState => Void := {
+    method uploadLightingState => Void := {
         lightingStateBuffers current _
             uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
     }.
@@ -381,7 +388,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         currentExtent := requiredExtent.
     }.
 
-    method uploadCameraState => Void := {
+    method prepareCameraState => Void := {
         let scene := sceneRenderingPipeline _ scene.
         scene ifNil: {return: void}.
         camera ifNil: {return: void}.
@@ -424,15 +431,27 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             matrix: foregroundCameraTransform matrix4;
             inverseMatrix: foregroundCameraTransform inverseMatrix4.
 
+        backgroundLayer cameraState: backgroundCameraState.
+        normalLayer cameraState: normalCameraState.
+        foregroundLayer cameraState: foregroundCameraState.
+    }.
+
+    method uploadCameraState => Void := {
+        backgroundLayer uploadCameraState.
+        normalLayer uploadCameraState.
+        foregroundLayer uploadCameraState.
+    }.
+
+    method uploadLightingState => Void := {
         backgroundLayer
-            cameraState: backgroundCameraState;
-            uploadCameraState.
+            setSSAOTextureView: ssaoTextureView;
+            uploadLightingState.
         normalLayer
-            cameraState: normalCameraState;
-            uploadCameraState.
+            setSSAOTextureView: ssaoTextureView;
+            uploadLightingState.
         foregroundLayer
-            cameraState: foregroundCameraState;
-            uploadCameraState.
+            setSSAOTextureView: ssaoTextureView;
+            uploadLightingState.    
     }.
 
     method gatherVisibleRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
@@ -457,9 +476,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         self gatherVisibleRenderingObjectsOf: sceneLayer on: viewportLayer.
 
         viewportLayer
-            gatherSceneLightingState;
-            setSSAOTextureView: ssaoTextureView;
-            uploadSceneLightingState.
+            gatherSceneLightingState
     }.
 
     method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref) on: (framebuffer: FramebufferPtr const ref) ::=> Void := {
@@ -551,6 +568,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         scene ifNil: {return: void}.
 
         self
+            prepareCameraState;
             prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
             prepareSceneLayer: scene _ normalLayer on: normalLayer;
             prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
@@ -671,7 +689,9 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             return: void
         }.
 
-        self uploadCameraState.
+        self
+            uploadCameraState;
+            uploadLightingState.
 
         let stateTracker := stateTrackers currentReseted.
         self renderHDRScene;

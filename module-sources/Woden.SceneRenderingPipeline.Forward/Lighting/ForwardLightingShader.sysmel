@@ -23,7 +23,7 @@ function computeLightFalloff(distance: Float32, radius: Float32) => Float32 := {
 	let a := distance / radius.
 	let a2 := a*a.
 	let a4 := a2*a2.
-	let num := 1.0f - a4 max: 0.0f.
+	let num := 1.0f - a4 clampMin: 0.0 max: 1.0f.
 	num*num / (distance*distance + 1.0f).
 }.
 
@@ -123,7 +123,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
         let directAlpha := lightingParameters directAlpha.
 
         let diff := Cdiff * Float32 piReciprocal.
-        let NdotV := (N dot: V) max: 0.0f.
+        let NdotV := (N dot: V) clampMin: 0.0f max: 1.0f.
 
         ## Ambient lighting
         let hemiFactor := (N dot: self globalLightingState sunDirection)*0.5f + 0.5f.
@@ -150,7 +150,8 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
             let L mutable := lightSource position xyz.
             let dist mutable := 0.0f.
-            lightSource position w ~= 0 ifTrue: {
+            let isDirectional := lightSource position w = 0.
+            isDirectional ifFalse: {
                 L := L - P.
                 dist := L length.
                 L := L / dist.
@@ -158,7 +159,10 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
             let NdotL := (N dot: L) max: 0.0f.
             NdotL > 0.0f ifTrue: {
-                let attenuation := computeLightFalloff(dist, lightSource radius).
+                let attenuation mutable := 1.0f.
+                isDirectional ifFalse: {
+                    attenuation := computeLightFalloff(dist, lightSource radius).
+                }.
 
                 ## Compute the specular input factors.
                 let H := (L + V) normalized.

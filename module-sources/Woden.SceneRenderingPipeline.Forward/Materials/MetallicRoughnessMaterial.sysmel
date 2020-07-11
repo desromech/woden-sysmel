@@ -25,7 +25,8 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
     }.
 
     method transformNormal: (vector: Float32x3) ::=> Float32x3 := {
-        let worldNormal := Float32x4(vector, 0.0f).
+        let modelNormal := Float32x4(vector, 0.0f).
+        let worldNormal := Float32x4((modelNormal * self objectState inverseMatrix) xyz, 0.0f).
         (worldNormal * self cameraState inverseViewMatrix) xyz
     }.
 
