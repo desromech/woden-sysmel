@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Shaders definition: {
 
 function decodeNormalTexel(texel: Float32x4) => Float32x3
-    := texel agb*2.0f - 1.0f.
+    := texel rgb*2.0f - 1.0f.
 
 class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
     macro method materialState := ``(`,self materialStateBinding _ state _).
@@ -85,6 +85,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
             occlusion: occlusion;
             metallic: metallic;
             roughness: roughness;
+            opacityFactor: albedo a;
             yourself).
 
         out send: (FragmentOutput()

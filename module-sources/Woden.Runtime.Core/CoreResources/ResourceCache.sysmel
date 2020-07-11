@@ -24,34 +24,34 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     const inline method checkboardMaterial => MaterialPtr const ref
         := checkboardMaterial.
 
-    private field whiteTexture type: TexturePtr.
+    private field whiteTexture type: TextureWithViewPtr.
 
-    const inline method whiteTexture => TexturePtr const ref
+    const inline method whiteTexture => TextureWithViewPtr const ref
         := whiteTexture.
 
-    private field blackTexture type: TexturePtr.
+    private field blackTexture type: TextureWithViewPtr.
 
-    const inline method blackTexture => TexturePtr const ref
+    const inline method blackTexture => TextureWithViewPtr const ref
         := blackTexture.
 
-    private field transparentTexture type: TexturePtr.
+    private field transparentTexture type: TextureWithViewPtr.
 
-    const inline method transparentTexture => TexturePtr const ref
+    const inline method transparentTexture => TextureWithViewPtr const ref
         := transparentTexture.
 
-    private field checkboardTexture type: TexturePtr.
+    private field checkboardTexture type: TextureWithViewPtr.
 
-    const inline method checkboardTexture => TexturePtr const ref
+    const inline method checkboardTexture => TextureWithViewPtr const ref
         := checkboardTexture.
 
-    private field neutralNormalTexture type: TexturePtr.
+    private field neutralNormalTexture type: TextureWithViewPtr.
 
-    const inline method neutralNormalTexture => TexturePtr const ref
+    const inline method neutralNormalTexture => TextureWithViewPtr const ref
         := neutralNormalTexture.
 
-    private field whiteTextureCube type: TexturePtr.
+    private field whiteTextureCube type: TextureWithViewPtr.
 
-    const inline method whiteTextureCube => TexturePtr const ref
+    const inline method whiteTextureCube => TextureWithViewPtr const ref
         := whiteTextureCube.
 
     method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
@@ -60,8 +60,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         whiteTexture := self createTextureWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
         blackTexture := self createTextureWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
         transparentTexture := self createTextureWithSolidColor: UInt8x4 zeros format: PixelFormat R8G8B8A8_UNorm.
-        ##neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(128, 128, 255, 0) format: PixelFormat R8G8B8A8_UNorm.
-        neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(0, 128, 255, 128) format: PixelFormat R8G8B8A8_UNorm.
+        neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(128, 128, 255, 0) format: PixelFormat R8G8B8A8_UNorm.
         whiteTextureCube := self createTextureCubeWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
         checkboardTexture := self createCheckboardTexture.
 
@@ -73,7 +72,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         }
     }.
 
-    method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TexturePtr := {
+    method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewPtr := {
         let device := engine _ renderingDevice.
         let texture := device _ createTexture: (TextureDescription()
             type: TextureType Texture2D;
@@ -91,10 +90,10 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
 
         let data mutable := color.
         texture _ uploadTextureLevel: 0 layer: 0 pitch: 4 slicePitch: 4 data: data address.
-        texture
+        texture _ asTextureWithView
     }.
 
-    method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TexturePtr := {
+    method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewPtr := {
         let device := engine _ renderingDevice.
         let texture := device _ createTexture: (TextureDescription()
             type: TextureType TextureCube;
@@ -115,9 +114,10 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
             texture _ uploadTextureLevel: 0 layer: i pitch: 4 slicePitch: 4 data: data address.
         }.
 
-        texture
+        texture _ asTextureWithView
     }.
-    method createCheckboardTexture => TexturePtr := {
+
+    method createCheckboardTexture => TextureWithViewPtr := {
         let device := engine _ renderingDevice.
         let texture := device _ createTexture: (TextureDescription()
             type: TextureType Texture2D;
@@ -147,21 +147,27 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         }.
 
         texture _ uploadTextureLevel: 0 layer: 0 pitch: 4*64 slicePitch: 4*64*64 data: data address.
-        texture
+        texture _ asTextureWithView
     }.
 
-    method loadColorTextureFrom: (fileName: Stdn String const ref) ::=> TexturePtr := {
+    method loadColorTextureFrom: (fileName: Stdn String const ref) ::=> TextureWithViewPtr := {
         let textureData := TextureData readFromFileNamed: fileName.
-        textureData ifNil: {return: TexturePtr nil}.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
 
-        engine _ renderingDevice _ createColorTextureWithData: textureData _.
+        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
+
+        texture _ asTextureWithView
     }.
 
-    method loadTextureFrom: (fileName: Stdn String const ref) ::=> TexturePtr := {
+    method loadTextureFrom: (fileName: Stdn String const ref) ::=> TextureWithViewPtr := {
         let textureData := TextureData readFromFileNamed: fileName.
-        textureData ifNil: {return: TexturePtr nil}.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
 
-        engine _ renderingDevice _ createTextureWithData: textureData _.
+        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
+
+        texture _ asTextureWithView
     }.
 }.
 

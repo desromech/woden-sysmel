@@ -20,10 +20,10 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field stateBinding type: ShaderResourceBindingsPtr.
     public field stateBuffer type: BufferPtr. ## TODO: Use pool of elements here.
 
-    public field albedoTexture type: TexturePtr.
-    public field normalTexture type: TexturePtr.
-    public field emissionTexture type: TexturePtr.
-    public field metallicRoughnessTexture type: TexturePtr.
+    public field albedoTexture type: TextureWithViewPtr.
+    public field normalTexture type: TextureWithViewPtr.
+    public field emissionTexture type: TextureWithViewPtr.
+    public field metallicRoughnessTexture type: TextureWithViewPtr.
 
     public field doubleSided type: Boolean8.
 
@@ -61,37 +61,25 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
         := context activateMetallicRoughnessMaterial: self.
 
-    method validAlbedoTexture => TexturePtr := {
+    method validAlbedoTexture => TextureWithViewPtr := {
         albedoTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         albedoTexture
     }.
 
-    method albedoTextureView => TextureViewPtr
-        := self validAlbedoTexture _ getOrCreateFullView.
-
-    method validNormalTexture => TexturePtr := {
+    method validNormalTexture => TextureWithViewPtr := {
         normalTexture ifNil: {return: engine _ resourceCache _ neutralNormalTexture}.
         normalTexture
     }.
 
-    method normalTextureView => TextureViewPtr
-        := self validNormalTexture _ getOrCreateFullView.
-
-    method validEmissionTexture => TexturePtr := {
+    method validEmissionTexture => TextureWithViewPtr := {
         emissionTexture ifNil: {return: engine _ resourceCache _ transparentTexture}.
         emissionTexture
     }.
 
-    method emissionTextureView => TextureViewPtr
-        := self validEmissionTexture _ getOrCreateFullView.
-
-    method validMetallicRoughnessTexture => TexturePtr := {
+    method validMetallicRoughnessTexture => TextureWithViewPtr := {
         metallicRoughnessTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         metallicRoughnessTexture
     }.
-
-    method metallicRoughnessTextureView => TextureViewPtr
-        := self validMetallicRoughnessTexture _ getOrCreateFullView.
 }.
 
 compileTime constant MetallicRoughnessMaterialPtr := MetallicRoughnessMaterial sharedPointer.

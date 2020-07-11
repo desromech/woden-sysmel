@@ -16,19 +16,16 @@ class SkyMaterial superclass: Material; definition: {
     }.
 
     public field stateBinding type: ShaderResourceBindingsPtr.
-    public field texture type: TexturePtr.
+    public field texture type: TextureWithViewPtr.
 
     override method initialize => Void := {
 
     }.
 
-    method validTexture => TexturePtr := {
+    method validTexture => TextureWithViewPtr := {
         texture ifNil: {return: engine _ resourceCache _ whiteTextureCube}.
         texture
     }.
-
-    method textureView => TextureViewPtr
-        := self validTexture _ getOrCreateFullView.
 
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
         := context activateSkyMaterial: self.

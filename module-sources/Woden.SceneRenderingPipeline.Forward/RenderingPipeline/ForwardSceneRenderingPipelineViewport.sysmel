@@ -82,10 +82,10 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
             sunDirection: scene _ sunDirection.
 
         ## TODO: Support light probes properly.
-        let blackTextureView := self engine _ resourceCache _ blackTexture _ getOrCreateFullView.
+        let blackTexture := self engine _ resourceCache _ blackTexture.
         lightingStateBindings current _
-            bindOn: 5 sampledTextureView: blackTextureView;
-            bindOn: 6 sampledTextureView: blackTextureView.
+            bindOn: 5 sampledTextureWithView: blackTexture;
+            bindOn: 6 sampledTextureWithView: blackTexture.
 
         let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
         lightingState numberOfLights: (lightCount castTo: Int32).
