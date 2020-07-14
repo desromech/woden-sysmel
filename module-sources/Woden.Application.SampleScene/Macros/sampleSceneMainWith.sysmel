@@ -21,7 +21,7 @@ macro method sampleSceneMainWith: modelInitializationBlock := {
         }.
 
         ## Enter the main loop.
-        `,sceneModel _ runMainLoop
+        `,sceneModel _ runMainLoopAndShutdown.
     })
 }.
 

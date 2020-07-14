@@ -74,13 +74,13 @@ class Engine superclass: Stdn SharedObject; definition: {
         result
     }.
 
-    method runMainLoopAndQuit => Int32 := {
+    method runMainLoopAndShutdown => Int32 := {
         let result := self runMainLoop.
-        self quit.
+        self shutdown.
         result
     }.
 
-    method quit => Void := {
+    method shutdown => Void := {
         ## Break the cycle between the resource cache and the engine.
         resourceCache reset.
     }.

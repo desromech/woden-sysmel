@@ -67,12 +67,25 @@ class Model superclass: RenderingProcess; definition: {
         }.
     }.
 
-    method runMainLoop ::=> Int32 := {
+    virtual method runMainLoop ::=> Int32 := {
         engine ifNil: {
             return: 1
         }.
 
         engine _ runMainLoop
+    }.
+
+    virtual method shutdown ::=> Void := {
+        engine ifNotNil: {
+            engine _ shutdown.
+            engine reset
+        }.
+    }.
+
+    virtual method runMainLoopAndShutdown => Int32 := {
+        let exitCode := self runMainLoop.
+        self shutdown.
+        exitCode
     }.
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
