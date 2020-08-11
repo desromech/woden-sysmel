@@ -12,9 +12,6 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
     const inline method camera => CameraPtr const ref
         := camera.
 
-    virtual method mainColorBufferTextureHandle => StrongTextureHandlePtr
-        := StrongTextureHandlePtr nil.
-
     virtual method extent: (viewportExtent: UInt32x2) ::=> Void := {
 
     }.

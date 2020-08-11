@@ -451,7 +451,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             uploadLightingState.
         foregroundLayer
             setSSAOTextureView: ssaoTextureView;
-            uploadLightingState.    
+            uploadLightingState.
     }.
 
     method gatherVisibleRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
@@ -701,8 +701,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         stateTracker _
             close.
 
-        renderingCommandQueue _
-            submitCommandList: (stateTracker upCastFor: CommandList).
+        self engine _ enqueueCommandList: (stateTracker upCastFor: CommandList).
     }.
 }.
 

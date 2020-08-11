@@ -19,14 +19,23 @@ class View superclass: EventHandler; definition: {
     const inline method engine => EnginePtr const ref
         := model _ engine.
 
+    virtual method colorBufferFormat => PixelFormat
+        := PixelFormat B8G8R8A8_UNormSRGB.
+
+    virtual method depthStencilFormat => PixelFormat
+        := PixelFormat Unknown.
+
     virtual method initializeWithModel: (theModel: ModelPtr const ref) ::=> Boolean8 := {
         model := theModel.
 
         true
     }.
 
+    virtual method newViewWindowInstance => ViewWindowPtr
+        := GenericViewWindow sharedNew upCastFor: ViewWindow.
+
     virtual method open ::=> Boolean8 := {
-        let newViewWindow := GenericViewWindow sharedNew.
+        let newViewWindow := self newViewWindowInstance.
         (newViewWindow _ openForView: self asSharedPointer) ifFalse: {
             return: false.
         }.
@@ -48,6 +57,9 @@ class View superclass: EventHandler; definition: {
 
     override method onWindowCloseRequestEvent: (event: WindowCloseRequestEvent ref) ::=> Void := {
         self close
+    }.
+
+    virtual method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
     }.
 
     virtual method prepareRendering => Void := {

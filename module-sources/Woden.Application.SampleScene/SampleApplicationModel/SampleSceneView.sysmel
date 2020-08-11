@@ -4,7 +4,14 @@ namespace Application definition: {
 useNamespace: Stdn Graphics GUI.
 
 class SampleSceneView superclass: SceneView; definition: {
+    protected field cameraMovementDirection type: Float32x3.
+    protected field cameraMovementSpeed type: Float32.
     protected field cameraAngle type: Float32x3.
+    protected field cameraAngularVelocity type: Float32x3.
+
+    override method initialize => Void := {
+        cameraMovementSpeed := 1.0f.
+    }.
 
     method cameraOrientation => Float32x3x3
         := (Float32x3x3 yRotation: cameraAngle y) * (Float32x3x3 xRotation: cameraAngle x).
@@ -20,17 +27,90 @@ class SampleSceneView superclass: SceneView; definition: {
         super prepareViewCamera.
     }.
 
+    ##override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
     override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        let camera := self camera.
+        camera ifNil: {return: void}.
 
+        let delta := event deterministicDeltaSeconds castTo: Float32.
+
+        cameraAngularVelocity = 0 ifFalse: {
+            cameraAngle := cameraAngle + (cameraAngularVelocity normalized)*delta / Float32 pi *2.0f.
+        }.
+
+        cameraMovementDirection = 0 ifFalse: {
+            camera _ translateBy: self cameraOrientation * (cameraMovementDirection normalized * cameraMovementSpeed * delta).
+        }.
     }.
 
     override method onKeyPressedEvent: (event: KeyPressedEvent ref) ::=> Void := {
+		event isRepeat ifTrue: {return: void}.
+
+		event symbol selectCase: #{
+		KeySymbol W : {cameraMovementDirection z: -1.0f}.
+        KeySymbol S : {cameraMovementDirection z: 1.0f}.
+        KeySymbol A : {cameraMovementDirection x: -1.0f}.
+        KeySymbol D : {cameraMovementDirection x: 1.0f}.
+        KeySymbol Space : {cameraMovementDirection y: 1.0f}.
+        KeySymbol LCtrl : {cameraMovementDirection y: -1.0f}.
+        KeySymbol LShift : {cameraMovementSpeed := 2.0f}.
+
+        KeySymbol Left : {cameraAngularVelocity y: 1.0f}.
+        KeySymbol Right : {cameraAngularVelocity y: -1.0f}.
+        KeySymbol Up : {cameraAngularVelocity x: 1.0f}.
+        KeySymbol Down : {cameraAngularVelocity x: -1.0f}.
+
+		_ : {}.
+		}
 
     }.
 
     override method onKeyReleasedEvent: (event: KeyReleasedEvent ref) ::=> Void := {
+		event isRepeat ifTrue: {return: void}.
 
+        event symbol selectCase: #{
+		KeySymbol W : {cameraMovementDirection z < 0 ifTrue: {cameraMovementDirection z: 0.0f} }.
+        KeySymbol S : {cameraMovementDirection z > 0 ifTrue: {cameraMovementDirection z: 0.0f}}.
+        KeySymbol A : {cameraMovementDirection x < 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+        KeySymbol D : {cameraMovementDirection x > 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+        KeySymbol LCtrl : {cameraMovementDirection y < 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+        KeySymbol Space : {cameraMovementDirection y > 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+        KeySymbol LShift : {cameraMovementSpeed := 1.0f}.
+
+        KeySymbol Left : {cameraAngularVelocity y > 0 ifTrue: {cameraAngularVelocity y: 0.0f} }.
+        KeySymbol Right : {cameraAngularVelocity y < 0 ifTrue: {cameraAngularVelocity y: 0.0f}}.
+        KeySymbol Up : {cameraAngularVelocity x > 0 ifTrue: {cameraAngularVelocity x: 0.0f}}.
+        KeySymbol Down : {cameraAngularVelocity x < 0 ifTrue: {cameraAngularVelocity x: 0.0f}}.
+		_ : {}.
+		}
     }.
+
+    override method onGameControllerButtonPressedEvent: (event: GameControllerButtonPressedEvent ref) ::=> Void := {
+		event button selectCase: #{
+        GameControllerButton DPadUp : {cameraMovementDirection z: -1.0f}.
+        GameControllerButton DPadDown : {cameraMovementDirection z: 1.0f}.
+        GameControllerButton DPadLeft : {cameraMovementDirection x: -1.0f}.
+        GameControllerButton DPadRight : {cameraMovementDirection x: 1.0f}.
+        GameControllerButton ButtonDown : {cameraMovementDirection y: 1.0f}.
+        GameControllerButton LeftShoulder : {cameraMovementDirection y: -1.0f}.
+        GameControllerButton RightShoulder : {cameraMovementSpeed := 2.0f}.
+
+		_ : {}.
+		}.
+	}.
+
+	override method onGameControllerButtonReleasedEvent: (event: GameControllerButtonReleasedEvent ref) ::=> Void := {
+		event button selectCase: #{
+        GameControllerButton DPadUp : {cameraMovementDirection z < 0 ifTrue: {cameraMovementDirection z: 0.0f} }.
+        GameControllerButton DPadDown : {cameraMovementDirection z > 0 ifTrue: {cameraMovementDirection z: 0.0f}}.
+        GameControllerButton DPadLeft : {cameraMovementDirection x < 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+        GameControllerButton DPadRight : {cameraMovementDirection x > 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+        GameControllerButton ButtonDown : {cameraMovementDirection y > 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+        GameControllerButton LeftShoulder : {cameraMovementDirection y < 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+        GameControllerButton RightShoulder : {cameraMovementSpeed := 1.0f}.
+		_ : {}.
+		}.
+	}.
 
     override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
         let camera := self camera.

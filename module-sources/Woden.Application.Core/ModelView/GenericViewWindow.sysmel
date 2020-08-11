@@ -34,7 +34,8 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         let device := self engine _ renderingDevice.
 
         let swapChainCreationInfo mutable := SwapChainCreationInfo()
-            colorBufferFormat: PixelFormat B8G8R8A8_UNormSRGB;
+            colorBufferFormat: self colorBufferFormat;
+            depthStencilFormat: self depthStencilFormat;
             extent: newExtent;
             bufferCount: FrameBufferingCount;
             yourself.
@@ -86,18 +87,31 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         swapChain _ getCurrentBackBuffer
     }.
 
+    override method colorBufferFormat => PixelFormat
+        := view _ colorBufferFormat.
+
+    override method depthStencilFormat => PixelFormat
+        := view _ depthStencilFormat.
+
     override method getDisplayRenderPass => RenderPassPtr := {
         displayRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
-                    format: PixelFormat B8G8R8A8_UNormSRGB;
+                    format: self colorBufferFormat;
                     beginAction: RenderPassAttachmentAction Clear;
                     endAction: RenderPassAttachmentAction Keep;
                     yourself
             ).
-            displayRenderPass := self engine _ renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+            let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
+                format: self depthStencilFormat;
+                beginAction: RenderPassAttachmentAction Clear;
+                endAction: RenderPassAttachmentAction Keep;
+                stencilBeginAction: RenderPassAttachmentAction Clear;
+                stencilEndAction: RenderPassAttachmentAction Keep;
+                yourself.
+            displayRenderPass := self engine _ renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment:
+                (depthStencilAttachment format = PixelFormat Unknown ifTrue: nil ifFalse: depthStencilAttachment address).
         }.
-
         displayRenderPass
     }.
 

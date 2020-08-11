@@ -1,3 +1,5 @@
-Compiler importIndirectModulesNamed: #(
-    #"Woden.SceneRenderingPipeline.Forward"
-).
+compileTime if: Compiler compilationTarget isDesktopPC then: {
+    Compiler importIndirectModulesNamed: #(
+        #"Woden.SceneRenderingPipeline.Forward"
+    ).
+}.

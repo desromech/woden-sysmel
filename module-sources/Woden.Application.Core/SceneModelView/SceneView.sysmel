@@ -5,6 +5,7 @@ useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Graphics GUI.
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
 
 #**
  * I am the model that lies underlying a Woden application.
@@ -37,6 +38,20 @@ class SceneView superclass: View; definition: {
 
     }.
 
+    override method newViewWindowInstance => ViewWindowPtr := {
+        let result := self sceneModel _ sceneRenderingPipeline _ newViewWindowInstance.
+        result ifNotNil: {
+            return: (result downCastFor: ViewWindow)
+        }.
+        super newViewWindowInstance
+    }.
+
+    override method colorBufferFormat => PixelFormat
+        := self sceneModel _ sceneRenderingPipeline _ swapChainColorBufferFormat.
+
+    override method depthStencilFormat => PixelFormat
+        := self sceneModel _ sceneRenderingPipeline _ swapChainDepthStencilBufferFormat.
+
     protected field framePreparationTime type: Float32.
     protected field commandListConstructionTime type: Float32.
 
@@ -51,7 +66,7 @@ class SceneView superclass: View; definition: {
                 camera: self camera;
                 setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport _ scene2DBuilder);
                 prepareRendering.
-        }) castTo: Float32..
+        }) castTo: Float32.
     }.
 
     override method constructRenderingCommandList => Void := {
@@ -85,7 +100,12 @@ class SceneView superclass: View; definition: {
             out << "3D CMDLIST time " << (commandListConstructionTime* 1000.0f) << " ms "; nl.
         }.
 
-        (builder _ text: frameTimeString asArraySlice at: Float32x2(15.0f, 30.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Stdn Graphics Scene2D Node
+        let result mutable := (builder _ text: frameTimeString asArraySlice at: Float32x2(10.0f, 10.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Stdn Graphics Scene2D Node.
+        result := (builder _ transform: (AffinePostTransform2dF32()
+			setIdentity;
+			scaleBy: currentExtent y / 480.0f;
+			yourself) node: result) upCastFor: Stdn Graphics Scene2D Node.
+        result
     }.
 
     virtual method buildOverlayScene2DWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {

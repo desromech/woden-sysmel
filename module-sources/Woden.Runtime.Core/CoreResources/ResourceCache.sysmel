@@ -10,6 +10,7 @@ useNamespace: Stdn Graphics GUI.
  *#
 class ResourceCache superclass: Stdn SharedObject; definition: {
     private field engine type: EnginePtr.
+    private field assetLocations type: Stdn Collections Vector(Stdn FileReference).
 
     const inline method engine => EnginePtr const ref
         := engine.
@@ -57,6 +58,10 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         engine := anEngine.
 
+        assetLocations
+            add: Stdn FileSystem resourcesDirectory / "core-assets";
+            add: Stdn FileSystem resourcesDirectory / "game-assets".
+
         whiteTexture := self createTextureWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
         blackTexture := self createTextureWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
         transparentTexture := self createTextureWithSolidColor: UInt8x4 zeros format: PixelFormat R8G8B8A8_UNorm.
@@ -69,7 +74,37 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
             let material := MetallicRoughnessMaterial for: engine.
             material _ albedoTexture: checkboardTexture.
             material upCastFor: Material
-        }
+        }.
+    }.
+
+    method solveResourceFileReference: (fileReference: Stdn FileReference const ref) withExtensions: (extensions: Char8 const arraySlice arraySlice) ::=> Stdn FileReference := {
+        fileReference exists ifTrue: {
+            return: fileReference
+        }.
+
+        assetLocations reverseDo: {:location :: Void |
+            let fileRefWithParent := location resolve: fileReference.
+            fileRefWithParent exists ifTrue: {
+                return: fileRefWithParent
+            }.
+
+            extensions do: {:each :: Void |
+                let candidate := fileRefWithParent withExtension: each.
+                candidate exists ifTrue: {
+                    return: candidate
+                }.
+            }.
+        }.
+
+        fileReference
+    }.
+
+    method solveTextureFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+        let extensions mutable := Char8 const arraySlice array(
+            "dds"
+        ).
+
+        self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
     method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewPtr := {
@@ -111,7 +146,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
 
         let data mutable := color.
         0 until: 6 do: {:i :: Void |
-            texture _ uploadTextureLevel: 0 layer: i pitch: 4 slicePitch: 4 data: data address.
+            texture _ uploadTextureLevel: 0 layer: (i castTo: UIntPointer) pitch: 4 slicePitch: 4 data: data address.
         }.
 
         texture _ asTextureWithView
@@ -137,9 +172,9 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
 
         let destIndex mutable := 0.
         0 until: 64 do: {:y :: Void |
-            let cellY := (y / 16) % 2.
+            let cellY := (y >> 4) & 1.
             0 until: 64 do: {:x :: Void |
-                let cellX := (x / 16) % 2.
+                let cellX := (x >> 4) & 1.
                 let isWhite := (cellX ^ cellY) anyMask: 1.
                 data[destIndex] := isWhite ifTrue: UInt8x4(255, 255, 255, 255) ifFalse: UInt8x4(0, 0, 0, 255).
                 destIndex := destIndex + 1.
@@ -150,8 +185,24 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadColorTextureFrom: (fileName: Stdn String const ref) ::=> TextureWithViewPtr := {
-        let textureData := TextureData readFromFileNamed: fileName.
+    method loadColorTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+        let solvedFileReference := self solveTextureFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: checkboardTexture}.
+
+        let textureData := TextureData readFromFileReference: solvedFileReference.
+        textureData ifNil: {return: checkboardTexture}.
+
+        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
+        texture ifNil: {return: checkboardTexture}.
+
+        texture _ asTextureWithView
+    }.
+
+    method loadColorCubeTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+        let solvedFileReference := self solveTextureFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+
+        let textureData := TextureData readFromFileReference: solvedFileReference.
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
         let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
@@ -160,8 +211,11 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadTextureFrom: (fileName: Stdn String const ref) ::=> TextureWithViewPtr := {
-        let textureData := TextureData readFromFileNamed: fileName.
+    method loadTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+        let solvedFileReference := self solveTextureFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+
+        let textureData := TextureData readFromFileReference: solvedFileReference.
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
         let texture := engine _ renderingDevice _ createTextureWithData: textureData _.

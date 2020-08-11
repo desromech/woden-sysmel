@@ -89,6 +89,9 @@ class Model superclass: RenderingProcess; definition: {
     }.
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
+        views do: {:each :: Void |
+            each _ onStartFrameTick: event.
+        }
     }.
 
     override method prepareRendering => Void := {

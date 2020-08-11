@@ -4,7 +4,11 @@ namespace Runtime definition: {
 useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Graphics GUI.
 
-compileTime constant FrameBufferingCount := 3.
+compileTime if: Compiler compilationTarget isDesktopPC then: {
+    compileTime constant FrameBufferingCount := 3.
+} else: {
+    compileTime constant FrameBufferingCount := 2.
+}.
 
 #**
  * I am core engine instance. I hold strong references to the core subsystem registries.
