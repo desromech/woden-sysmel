@@ -1,0 +1,48 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a metallic-roughness material in a model asset.
+ *#
+class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; definition: {
+    override method initialize => Void := {
+        albedoFactor := Float32x4 white.
+        metallicFactor := 0.0f.
+        roughnessFactor := 0.55f.
+    }.
+
+    public field albedoFactor type: Float32x4.
+    public field albedoTexture type: ModelAssetTexturePtr.
+
+    public field metallicFactor type: Float32.
+    public field metallicTexture type: ModelAssetTexturePtr.
+
+    public field roughnessFactor type: Float32.
+    public field roughnessTexture type: ModelAssetTexturePtr.
+
+    field renderingMaterial type: MaterialPtr.
+    override method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr := {
+        renderingMaterial ifNotNil: {return: renderingMaterial}.
+
+        let convertedMaterial := MetallicRoughnessMaterial for: engine.
+
+        convertedMaterial _
+            doubleSided: doubleSided.
+
+        convertedMaterial _ state
+            emission: emissionFactor;
+            albedo: albedoFactor;
+            alphaCutoff: alphaCutoff;
+            metallicFactor: metallicFactor;
+            roughnessFactor: roughnessFactor.
+
+        renderingMaterial := convertedMaterial upCastFor: Material
+    }.
+}.
+
+compileTime constant ModelAssetMetallicRoughnessMaterialPtr := ModelAssetMetallicRoughnessMaterial sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

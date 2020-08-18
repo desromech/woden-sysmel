@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am an element in a model asset.
+ *#
+class ModelAssetElement superclass: Stdn SharedObject; definition: {
+    public field index type: UIntPointer.
+    public field name type: Stdn String.
+    public field modelAssetWeakPointer type: ModelAsset weakPointer.
+
+    method modelAsset => ModelAsset sharedPointer
+        := modelAssetWeakPointer lock.
+}.
+
+compileTime constant ModelAssetElementPtr := ModelAssetElement sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

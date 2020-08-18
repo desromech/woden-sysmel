@@ -1,0 +1,17 @@
+loadFileOnce: "ModelAssetElement.sysmel".
+loadFileOnce: "ModelAssetBinaryBuffer.sysmel".
+loadFileOnce: "ModelAssetBinaryBufferView.sysmel".
+loadFileOnce: "ModelAssetBinaryBufferAccessor.sysmel".
+loadFileOnce: "ModelAssetSampler.sysmel".
+loadFileOnce: "ModelAssetTexture.sysmel".
+loadFileOnce: "ModelAssetMaterial.sysmel".
+loadFileOnce: "ModelAssetMetallicRoughnessMaterial.sysmel".
+loadFileOnce: "ModelAssetMeshPrimitiveAttribute.sysmel".
+loadFileOnce: "ModelAssetMeshPrimitive.sysmel".
+loadFileOnce: "ModelAssetMesh.sysmel".
+loadFileOnce: "ModelAssetNode.sysmel".
+loadFileOnce: "ModelAssetScene.sysmel".
+loadFileOnce: "ModelAsset.sysmel".
+loadFileOnce: "ModelResourceCache.sysmel".
+loadFileOnce: "ModelImporterExporter.sysmel".
+loadFileOnce: "ModelImporterExporterRegistry.sysmel".

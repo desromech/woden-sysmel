@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a sampler in a model asset.
+ *#
+class ModelAssetSampler superclass: ModelAssetElement; definition: {
+}.
+
+compileTime constant ModelAssetSamplerPtr := ModelAssetSampler sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

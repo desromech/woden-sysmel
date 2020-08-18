@@ -1,0 +1,37 @@
+Compiler importModulesNamed: #(
+    #"Woden.Application.SampleScene"
+    #"Woden.Application.Headfull"
+).
+
+useNamespace: Woden Runtime.
+
+Woden Application sampleSceneMainWith: {:model :: Void |
+    let scene := model newScene.
+    scene _ backgroundColor: Float32x4(0.4f, 0.4f, 0.4f, 1.0f).
+
+    ## Setup the camera
+    {
+        let camera := model mainCamera.
+        camera _ translateByZ: 3.0.
+    }.
+
+    {
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/demos/table" asNativeFileReference.
+        let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
+
+        let model := SpatialObjectNode sharedNew.
+        model _ renderable: meshRenderable.
+        scene _ add: (model upCastFor: SceneNode).
+    }.
+
+    ## Add the light source.
+    {
+        let light := LightSourceNode sharedNew.
+        light _
+            makePoint;
+            radius: 4.0;
+            intensity: Float32x3(1.0f, 1.0f, 0.9f);
+            translateByX: -1.5f y: 1.5f z: 1.6f.
+        scene _ add: (light upCastFor: SceneNode).
+    }.
+}.

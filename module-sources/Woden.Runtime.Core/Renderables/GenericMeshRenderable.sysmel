@@ -7,20 +7,11 @@ useNamespace: Stdn Graphics Core.
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
-    public field vertexBinding type: VertexBindingPtr.
-    public field indexBuffer type: BufferPtr.
-
     public field submeshes type: Stdn Collections Vector(GenericSubmesh).
 
     override method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
-        vertexBinding ifNil: {return: void}.
-
+        submeshes ifEmpty: {return: void}.
         self setObjectRenderContextFlags: context.
-
-        context stateTracker _ useVertexBinding: vertexBinding.
-        indexBuffer ifNotNil: {
-            context stateTracker _ useIndexBuffer: indexBuffer
-        }.
 
         submeshes do: {:each :: Void |
             each renderWithContext: context

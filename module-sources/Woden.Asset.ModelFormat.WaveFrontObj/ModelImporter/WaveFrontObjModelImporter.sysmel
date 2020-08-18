@@ -1,0 +1,352 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math LinearAlgebra.
+
+struct WaveFrontFaceVertexIndices definition: {
+    public field positionIndex type: UInt32.
+    public field texcoordIndex type: UInt32.
+    public field normalIndex type: UInt32.
+
+    const method = (other: SelfType const ref) ::=> Boolean8
+        := positionIndex = other positionIndex && texcoordIndex = other texcoordIndex && normalIndex = other normalIndex.
+
+    const method hash => Stdn Hash
+        := positionIndex hash ^ texcoordIndex hash ^ normalIndex hash.
+}.
+
+class WaveFrontObjModelImporter definition: {
+    compileTime constant VertexType := GpuStructures GenericVertex.
+    compileTime constant IndexType := LargestSupportedIndexType.
+
+    field rawPositions type: Stdn Collections Vector(Float32x3).
+    field rawTexcoords type: Stdn Collections Vector(Float32x2).
+    field rawNormals type: Stdn Collections Vector(Float32x3).
+
+    field currentFaceIndices type: Stdn Collections Vector(UInt32).
+
+    field vertexBufferContent type: Stdn Collections Vector(VertexType).
+    field indexBufferContent type: Stdn Collections Vector(IndexType).
+
+    field faceVerticesDictionary type: Stdn Collections Dictionary(WaveFrontFaceVertexIndices, UInt32).
+
+    field parsedMaterials type: Stdn Collections Dictionary(Stdn String, ModelAssetMaterialPtr).
+
+    field modelAsset type: ModelAssetPtr.
+    field currentMesh type: ModelAssetMeshPtr.
+
+    field vertexBufferView type: ModelAssetBinaryBufferViewPtr.
+    field vertexAttributeAccessors type: ModelAssetMeshPrimitiveAttributesPtr.
+
+    field indexBufferView type: ModelAssetBinaryBufferViewPtr.
+    field currentMeshPrimitive type: ModelAssetMeshPrimitivePtr.
+    field currentMeshPrimitiveFirstIndex type: UIntPointer.
+
+    method parseFaceVertex: (faceVertex: Stdn String const ref) ::=> WaveFrontFaceVertexIndices := {
+        let positionIndex mutable type: UInt32.
+        let texcoordIndex mutable type: UInt32.
+        let normalIndex mutable type: UInt32.
+
+        faceVertex splitOn: '/' doWithIndex: {:part :partIndex :: Void |
+            partIndex selectCase: #{
+            0 : {positionIndex := part parseUInt32 - 1u min: (rawPositions size castTo: UInt32)}.
+            1 : {texcoordIndex := part parseUInt32 - 1u min: (rawTexcoords size castTo: UInt32)}.
+            2 : {normalIndex := part parseUInt32 - 1u min: (rawNormals size castTo: UInt32)}.
+            _ : {}
+            }.
+        }.
+        WaveFrontFaceVertexIndices()
+            positionIndex: positionIndex;
+            texcoordIndex: texcoordIndex;
+            normalIndex: normalIndex;
+            yourself
+    }.
+
+    method getOrCreateConvertedFaceVertex: (faceVertex: WaveFrontFaceVertexIndices const ref) ::=> UInt32 := {
+        faceVerticesDictionary at: faceVertex ifAbsentPut: {:: UInt32 |
+            let convertedVertex mutable := VertexType()
+                color: 1.0f;
+                yourself.
+
+            faceVertex positionIndex < rawPositions size ifTrue: {
+                convertedVertex position: rawPositions[faceVertex positionIndex]
+            }.
+            faceVertex texcoordIndex < rawTexcoords size ifTrue: {
+                convertedVertex texcoord: rawTexcoords[faceVertex texcoordIndex]
+            }.
+            faceVertex normalIndex < rawNormals size ifTrue: {
+                convertedVertex normal: rawNormals[faceVertex normalIndex]
+            }.
+
+            vertexBufferContent add: convertedVertex.
+            vertexBufferContent size - 1 castTo: UInt32
+        }
+    }.
+
+    method beginFace => Void :={
+        currentFaceIndices removeAll.
+    }.
+
+    method addFaceIndex: (faceIndex: UInt32) ::=> Void :={
+        currentFaceIndices add: faceIndex
+    }.
+
+    method endFace => Void := {
+        currentFaceIndices size < 3 ifTrue: {return: void}.
+
+        self ensureValidSubmesh.
+        2 until: currentFaceIndices size do: {:i :: Void |
+            indexBufferContent
+                add: (currentFaceIndices[0] castTo: IndexType);
+                add: (currentFaceIndices[i - 1u] castTo: IndexType);
+                add: (currentFaceIndices[i] castTo: IndexType)
+        }
+    }.
+
+    method createBufferViewsAndAccessors => Void := {
+        vertexBufferView := modelAsset _ newBufferView.
+        vertexBufferView _ stride: VertexType instanceSize.
+
+        indexBufferView := modelAsset _ newBufferView.
+        indexBufferView _ stride: IndexType instanceSize.
+
+        vertexAttributeAccessors := Woden GpuStructures GenericVertex modelAssetMeshPrimitiveAttributesFor: vertexBufferView.
+    }.
+
+    method startFirstMesh => Void := {
+        self startNewMeshNamed: Stdn String().
+    }.
+
+    method startNewMeshNamed: (meshName: Stdn String const ref) ::=> Void := {
+        ## If this is the first mesh, then just set its name.
+        modelAsset _ meshes size = 1 && modelAsset _ meshes first _ name isEmpty ifTrue: {
+            modelAsset _ meshes first _ name: meshName.
+            return: void
+        }.
+
+        self finishLastSubmesh.
+
+        currentMesh := modelAsset _ newMesh.
+        currentMesh _ name: meshName.
+    }.
+
+    method finishLastSubmesh => Void := {
+        currentMeshPrimitive ifNil: {return: void}.
+
+        let indexCount := indexBufferContent size - currentMeshPrimitiveFirstIndex.
+
+        let minIndex mutable type: IndexType := IndexType maxValue.
+        let maxIndex mutable type: IndexType := IndexType minValue.
+        currentMeshPrimitiveFirstIndex until: indexBufferContent size do: {:i :: Void |
+            let index := indexBufferContent[i].
+            minIndex := minIndex min: index.
+            maxIndex := maxIndex max: index.
+        }.
+
+        let indices := currentMeshPrimitive _ indices.
+        indices _
+            offset: currentMeshPrimitiveFirstIndex * IndexType instanceSize;
+            count: indexCount;
+            minValue: minIndex;
+            maxValue: maxIndex.
+
+        currentMeshPrimitive reset.
+    }.
+
+    method beginSubmeshWithMaterialNamed: (materialName: Stdn String const ref) ::=> Void := {
+        let material := parsedMaterials at: materialName ifAbsent: {:: ModelAssetMaterialPtr | ModelAssetMaterialPtr nil}.
+        currentMeshPrimitive isNotNil && currentMeshPrimitive _ material = material ifTrue: {return: void}.
+        self finishLastSubmesh.
+
+        let indexBufferAccessor := modelAsset _ newBufferAccessor.
+        indexBufferAccessor _
+            bufferView: indexBufferView;
+            format: (LargestSupportedIndexType instanceSize selectCase: #{
+            1 : PixelFormat R8_UInt.
+            2 : PixelFormat R16_UInt.
+            4 : PixelFormat R32_UInt.
+            }).
+
+        currentMeshPrimitiveFirstIndex := indexBufferContent size.
+        currentMeshPrimitive := ModelAssetMeshPrimitive sharedNew.
+        currentMeshPrimitive _
+            attributes: vertexAttributeAccessors;
+            indices: indexBufferAccessor;
+            material: material;
+            primitiveTopology: PrimitiveTopology Triangles.
+        currentMesh _ primitives add: currentMeshPrimitive
+    }.
+
+    method ensureValidSubmesh ::=> Void := {
+        currentMeshPrimitive ifNil: {
+            self beginSubmeshWithMaterialNamed: Stdn String().
+        }
+    }.
+
+    method encodeBinaryBuffers => Void := {
+        let vertexBufferByteSize := vertexBufferContent size * VertexType instanceSize.
+        let indexBufferByteSize := indexBufferContent size * IndexType instanceSize.
+        let binaryBufferByteSize := vertexBufferByteSize + indexBufferByteSize.
+
+        let binaryBuffer := modelAsset _ newBuffer.
+        binaryBuffer _ data reset: (Stdn malloc(binaryBufferByteSize) reinterpretCastTo: UInt8 pointer).
+        binaryBuffer _ dataSize: binaryBufferByteSize.
+
+        let bufferData := binaryBuffer _ data getPointer.
+        vertexBufferByteSize > 0 ifTrue: {
+            Stdn memcpy(bufferData, vertexBufferContent data, vertexBufferByteSize).
+        }.
+        vertexBufferView _
+            buffer: binaryBuffer;
+            offset: 0.
+
+        indexBufferByteSize > 0 ifTrue: {
+            Stdn memcpy(bufferData + vertexBufferByteSize, indexBufferContent data, indexBufferByteSize).
+        }.
+        indexBufferView _
+            buffer: binaryBuffer;
+            offset: vertexBufferByteSize.
+    }.
+
+    method loadMaterialLibFromFileReference:(fileReference: Stdn FileReference const ref) ::=> Void := {
+        let inStream := fileReference binaryReadStream.
+        inStream ifNil: {return: void}.
+
+        let inTextReader mutable := Stdn IO TextStreamReader for: inStream getPointer.
+        let currentMaterial mutable := ModelAssetMetallicRoughnessMaterialPtr nil.
+        inTextReader linesDo: {:each :: Void |
+            let commandString := each copyUpTo: '#'.
+            let commandReader mutable := commandString textStreamReader.
+            let command := commandReader nextToken.
+
+            command asArraySlice selectCase: #{
+            "newmtl" : {
+                let materialName := commandReader nextToken.
+                currentMaterial := modelAsset _ newMetallicRoughnessMaterial.
+                currentMaterial _ name: materialName.
+                parsedMaterials at: materialName put: (currentMaterial upCastFor: ModelAssetMaterial).
+            }.
+            "Ns" : {
+                let shininess := commandReader nextFloat32.
+                currentMaterial _ roughnessFactor := 1.0f - (shininess / 1000.0f clampMin: 0.0f max: 1.0f)
+            }.
+            "Ka" : {}.
+            "Ks" : {}.
+            "Kd" : {
+                currentMaterial _ albedoFactor := Float32x4(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32, 1.0f).
+            }.
+            "d" : {
+                ## TODO: Support transparency.
+            }.
+            "Tr" : {
+                ## TODO: Support transparency.
+            }.
+            "illum" : {
+            }.
+            "map_Kd" : {
+                Stdn stdout << "TODO: support diffuse map"; nl.
+            }.
+            "bump" : {
+                Stdn stdout << "TODO: support bump map"; nl.
+            }.
+            _ : {
+                ## We ignore the remaining commands.
+            }
+            }.
+        }.
+    }.
+
+    method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        let inStream := fileReference binaryReadStream.
+        inStream ifNil: {return: ModelAssetPtr nil}.
+
+        modelAsset := ModelAsset sharedNew.
+        self createBufferViewsAndAccessors.
+        self startFirstMesh.
+
+        let inTextReader mutable := Stdn IO TextStreamReader for: inStream getPointer.
+        inTextReader linesDo: {:each :: Void |
+            let commandString := each copyUpTo: '#'.
+            let commandReader mutable := commandString textStreamReader.
+            let command := commandReader nextToken.
+
+            command asArraySlice selectCase: #{
+            "mtllib" : {
+                let mtllibName := commandReader nextToken.
+                mtllibName ifNotEmpty: {
+                    self loadMaterialLibFromFileReference: fileReference parent / mtllibName asArraySlice
+                }.
+            }.
+
+            "usemtl" : {
+                let materialName := commandReader nextToken.
+                materialName ifNotEmpty: {
+                    self beginSubmeshWithMaterialNamed: materialName.
+                }
+            }.
+
+            "o" : {
+                let objectName := commandReader nextToken.
+                objectName ifNotEmpty: {
+                    self startNewMeshNamed: objectName.
+                }.
+            }.
+
+            "v" : {
+                let position := Float32x3(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32).
+                rawPositions add: position.
+
+            }.
+            "vn" : {
+                let normal := Float32x3(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32).
+                rawNormals add: normal.
+
+            }.
+            "vt" : {
+                let texcoord := Float32x2(commandReader nextFloat32, commandReader nextFloat32).
+                rawTexcoords add: texcoord
+            }.
+            "f" : {
+                let faceVertex mutable := commandReader nextToken.
+                self beginFace.
+                while: faceVertex isNotEmpty do: {
+                    self addFaceIndex: (self getOrCreateConvertedFaceVertex: (self parseFaceVertex: faceVertex)).
+                    faceVertex := commandReader nextToken
+                }.
+                self endFace.
+            }.
+
+            "s" : {
+                ## Smooth group
+
+            }.
+            _ : {
+                command ifNotEmpty: {
+                    Stdn stdout << "Unsupported obj command '" << command << "' lines: " << commandString; nl.
+                }.
+            }.
+            }
+        }.
+
+        self finishLastSubmesh.
+        self encodeBinaryBuffers.
+        modelAsset
+    }.
+}.
+
+class WaveFrontObjModelImporterExporter superclass: ModelImporterExporter; definition: {
+    const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
+        := extension = "obj".
+
+    const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        let importer mutable := WaveFrontObjModelImporter().
+        importer importFromFileReference: fileReference.
+    }.
+}.
+
+global WaveFrontObjModelRegistration mutable type: ModelImporterExporterRegisterer(WaveFrontObjModelImporterExporter).
+
+} ## End of namespace Assets
+} ## End of namespace Woden

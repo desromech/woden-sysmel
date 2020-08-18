@@ -1,0 +1,32 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a binary buffer in a model asset. I am used for holding different kinds
+ * of data that is typically (but not always) uploaded onto the GPU.
+ *#
+class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
+    public field data type: UInt8 uniquePointer.
+    public field dataSize type: UIntPointer.
+
+    field gpuBuffer type: BufferPtr.
+
+    method asGpuBufferFor: (engine: EnginePtr const ref) ::=> BufferPtr := {
+        gpuBuffer ifNotNil: {return: gpuBuffer}.
+        gpuBuffer := engine _ renderingDevice _ createBuffer: (BufferDescription()
+            size: dataSize;
+            heapType: MemoryHeapType DeviceLocal;
+            usageModes: BufferUsageMode Array | BufferUsageMode ElementArray;
+            mainUsageMode: BufferUsageMode Array | BufferUsageMode ElementArray;
+            yourself) initialData: data getPointer.
+        gpuBuffer
+    }.
+}.
+
+compileTime constant ModelAssetBinaryBufferPtr := ModelAssetBinaryBuffer sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

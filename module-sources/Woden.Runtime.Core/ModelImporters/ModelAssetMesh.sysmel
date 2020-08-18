@@ -1,0 +1,33 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
+ *#
+class ModelAssetMesh superclass: ModelAssetElement; definition: {
+    public field primitives type: Stdn Collections Vector(ModelAssetMeshPrimitivePtr).
+
+    public field renderable type: RenderablePtr.
+
+    method asRenderableFor: (engine: EnginePtr const ref) ::=> RenderablePtr := {
+        renderable ifNotNil: {
+            return: renderable
+        }.
+
+        let meshRenderable := GenericMeshRenderable sharedNew.
+        renderable := meshRenderable upCastFor: Renderable.
+        meshRenderable _ submeshes reserve: primitives size.
+        primitives do: {:each :: Void |
+            meshRenderable _ submeshes add: (each _ asSubmeshFor: engine)
+        }.
+
+        renderable
+    }.
+}.
+
+compileTime constant ModelAssetMeshPtr := ModelAssetMesh sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

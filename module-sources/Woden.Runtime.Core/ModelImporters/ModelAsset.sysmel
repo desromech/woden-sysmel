@@ -1,0 +1,190 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I represent a parsed in memory generic model asset. My data domain model is
+ * inspired in the model that is used by the glTF2 model, but with extensions
+ * and facilities that are specific to Woden.
+ *#
+class ModelAsset superclass: Stdn SharedObject; definition: {
+    meta definition: {
+        method readFromFileNamed: (fileName: Stdn String const ref) ::=> ModelAsset sharedPointer
+            := self readFromFileReference: fileName asNativeFileReference.
+
+        method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAsset sharedPointer := {
+            let importerExporter := ModelImporterExporterRegistry uniqueInstance findForFileReference: fileReference.
+            importerExporter ifNil: {return: ModelAssetPtr nil}.
+
+            importerExporter _ readFromFileReference: fileReference.
+        }.
+    }.
+
+    public field buffers type: Stdn Collections Vector(ModelAssetBinaryBufferPtr).
+
+    method addBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> Void := {
+        buffer _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: buffers size.
+        buffers add: buffer
+    }.
+
+    method newBuffer => ModelAssetBinaryBufferPtr := {
+        let buffer := ModelAssetBinaryBuffer sharedNew.
+        self addBuffer: buffer.
+        buffer
+    }.
+
+    public field bufferViews type: Stdn Collections Vector(ModelAssetBinaryBufferViewPtr).
+
+    method addBufferView: (bufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+        bufferView _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: bufferViews size.
+        bufferViews add: bufferView
+    }.
+
+    method newBufferView => ModelAssetBinaryBufferViewPtr := {
+        let bufferView := ModelAssetBinaryBufferView sharedNew.
+        self addBufferView: bufferView.
+        bufferView
+    }.
+
+    public field bufferAccessors type: Stdn Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+
+    method addBufferAccessor: (bufferAccesor: ModelAssetBinaryBufferAccessorPtr const ref) ::=> Void := {
+        bufferAccesor _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: bufferAccessors size.
+        bufferAccessors add: bufferAccesor
+    }.
+
+    method newBufferAccessor => ModelAssetBinaryBufferAccessorPtr := {
+        let bufferAccesor := ModelAssetBinaryBufferAccessor sharedNew.
+        self addBufferAccessor: bufferAccesor.
+        bufferAccesor
+    }.
+
+    public field textures type: Stdn Collections Vector(ModelAssetTexturePtr).
+
+    method addTexture: (texture: ModelAssetTexturePtr const ref) ::=> Void := {
+        texture _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: textures size.
+        textures add: texture
+    }.
+
+    method newTexture => ModelAssetTexturePtr := {
+        let texture := ModelAssetTexture sharedNew.
+        self addTexture: texture.
+        texture
+    }.
+
+    public field samplers type: Stdn Collections Vector(ModelAssetSamplerPtr).
+
+    method addSampler: (sampler: ModelAssetSamplerPtr const ref) ::=> Void := {
+        sampler _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: samplers size.
+        samplers add: sampler
+    }.
+
+    method newSampler => ModelAssetSamplerPtr := {
+        let sampler := ModelAssetSampler sharedNew.
+        self addSampler: sampler.
+        sampler
+    }.
+
+    public field materials type: Stdn Collections Vector(ModelAssetMaterialPtr).
+
+    method addMaterial: (material: ModelAssetMaterialPtr const ref) ::=> Void := {
+        material _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: materials size.
+        materials add: material
+    }.
+
+    method newMetallicRoughnessMaterial => ModelAssetMetallicRoughnessMaterialPtr := {
+        let material := ModelAssetMetallicRoughnessMaterial sharedNew.
+        self addMaterial: (material upCastFor: ModelAssetMaterial).
+        material
+    }.
+
+    public field meshPrimitiveAttributes type: Stdn Collections Vector(ModelAssetMeshPrimitiveAttributesPtr).
+
+    method addMeshPrimitiveAttributes: (primitiveAttributes: ModelAssetMeshPrimitiveAttributesPtr const ref) ::=> Void := {
+        primitiveAttributes _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: meshPrimitiveAttributes size.
+        meshPrimitiveAttributes add: primitiveAttributes
+    }.
+
+    method newMeshPrimitiveAttributes => ModelAssetMeshPrimitiveAttributesPtr := {
+        let primitiveAttributes := ModelAssetMeshPrimitiveAttributes sharedNew.
+        self addMeshPrimitiveAttributes: primitiveAttributes.
+        primitiveAttributes
+    }.
+
+    public field meshes type: Stdn Collections Vector(ModelAssetMeshPtr).
+
+    method addMesh: (mesh: ModelAssetMeshPtr const ref) ::=> Void := {
+        mesh _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: meshes size.
+        meshes add: mesh
+    }.
+
+    method newMesh => ModelAssetMeshPtr := {
+        let mesh := ModelAssetMesh sharedNew.
+        self addMesh: mesh.
+        mesh
+    }.
+
+    public field nodes type: Stdn Collections Vector(ModelAssetNodePtr).
+
+    method addNode: (node: ModelAssetNodePtr const ref) ::=> Void := {
+        node _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: nodes size.
+        nodes add: node
+    }.
+
+    method newNode => ModelAssetNodePtr := {
+        let node := ModelAssetNode sharedNew.
+        self addNode: node.
+        node
+    }.
+
+    public field scenes type: Stdn Collections Vector(ModelAssetScenePtr).
+
+    method addScene: (scene: ModelAssetScenePtr const ref) ::=> Void := {
+        scene _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: scenes size.
+        scenes add: scene
+    }.
+
+    method newScene => ModelAssetScenePtr := {
+        let scene := ModelAssetScene sharedNew.
+        self addScene: scene.
+        scene
+    }.
+
+    field vertexBindingCache type: Stdn Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingPtr).
+
+    method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingPtr := {
+        vertexBindingCache at: bindingDescription ifAbsentPut: { :: VertexBindingPtr |
+            let vertexBinding := engine _ renderingDevice _ createVertexBindingFor: bindingDescription vertexLayout.
+            vertexBinding _ bindVertexBuffers: bindingDescription buffers asArraySlice offset: bindingDescription offsets asArraySlice.
+            vertexBinding.
+        }.
+    }.
+
+}.
+
+compileTime constant ModelAssetPtr := ModelAsset sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

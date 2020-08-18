@@ -1,0 +1,122 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+enum ModelAssetMeshPrimitiveAttributeLocation valueType: UInt32; values: #{
+    Position: 0.
+    Texcoord0: 1.
+    Color0: 2.
+    Normal: 3.
+    Tangent4: 4.
+    Texcoord1: 5.
+    Joints0: 6.
+    Weights0: 7.
+}.
+
+struct ModelAssetMeshPrimitiveAttribute definition: {
+    public field accessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field location type: ModelAssetMeshPrimitiveAttributeLocation.
+
+    const method < (o: SelfType const ref) ::=> Boolean8 := {
+        accessor _ bufferView = o accessor _ bufferView ifTrue: {
+            location < o location
+        } ifFalse: {
+            accessor _ bufferView getPointer < o accessor _ bufferView getPointer
+        }
+    }.
+}.
+
+struct ModelAssetPrimitiveAttributesBindingDescription definition: {
+    public field vertexLayout type: VertexLayoutPtr.
+    public field buffers type: Stdn Collections Vector(BufferPtr).
+    public field offsets type: Stdn Collections Vector(UInt32).
+
+    const method = (o: SelfType const ref) ::=> Boolean8
+        := vertexLayout = o vertexLayout && buffers = o buffers && offsets = o offsets.
+
+    const method hash => Stdn Hash
+        := vertexLayout hash ^ buffers hash ^ offsets hash.
+}.
+
+class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definition: {
+    public field attributes type: Stdn Collections Vector(ModelAssetMeshPrimitiveAttribute).
+
+    method createAccessorFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) offset: (offset: UIntPointer) format: (format: PixelFormat) location: (location: ModelAssetMeshPrimitiveAttributeLocation) ::=> Void := {
+        let accessor := vertexBufferView _ modelAsset _ newBufferAccessor.
+        accessor _
+            bufferView: vertexBufferView;
+            offset: offset;
+            format: format.
+
+        attributes add: (ModelAssetMeshPrimitiveAttribute()
+            accessor: accessor;
+            location: location;
+            yourself)
+    }.
+
+    field convertedVertexBinding type: VertexBindingPtr.
+
+    method asVertexBindingFor: (engine: EnginePtr const ref) ::=> VertexBindingPtr := {
+        attributes sort.
+
+        let vertexLayoutDescription mutable := VertexLayoutDescription().
+        let lastBufferView mutable := ModelAssetBinaryBufferViewPtr nil.
+
+        let bindingDescription mutable := ModelAssetPrimitiveAttributesBindingDescription().
+
+        attributes do: {:each :: Void |
+            let newView := each accessor _ bufferView.
+            let newViewStride := newView _ stride.
+            let attributeStride := each accessor _ format bytesPerPixel.
+            lastBufferView ~= newView || newViewStride = 0 ifTrue: {
+                newViewStride = 0 ifTrue: {
+                    vertexLayoutDescription addBufferWithStride: attributeStride
+                } ifFalse: {
+                    vertexLayoutDescription addBufferWithStride: (newViewStride castTo: UInt32)
+                }.
+                let newBufferStride := vertexLayoutDescription strides last.
+                bindingDescription buffers add: (newView _ asVertexBufferFor: engine).
+                bindingDescription offsets add: (newView _ asGpuBufferOffset + (each accessor _ offset / newBufferStride) * newBufferStride castTo: UInt32).
+
+                lastBufferView := newView.
+            }.
+
+            vertexLayoutDescription addAttribute: (VertexAttributeDescription()
+                bufferIndex: (vertexLayoutDescription strides size - 1u castTo: UInt32);
+                location: each location value;
+                format: each accessor _ format;
+                offset: (each accessor _ offset % vertexLayoutDescription strides last castTo: UInt32);
+                yourself
+            ).
+        }.
+
+        bindingDescription vertexLayout: (engine _ renderingDevice _ getDefaultVertexLayoutCache _ getOrCreateWithDescription: vertexLayoutDescription).
+
+        convertedVertexBinding := self modelAsset _ createVertexBindingFor: engine withDescription: bindingDescription.
+    }.
+}.
+
+compileTime constant ModelAssetMeshPrimitiveAttributesPtr := ModelAssetMeshPrimitiveAttributes sharedPointer.
+
+Woden GpuStructures GenericVertex extend: {
+    meta definition: {
+        method modelAssetMeshPrimitiveAttributesFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
+            let modelAsset := vertexBufferView _ modelAsset.
+            let result mutable := modelAsset _ newMeshPrimitiveAttributes.
+
+            result _
+                createAccessorFor: vertexBufferView offset: positionData byteOffset format: PixelFormat R32G32B32_Float location: ModelAssetMeshPrimitiveAttributeLocation Position;
+                createAccessorFor: vertexBufferView offset: normalData byteOffset format: PixelFormat R32G32B32_Float location: ModelAssetMeshPrimitiveAttributeLocation Normal;
+                createAccessorFor: vertexBufferView offset: texcoord byteOffset format: PixelFormat R32G32_Float location: ModelAssetMeshPrimitiveAttributeLocation Texcoord0;
+                createAccessorFor: vertexBufferView offset: tangent4 byteOffset format: PixelFormat R32G32B32A32_Float location: ModelAssetMeshPrimitiveAttributeLocation Tangent4;
+                createAccessorFor: vertexBufferView offset: color byteOffset format: PixelFormat R32G32B32A32_Float location: ModelAssetMeshPrimitiveAttributeLocation Color0.
+
+            result
+        }.
+    }.
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

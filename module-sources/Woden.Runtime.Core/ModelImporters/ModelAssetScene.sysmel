@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a scene in a model asset.
+ *#
+class ModelAssetScene superclass: ModelAssetElement; definition: {
+    public field nodes type: Stdn Collections Vector(ModelAssetNodePtr).
+}.
+
+compileTime constant ModelAssetScenePtr := ModelAssetScene sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

@@ -59,7 +59,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         engine := anEngine.
 
         assetLocations
-            add: Stdn FileSystem resourcesDirectory / "core-assets";
+            add: Stdn FileSystem resourcesDirectory / "woden-demo-assets";
             add: Stdn FileSystem resourcesDirectory / "game-assets".
 
         whiteTexture := self createTextureWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.

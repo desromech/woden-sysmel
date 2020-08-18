@@ -1,0 +1,28 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+ResourceCache extend: {
+
+    method solveModelAssetFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+        let extensions mutable := Char8 const arraySlice array(
+            "obj",
+            "gltf",
+            "glb"
+        ).
+
+        self solveResourceFileReference: fileReference withExtensions: extensions
+    }.
+
+    method loadModelAssetFrom: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        let solvedFileReference := self solveModelAssetFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: ModelAssetPtr nil}.
+
+        ModelAsset readFromFileReference: solvedFileReference.
+    }.
+
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

@@ -1,0 +1,30 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
+ *#
+class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
+    public field buffer type: ModelAssetBinaryBufferPtr.
+    public field offset type: UIntPointer.
+    public field size type: UIntPointer.
+    public field stride type: UIntPointer.
+    public field usage type: BufferUsageMode.
+
+    method asVertexBufferFor: (engine: EnginePtr) ::=> BufferPtr
+        := buffer _ asGpuBufferFor: engine.
+
+    method asIndexBufferFor: (engine: EnginePtr) ::=> BufferPtr
+        := buffer _ asGpuBufferFor: engine.
+
+    method asGpuBufferOffset => UIntPointer
+        := offset.
+}.
+
+compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

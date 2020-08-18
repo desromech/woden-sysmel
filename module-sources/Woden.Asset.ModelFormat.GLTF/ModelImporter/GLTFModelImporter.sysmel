@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+class GLTFModelImporter definition: {
+}.
+
+class GLTFModelImporterExporter superclass: ModelImporterExporter; definition: {
+    const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
+        := extension = "gltf" || extension = "glb".
+}.
+
+global GLTFModelImporterExporterRegistration mutable type: ModelImporterExporterRegisterer(GLTFModelImporterExporter).
+
+} ## End of namespace Assets
+} ## End of namespace Woden

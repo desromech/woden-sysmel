@@ -1,0 +1,52 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+class ModelImporterExporterRegistry definition: {
+    meta definition: {
+        let singleton mutable type: ModelImporterExporterRegistry uniquePointer.
+        let singletonOnceCreation mutable type: Stdn OnceFlag.
+
+        method uniqueInstance => ModelImporterExporterRegistry ref := {
+            singletonOnceCreation do: {
+                singleton reset: ModelImporterExporterRegistry nativeNew.
+            }.
+
+            singleton _
+        }.
+    }.
+
+    private field mutex type: Stdn Mutex.
+    private field registeredModelImporterExporters type: Stdn Collections Vector(ModelImporterExporter sharedPointer).
+
+    method addModelImporterExporter: (modelImporterExporter: ModelImporterExporter sharedPointer) ::=> Void := {
+        mutex withLock: {
+            registeredModelImporterExporters add: modelImporterExporter
+        }
+    }.
+
+    method findForFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelImporterExporter pointer
+        := self findWithExtension: fileReference extension.
+
+    method findWithExtension: (extension: Char8 const arraySlice) ::=> ModelImporterExporter pointer := {
+        mutex withLock: {
+            registeredModelImporterExporters do: {:each :: Void |
+                (each _ supportsExtension: extension) ifTrue: {
+                    return: each getPointer
+                }
+            }
+        }.
+
+        nil
+    }.
+}.
+
+template ModelImporterExporterRegisterer(T: Type)
+    := class definition: {
+
+    method initialize => Void := {
+        ModelImporterExporterRegistry uniqueInstance addModelImporterExporter: (T sharedNew upCastFor: ModelImporterExporter)
+    }.
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

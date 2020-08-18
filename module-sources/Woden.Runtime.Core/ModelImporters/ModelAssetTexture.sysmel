@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a texture in a model asset.
+ *#
+class ModelAssetTexture superclass: ModelAssetElement; definition: {
+}.
+
+compileTime constant ModelAssetTexturePtr := ModelAssetTexture sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

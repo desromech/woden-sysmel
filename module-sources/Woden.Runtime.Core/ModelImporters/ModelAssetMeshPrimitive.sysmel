@@ -1,0 +1,35 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a primitive in a mesh.
+ *#
+class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
+    public field attributes type: ModelAssetMeshPrimitiveAttributesPtr.
+    public field indices type: ModelAssetBinaryBufferAccessorPtr.
+    public field material type: ModelAssetMaterialPtr.
+    public field primitiveTopology type: PrimitiveTopology.
+
+    method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
+        GenericSubmesh()
+            vertexBinding: (attributes _ asVertexBindingFor: engine);
+            indexBuffer: (indices _ asIndexBufferFor: engine);
+            indexBufferOffset: indices _ asIndexBufferOffset;
+            indexBufferStride: indices _ asIndexBufferStride;
+            firstIndex: (indices _ asFirstIndex castTo: UInt32);
+            indexCount: (indices _ count castTo: UInt32);
+            material: (material
+                ifNil: {engine _ resourceCache _ defaultMaterial}
+                ifNotNil: {material _ asRenderingMaterialFor: engine});
+            primitiveTopology: primitiveTopology;
+            yourself
+    }.
+}.
+
+compileTime constant ModelAssetMeshPrimitivePtr := ModelAssetMeshPrimitive sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

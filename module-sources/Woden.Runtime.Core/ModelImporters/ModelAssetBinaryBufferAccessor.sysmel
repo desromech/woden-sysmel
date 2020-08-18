@@ -1,0 +1,40 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am an accessor for structured data in a binary buffer view.
+ *#
+class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: {
+    public field bufferView type: ModelAssetBinaryBufferViewPtr.
+    public field offset type: UIntPointer.
+    public field count type: UIntPointer.
+    public field format type: PixelFormat.
+
+    ## Use doubles so that all integer also fit here.
+    public field minValue type: Float64x4.
+    public field maxValue type: Float64x4.
+
+    method asIndexBufferFor: (engine: EnginePtr const ref) ::=> BufferPtr
+        := bufferView _ asIndexBufferFor: engine.
+
+    method asFirstIndex => UIntPointer
+        := offset / self asIndexBufferStride.
+
+    method asIndexBufferOffset ::=> UIntPointer
+        := bufferView _ asGpuBufferOffset.
+
+    method asGpuBufferOffset ::=> UIntPointer
+        := offset + bufferView _ asGpuBufferOffset.
+
+    method asIndexBufferStride ::=> UIntPointer
+        := format bytesPerPixel.
+
+}.
+
+compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

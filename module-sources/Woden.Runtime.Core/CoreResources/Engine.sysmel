@@ -6,8 +6,10 @@ useNamespace: Stdn Graphics GUI.
 
 compileTime if: Compiler compilationTarget isDesktopPC then: {
     compileTime constant FrameBufferingCount := 3.
+    compileTime constant LargestSupportedIndexType := UInt32.
 } else: {
     compileTime constant FrameBufferingCount := 2.
+    compileTime constant LargestSupportedIndexType := UInt16.
 }.
 
 #**

@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am a material in a model asset.
+ *#
+class ModelAssetMaterial superclass: ModelAssetElement; definition: {
+    public field emissionFactor type: Float32x4.
+    public field emissionTexture type: ModelAssetTexturePtr.
+
+    public field normalTexture type: ModelAssetTexturePtr.
+    public field occlusionTexture type: ModelAssetTexturePtr.
+
+    public field doubleSided type: Boolean8.
+    public field alphaCutoff type: Float32.
+    
+    virtual method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr
+        := engine _ resourceCache _ defaultMaterial.
+}.
+
+compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial sharedPointer.
+
+
+} ## End of namespace Assets
+} ## End of namespace Woden

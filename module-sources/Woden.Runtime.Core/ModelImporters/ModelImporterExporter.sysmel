@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+class ModelImporterExporter superclass: Stdn Object; definition: {
+    const virtual method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
+        := false.
+
+    const virtual method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr
+        := ModelAssetPtr nil.
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

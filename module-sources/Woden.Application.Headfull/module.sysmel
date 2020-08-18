@@ -1,6 +1,7 @@
 Compiler importModulesNamed: #(
     #"Woden.Runtime.Core"
     #"Woden.Application.Core"
+    #"Woden.Asset.Default"
     #"Woden.SceneRenderingPipeline.Default"
     #"Sysmel.Graphics.Headfull"
 ).
