@@ -1,0 +1,19 @@
+namespace Woden definition: {
+namespace GpuStructures definition: {
+
+enum VertexAttributeLocation valueType: UInt32; values: #{
+    Position: 0.
+    Texcoord0: 1.
+    Color0: 2.
+    Normal: 3.
+    Tangent4: 4.
+    Texcoord1: 5.
+    Joints0: 6.
+    Weights0: 7.
+}; definition: {
+    method asAttributeBitMask => UInt32
+        := 1u << self value.
+}.
+
+}. ## End of namespace GpuStructures
+}. ## End of namespace Woden

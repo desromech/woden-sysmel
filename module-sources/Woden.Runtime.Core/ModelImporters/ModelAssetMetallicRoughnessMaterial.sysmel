@@ -17,10 +17,8 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
     public field albedoTexture type: ModelAssetTexturePtr.
 
     public field metallicFactor type: Float32.
-    public field metallicTexture type: ModelAssetTexturePtr.
-
     public field roughnessFactor type: Float32.
-    public field roughnessTexture type: ModelAssetTexturePtr.
+    public field metallicRoughnessTexture type: ModelAssetTexturePtr.
 
     field renderingMaterial type: MaterialPtr.
     override method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr := {
@@ -32,7 +30,7 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
             doubleSided: doubleSided.
 
         convertedMaterial _ state
-            emission: emissionFactor;
+            emission: Float32x4(emissionFactor, 1.0f);
             albedo: albedoFactor;
             alphaCutoff: alphaCutoff;
             metallicFactor: metallicFactor;

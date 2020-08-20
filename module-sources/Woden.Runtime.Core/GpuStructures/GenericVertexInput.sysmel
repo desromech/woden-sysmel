@@ -1,13 +1,47 @@
 namespace Woden definition: {
 namespace Shaders definition: {
 
+enum VertexAttributeLocation valueType: UInt32; values: #{
+    Position: 0.
+    Texcoord0: 1.
+    Color0: 2.
+    Normal: 3.
+    Tangent4: 4.
+    Texcoord1: 5.
+    Joints0: 6.
+    Weights0: 7.
+}.
+
 struct GenericVertexInput definition: {
 	<gpu>
-    public field position type: Float32x3; location: 0.
-    public field texcoord type: Float32x2; location: 1.
-    public field color type: Float32x4; location: 2.
-    public field normal type: Float32x3; location: 3.
-    public field tangent4 type: Float32x4; location: 4.
+    public field position type: Float32x3; location: VertexAttributeLocation Position value.
+    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
+    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
+}.
+
+struct GenericVertexColorInput definition: {
+	<gpu>
+    public field position type: Float32x3; location: VertexAttributeLocation Position value.
+    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
+    public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
+    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
+}.
+
+struct GenericVertexTangentInput definition: {
+	<gpu>
+    public field position type: Float32x3; location: VertexAttributeLocation Position value.
+    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
+    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
+    public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
+}.
+
+struct GenericVertexColorTangentInput definition: {
+	<gpu>
+	public field position type: Float32x3; location: VertexAttributeLocation Position value.
+    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
+    public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
+    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
+    public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
 }.
 
 }. ## End of namespace Shaders

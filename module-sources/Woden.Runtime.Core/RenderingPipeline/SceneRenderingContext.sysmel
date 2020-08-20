@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace Runtime definition: {
 
 useNamespace: Stdn Graphics Core.
+useNamespace: Woden GpuStructures.
 
 #**
  * I encapsulate a specific rendering scene context. I am using for decoupling
@@ -40,6 +41,22 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
 
     virtual method uploadAndActivateDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8
         := false.
+
+    protected field vertexAttributeMask type: UInt32.
+
+    const method vertexAttributeMask => UInt32
+        := vertexAttributeMask.
+
+    method vertexAttributeMask: (newVertexAttributeMask: UInt32) ::=> Void := {
+        vertexAttributeMask := newVertexAttributeMask.
+        activeMaterial reset.
+    }.
+
+    const method hasColor0VertexAttribute => Boolean8
+        := vertexAttributeMask anyMask: VertexAttributeLocation Position asAttributeBitMask.
+
+    const method hasTangent4VertexAttribute => Boolean8
+        := vertexAttributeMask anyMask: VertexAttributeLocation Tangent4 asAttributeBitMask.
 
     virtual method activateMaterial: (material: MaterialPtr const ref) ::=> Boolean8 := {
         activeMaterial = material ifTrue: {

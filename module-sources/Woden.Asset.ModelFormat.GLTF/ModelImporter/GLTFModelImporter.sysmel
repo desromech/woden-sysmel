@@ -1,12 +1,455 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
+useNamespace: Stdn Serialization.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math.
+
+enum GLTFAccessorComponentType valueType: UInt32; values: #{
+    Byte: 5120.
+    UnsignedByte: 5121.
+    Short: 5122.
+    UnsignedShort: 5123.
+    UnsignedInt: 5125.
+    Float: 5126.
+}.
+
+enum GLTFPrimitiveMode valueType: UInt8; values: #{
+    Points: 0.
+    Lines: 1.
+    LineLoop: 2.
+    LineStrip: 3.
+    Triangles: 4.
+    TriangleStrip: 5.
+    TriangleFan: 6
+}; definition: {
+    method asPrimitiveTopology => PrimitiveTopology := {
+        self selectCase: #{
+        Points : PrimitiveTopology Points.
+        Lines : PrimitiveTopology Lines.
+        LineStrip : PrimitiveTopology LineStrip.
+
+        Triangles : PrimitiveTopology Triangles.
+        TriangleStrip : PrimitiveTopology TriangleStrip.
+        }
+    }
+}.
+
 class GLTFModelImporter definition: {
+    field parentFolder type: Stdn FileReference.
+    field modelAsset type: ModelAssetPtr.
+
+    field embeddedBinaryBufferData type: UInt8 uniquePointer.
+    field embeddedBinaryBufferSize type: UIntPointer.
+
+    method importFromBinaryFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        parentFolder := fileReference parent.
+        let readStream := fileReference binaryReadStream.
+        readStream ifNil: {return: ModelAssetPtr nil}.
+
+        let binaryReader mutable := Stdn IO BinaryDataStreamReader for: readStream getPointer.
+        binaryReader setForLittleEndian.
+
+        let glbMagic := binaryReader nextUInt32.
+        let glbVersion := binaryReader nextUInt32.
+        let glbLength := binaryReader nextUInt32.
+
+        let jsonObject mutable := JSON ObjectPtr nil.
+
+        let remainingLength mutable := glbLength - 12.
+
+        ## The first chunk must be the json.
+        {
+            let chunkLength := binaryReader nextUInt32.
+            let chunkType := binaryReader nextUInt32.
+
+            chunkType = 16r4E4F534A u ifFalse: {
+                return: ModelAssetPtr nil
+            }.
+
+            let jsonText := binaryReader nextUTF8StringOfSize: chunkLength.
+            jsonObject := (JSON ValueParser parseString: jsonText) get: JSON ObjectPtr.
+
+            remainingLength := remainingLength - (8u + chunkLength min: remainingLength).
+        }.
+
+        ## The second chunk may be the embedded binary buffer.
+        {
+            let chunkLength := binaryReader nextUInt32.
+            let chunkType := binaryReader nextUInt32.
+
+            chunkType = 16r004E4942 ifTrue: {
+                embeddedBinaryBufferData reset: (Stdn zmalloc(chunkLength) reinterpretCastTo: UInt8 pointer).
+                embeddedBinaryBufferSize := chunkLength.
+                (readStream _ read: embeddedBinaryBufferData getPointer size: embeddedBinaryBufferSize) = (chunkLength castTo: IntPointer) ifFalse: {
+                    return: ModelAssetPtr nil
+                }
+            }.
+        }.
+
+        self parseTopLevel: jsonObject _.
+    }.
+
+    method parseBuffer: (object: JSON Object const ref) ::=> Void := {
+        let buffer := modelAsset _ newBuffer.
+        buffer _
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            dataSize: (object getUIntPointer: "byteLength" asMutableString).
+
+        object at: "uri" asMutableString ifPresent: {:(JSON Value const ref)uriValue :: Void |
+            let uri := uriValue get: Stdn String.
+            let uriFileRef := parentFolder / uri asArraySlice.
+            uriFileRef exists ifTrue: {
+                let readStream := uriFileRef binaryUnbufferedReadStream.
+                readStream ifNil: {return: void}.
+
+                buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+                readStream _ read: buffer _ data getPointer size: buffer _ dataSize
+            }.
+        } ifAbsent: { :: Void |
+            embeddedBinaryBufferSize >= 0 && buffer _ dataSize <= embeddedBinaryBufferSize && embeddedBinaryBufferData isNotNil ifTrue: {
+                buffer _ data reset: embeddedBinaryBufferData release
+            }.
+        }.
+
+    }.
+
+    method parseBuffers: (list: JSON List ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseBuffer: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseBufferView: (object: JSON Object const ref) ::=> Void := {
+        let bufferView := modelAsset _ newBufferView.
+        bufferView _
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            buffer: (modelAsset _ buffers[object getUIntPointer: "buffer" asMutableString]);
+            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
+            size: (object getUIntPointer: "byteLength" asMutableString);
+            stride: (object getUIntPointer: "byteStride" asMutableString default: 0).
+
+        let target := object getUInt32: "target" asMutableString default: 0.
+        target selectCase: #{
+        34962 : {bufferView _ usage: BufferUsageMode Array}.
+        34963 : {bufferView _ usage: BufferUsageMode ElementArray}.
+        _ : {}
+        }.
+    }.
+
+    method parseBufferViews: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseBufferView: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseAccessor: (object: JSON Object const ref) ::=> Void := {
+        let bufferAccessor := modelAsset _ newBufferAccessor.
+        bufferAccessor _
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            bufferView: (modelAsset _ bufferViews[object getUIntPointer: "bufferView" asMutableString]);
+            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
+            count: (object getUIntPointer: "count" asMutableString).
+
+        let componentType := (object getUIntPointer: "componentType" asMutableString) castTo: GLTFAccessorComponentType.
+        let type := object getString: "type" asMutableString.
+        let normalized := object getBoolean8: "normalized" asMutableString default: false.
+
+        bufferAccessor _ format: (
+            type asArraySlice selectCase: #{
+            "SCALAR" : {
+                componentType selectCase: #{
+                GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8_SNorm ifFalse: PixelFormat R8_SInt).
+                GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8_UNorm ifFalse: PixelFormat R8_UInt).
+                GLTFAccessorComponentType Short : (normalized ifTrue: PixelFormat R16_SNorm ifFalse: PixelFormat R16_SInt).
+                GLTFAccessorComponentType UnsignedShort : (normalized ifTrue: PixelFormat R16_UNorm ifFalse: PixelFormat R16_UInt).
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32_Float.
+                }
+            }.
+            "VEC2" : {
+                componentType selectCase: #{
+                GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8_SNorm ifFalse: PixelFormat R8G8_SInt).
+                GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8_UNorm ifFalse: PixelFormat R8G8_UInt).
+                GLTFAccessorComponentType Short : (normalized ifTrue: PixelFormat R16G16_SNorm ifFalse: PixelFormat R16G16_SInt).
+                GLTFAccessorComponentType UnsignedShort : (normalized ifTrue: PixelFormat R16G16_UNorm ifFalse: PixelFormat R16G16_UInt).
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32_Float.
+                }
+            }.
+            "VEC3" : {
+                componentType selectCase: #{
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32B32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32B32_Float.
+                }
+            }.
+            "VEC4" : {
+                componentType selectCase: #{
+                GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8B8A8_SNorm ifFalse: PixelFormat R8G8B8A8_SInt).
+                GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8B8A8_UNorm ifFalse: PixelFormat R8G8B8A8_UInt).
+                GLTFAccessorComponentType Short : (normalized ifTrue: PixelFormat R16G16B16A16_SNorm ifFalse: PixelFormat R16G16B16A16_SInt).
+                GLTFAccessorComponentType UnsignedShort : (normalized ifTrue: PixelFormat R16G16B16A16_UNorm ifFalse: PixelFormat R16G16B16A16_UInt).
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32B32A32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32B32A32_Float.
+                }
+            }.
+            }
+        ).
+    }.
+
+    method parseAccessors: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseAccessor: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseTexture: (object: JSON Object const ref) ::=> Void := {
+        let texture := modelAsset _ newTexture.
+        texture _
+            name: (object getString: "name" asMutableString default: "" asMutableString).
+        Stdn stdout << "TODO: parseTexture " << texture _ name; nl.
+    }.
+
+    method parseTextures: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseTexture: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parsePbrMetallicRoughnessMaterial: (object: JSON Object const ref) ::=> ModelAssetMaterialPtr := {
+        let material := modelAsset _ newMetallicRoughnessMaterial.
+
+        material _
+            albedoFactor: (object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
+            metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
+            roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
+        object at: "baseColorTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            Stdn stdout << "TODO: parse baseColorTexture"; nl.
+        }.
+        object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            Stdn stdout << "TODO: parse metallicRoughnessTexture"; nl.
+        }.
+
+        material upCastFor: ModelAssetMaterial.
+    }.
+
+    method parseMaterial: (object: JSON Object const ref) ::=> Void := {
+        let material mutable := ModelAssetMaterialPtr nil.
+        object at: "pbrMetallicRoughness" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            material := self parsePbrMetallicRoughnessMaterial: (value get: JSON ObjectPtr) _.
+        }.
+
+        material ifNil: {
+            material := modelAsset _ newMetallicRoughnessMaterial upCastFor: ModelAssetMaterial.
+        }.
+
+        material _
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            emissionFactor: (object getFloat32x3: "emissiveFactor" asMutableString default: 0);
+            doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
+            alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
+
+        object at: "occlusionTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            Stdn stdout << "TODO: parse occlusionTexture"; nl.
+        }.
+
+        object at: "emissiveTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            Stdn stdout << "TODO: parse emissiveTexture"; nl.
+        }.
+
+        object at: "normalTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            Stdn stdout << "TODO: parse normalTexture"; nl.
+        }.
+    }.
+
+    method parseMaterials: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseMaterial: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseMeshPrimitiveAttributes: (object: JSON Object const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
+        let attributeList mutable := ModelAssetMeshPrimitiveAttributeList().
+
+        object keysAndValuesDo: {:(Stdn String const ref)key :(JSON Value const ref)value :: Void |
+            let location := key asArraySlice selectCase: #{
+            "POSITION" : VertexAttributeLocation Position.
+            "NORMAL" : VertexAttributeLocation Normal.
+            "TANGENT" : VertexAttributeLocation Tangent4.
+            "TEXCOORD_0" : VertexAttributeLocation Texcoord0.
+            "TEXCOORD_1" : VertexAttributeLocation Texcoord1.
+            "COLOR_0" : VertexAttributeLocation Color0.
+            "JOINTS_0" : VertexAttributeLocation Joints0.
+            "WEIGHTS_0" : VertexAttributeLocation Weights0.
+            }.
+
+            let accessor := modelAsset _ bufferAccessors[JSON valueToUIntPointer(value)].
+
+            attributeList add: (ModelAssetMeshPrimitiveAttribute()
+                accessor: accessor;
+                location: location;
+                yourself
+            )
+        }.
+
+        attributeList sort.
+
+        ## TODO: Attempt to cache these primitive lists.
+        let result := modelAsset _ newMeshPrimitiveAttributes.
+        result _ attributes: attributeList.
+        result
+    }.
+
+    method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: JSON Object const ref) ::=> Void := {
+
+        let primitive := ModelAssetMeshPrimitive sharedNew.
+        mesh _ primitives add: primitive.
+
+        primitive _
+            attributes: (self parseMeshPrimitiveAttributes: (object getObject: "attributes" asMutableString) _ );
+            primitiveTopology: ((object getUInt32: "mode" asMutableString default: 4) castTo: GLTFPrimitiveMode) asPrimitiveTopology.
+
+        object at: "indices" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            primitive _ indices: (modelAsset _ bufferAccessors[JSON valueToUIntPointer(value)])
+        }.
+
+        object at: "material" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            primitive _ material: (modelAsset _ materials[JSON valueToUIntPointer(value)])
+        }.
+    }.
+
+    method parseMesh: (object: JSON Object const ref) ::=> Void := {
+        let mesh := modelAsset _ newMesh.
+        mesh _
+            name: (object getString: "name" asMutableString default: "" asMutableString).
+
+        object at: "primitives" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            (value get: JSON ListPtr) _ do: {:each :: Void |
+                self parseMesh: mesh primitive: (each get: JSON ObjectPtr) _
+            }.
+        }.
+    }.
+
+    method parseMeshes: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseMesh: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseNode: (object: JSON Object const ref) ::=> Void := {
+        let node := modelAsset _ newNode.
+        node _
+            name: (object getString: "name" asMutableString default: "" asMutableString).
+
+        object at: "mesh" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            node _ mesh: (modelAsset _ meshes[JSON valueToUIntPointer(value)])
+        }.
+
+        object at: "scale" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let scale := JSON valueToFloat32x3(value, 1).
+            node _ scale: scale.
+            node _ transform scaleBy: scale.
+        }.
+        object at: "rotation" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let rotation := QuaternionF32 xyzw: JSON valueToFloat32x4(value, Float32x4(0, 0, 0, 1)).
+            node _ rotationQuaternion: rotation.
+            node _ transform applyOrthonormalMatrix: rotation asFloat32x3x3.
+        }.
+        object at: "translation" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let translation := JSON valueToFloat32x3(value, 0).
+            node _ translation: translation.
+            node _ transform translateBy: translation.
+        }.
+
+        object at: "matrix" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let matrix := JSON valueToFloat32x4x4(value, Float32x4x4 identity).
+            Stdn stdout << "TODO: parse node matrix "; nl.
+            Stdn stdout << matrix firstRow; nl.
+            Stdn stdout << matrix secondRow; nl.
+            Stdn stdout << matrix thirdRow; nl.
+            Stdn stdout << matrix fourthRow; nl.
+        }.
+    }.
+
+    method parseNodes: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseNode: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseScene: (object: JSON Object const ref) ::=> Void := {
+        let scene := modelAsset _ newScene.
+        scene _
+            name: (object getString: "name" asMutableString default: "" asMutableString).
+
+        object at: "nodes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let nodeList ref := (value get: JSON ListPtr) _.
+            scene _ rootNodes reserve: nodeList size.
+            0 until: nodeList size do: {:i :: Void |
+                scene _ rootNodes add: (modelAsset _ nodes[nodeList getUIntPointer: i])
+            }.
+        }.
+    }.
+
+    method parseScenes: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseScene: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseTopLevel: (object: JSON Object const ref) ::=> ModelAssetPtr := {
+        modelAsset := ModelAsset sharedNew.
+        object at: "buffers" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseBuffers: (value get: JSON ListPtr) _
+        }.
+        object at: "bufferViews" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseBufferViews: (value get: JSON ListPtr) _
+        }.
+        object at: "accessors" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseAccessors: (value get: JSON ListPtr) _
+        }.
+        object at: "textures" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseTextures: (value get: JSON ListPtr) _
+        }.
+        object at: "materials" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseMaterials: (value get: JSON ListPtr) _
+        }.
+        object at: "meshes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseMeshes: (value get: JSON ListPtr) _
+        }.
+        object at: "nodes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseNodes: (value get: JSON ListPtr) _
+        }.
+        object at: "scenes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseScenes: (value get: JSON ListPtr) _
+        }.
+
+        modelAsset
+    }.
+
+    method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        parentFolder := fileReference parent.
+
+        let jsonReadStream := fileReference binaryReadStream.
+        jsonReadStream ifNil: {return: ModelAssetPtr nil}.
+
+        let jsonValue := JSON ValueParser parseStream: jsonReadStream getPointer.
+        self parseTopLevel: (jsonValue get: JSON ObjectPtr) _.
+    }.
 }.
 
 class GLTFModelImporterExporter superclass: ModelImporterExporter; definition: {
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := extension = "gltf" || extension = "glb".
+
+    const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+        let importer mutable := GLTFModelImporter().
+        fileReference extension = "glb" ifTrue: {
+            importer importFromBinaryFileReference: fileReference
+        } ifFalse: {
+            importer importFromFileReference: fileReference
+        }.
+    }.
 }.
 
 global GLTFModelImporterExporterRegistration mutable type: ModelImporterExporterRegisterer(GLTFModelImporterExporter).

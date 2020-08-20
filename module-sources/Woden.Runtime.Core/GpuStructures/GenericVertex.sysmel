@@ -4,11 +4,11 @@ namespace GpuStructures definition: {
 useNamespace: Stdn Graphics Core.
 
 struct GenericVertex definition: {
-    public field positionData type: CompactFloat32x3; location: 0.
-    public field normalData type: CompactFloat32x3; location: 3.
-    public field texcoord type: Float32x2; location: 1.
-    public field tangent4 type: Float32x4; location: 4.
-    public field color type: Float32x4; location: 2.
+    public field positionData type: CompactFloat32x3; location: VertexAttributeLocation Position value.
+    public field normalData type: CompactFloat32x3; location: VertexAttributeLocation Normal value.
+    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
+    public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
+    public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
 
     const inline method position => Float32x3
         := positionData asFloat32x3.
@@ -25,6 +25,14 @@ struct GenericVertex definition: {
     }.
 
     meta definition: {
+        method availableAttributeMask => UInt32 := {
+            VertexAttributeLocation Position asAttributeBitMask |
+            VertexAttributeLocation Normal asAttributeBitMask |
+            VertexAttributeLocation Texcoord0 asAttributeBitMask |
+            VertexAttributeLocation Tangent4 asAttributeBitMask |
+            VertexAttributeLocation Color0 asAttributeBitMask
+        }.
+
         method vertexLayoutDescription => VertexLayoutDescription := {
             VertexLayoutDescription()
                 addAttribute: (VertexAttributeDescription()

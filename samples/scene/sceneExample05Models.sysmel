@@ -12,9 +12,10 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     ## Setup the camera
     {
         let camera := model mainCamera.
-        camera _ translateByZ: 3.0.
+        camera _ translateByZ: 3.0; translateByY: 1.6.
     }.
 
+    ## Table
     {
         let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/demos/table" asNativeFileReference.
         let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
@@ -22,6 +23,26 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         let model := SpatialObjectNode sharedNew.
         model _ renderable: meshRenderable.
         scene _ add: (model upCastFor: SceneNode).
+    }.
+
+    ## Chair separate
+    {
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/demos/chair_separated" asNativeFileReference.
+        modelAsset ifNotNil: {
+            let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            chairNode _ translateByX: 1.5f.
+            scene _ add: chairNode.
+        }.
+    }.
+
+    ## Chair
+    {
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/demos/chair" asNativeFileReference.
+        modelAsset ifNotNil: {
+            let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            chairNode _ translateByX: -1.5f.
+            scene _ add: chairNode.
+        }.
     }.
 
     ## Add the light source.

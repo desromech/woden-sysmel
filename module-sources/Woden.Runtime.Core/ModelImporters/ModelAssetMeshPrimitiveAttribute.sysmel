@@ -4,20 +4,18 @@ namespace Assets definition: {
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
 
-enum ModelAssetMeshPrimitiveAttributeLocation valueType: UInt32; values: #{
-    Position: 0.
-    Texcoord0: 1.
-    Color0: 2.
-    Normal: 3.
-    Tangent4: 4.
-    Texcoord1: 5.
-    Joints0: 6.
-    Weights0: 7.
-}.
+compileTime constant VertexAttributeLocation := Woden GpuStructures VertexAttributeLocation.
+
 
 struct ModelAssetMeshPrimitiveAttribute definition: {
     public field accessor type: ModelAssetBinaryBufferAccessorPtr.
-    public field location type: ModelAssetMeshPrimitiveAttributeLocation.
+    public field location type: VertexAttributeLocation.
+
+    const method = (o: SelfType const ref) ::=> Boolean8
+        := accessor = o accessor && location = o location.
+
+    const method hash ::=> Stdn Hash
+        := accessor hash ^ location hash.
 
     const method < (o: SelfType const ref) ::=> Boolean8 := {
         accessor _ bufferView = o accessor _ bufferView ifTrue: {
@@ -27,6 +25,8 @@ struct ModelAssetMeshPrimitiveAttribute definition: {
         }
     }.
 }.
+
+compileTime constant ModelAssetMeshPrimitiveAttributeList := Stdn Collections Vector(ModelAssetMeshPrimitiveAttribute).
 
 struct ModelAssetPrimitiveAttributesBindingDescription definition: {
     public field vertexLayout type: VertexLayoutPtr.
@@ -41,9 +41,9 @@ struct ModelAssetPrimitiveAttributesBindingDescription definition: {
 }.
 
 class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definition: {
-    public field attributes type: Stdn Collections Vector(ModelAssetMeshPrimitiveAttribute).
+    public field attributes type: ModelAssetMeshPrimitiveAttributeList.
 
-    method createAccessorFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) offset: (offset: UIntPointer) format: (format: PixelFormat) location: (location: ModelAssetMeshPrimitiveAttributeLocation) ::=> Void := {
+    method createAccessorFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) offset: (offset: UIntPointer) format: (format: PixelFormat) location: (location: VertexAttributeLocation) ::=> Void := {
         let accessor := vertexBufferView _ modelAsset _ newBufferAccessor.
         accessor _
             bufferView: vertexBufferView;
@@ -107,11 +107,11 @@ Woden GpuStructures GenericVertex extend: {
             let result mutable := modelAsset _ newMeshPrimitiveAttributes.
 
             result _
-                createAccessorFor: vertexBufferView offset: positionData byteOffset format: PixelFormat R32G32B32_Float location: ModelAssetMeshPrimitiveAttributeLocation Position;
-                createAccessorFor: vertexBufferView offset: normalData byteOffset format: PixelFormat R32G32B32_Float location: ModelAssetMeshPrimitiveAttributeLocation Normal;
-                createAccessorFor: vertexBufferView offset: texcoord byteOffset format: PixelFormat R32G32_Float location: ModelAssetMeshPrimitiveAttributeLocation Texcoord0;
-                createAccessorFor: vertexBufferView offset: tangent4 byteOffset format: PixelFormat R32G32B32A32_Float location: ModelAssetMeshPrimitiveAttributeLocation Tangent4;
-                createAccessorFor: vertexBufferView offset: color byteOffset format: PixelFormat R32G32B32A32_Float location: ModelAssetMeshPrimitiveAttributeLocation Color0.
+                createAccessorFor: vertexBufferView offset: positionData byteOffset format: PixelFormat R32G32B32_Float location: VertexAttributeLocation Position;
+                createAccessorFor: vertexBufferView offset: normalData byteOffset format: PixelFormat R32G32B32_Float location: VertexAttributeLocation Normal;
+                createAccessorFor: vertexBufferView offset: texcoord byteOffset format: PixelFormat R32G32_Float location: VertexAttributeLocation Texcoord0;
+                createAccessorFor: vertexBufferView offset: tangent4 byteOffset format: PixelFormat R32G32B32A32_Float location: VertexAttributeLocation Tangent4;
+                createAccessorFor: vertexBufferView offset: color byteOffset format: PixelFormat R32G32B32A32_Float location: VertexAttributeLocation Color0.
 
             result
         }.

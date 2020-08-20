@@ -289,10 +289,10 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         submeshes do: {:each :: Void |
             each
                 vertexBinding: vertexBinding;
+                vertexAttributeMask: VertexType availableAttributeMask;
                 indexBuffer: indexBuffer;
                 indexBufferOffset: 0;
                 indexBufferStride: IndexType instanceSize.
-
         }.
 
         let result := GenericMeshRenderable sharedNew.

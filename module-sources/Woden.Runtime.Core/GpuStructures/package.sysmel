@@ -1,5 +1,6 @@
 ## Structures consumed indirectly by shaders.
 loadFileOnce: "CompactFloat32x3.sysmel".
+loadFileOnce: "VertexAttributeLocation.sysmel".
 loadFileOnce: "GenericVertex.sysmel".
 loadFileOnce: "GenericVertexInput.sysmel".
 

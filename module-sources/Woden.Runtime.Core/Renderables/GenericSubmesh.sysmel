@@ -8,6 +8,8 @@ useNamespace: Stdn Graphics Core.
  *#
 class GenericSubmesh definition: {
     public field vertexBinding type: VertexBindingPtr.
+    public field vertexAttributeMask type: UInt32.
+
     public field indexBuffer type: BufferPtr.
     public field indexBufferOffset type: UIntPointer.
     public field indexBufferStride type: UIntPointer.
@@ -19,7 +21,7 @@ class GenericSubmesh definition: {
 
     method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
         material isNil || vertexBinding isNil || indexBuffer isNil ifTrue: {return: void}.
-        (context activateMaterial: material) ifFalse: { return: void }.
+        (context vertexAttributeMask: vertexAttributeMask; activateMaterial: material) ifFalse: { return: void }.
 
         context stateTracker _ useVertexBinding: vertexBinding.
         context stateTracker _ useIndexBuffer: indexBuffer at: indexBufferOffset stride: indexBufferStride.

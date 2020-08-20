@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Math.
 useNamespace: Stdn Math LinearAlgebra.
 
 #**
@@ -10,6 +11,25 @@ useNamespace: Stdn Math LinearAlgebra.
 class ModelAssetNode superclass: ModelAssetElement; definition: {
     public field mesh type: ModelAssetMeshPtr.
     public field transform type: ReversibleAffineTransform3dF32.
+    public field scale type: Float32x3.
+    public field rotationQuaternion type: QuaternionF32.
+    public field translation type: Float32x3.
+
+    override method initialize => Void := {
+        transform setIdentity.
+        scale := 1.
+        rotationQuaternion := QuaternionF32 identity.
+    }.
+
+    method asSceneNodeFor: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
+        let node := SpatialObjectNode sharedNew.
+        mesh ifNotNil: {
+            node _ renderable: (mesh _ asRenderableFor: engine)
+        }.
+
+        node _ transform: transform.
+        node upCastFor: SceneNode.
+    }.
 }.
 
 compileTime constant ModelAssetNodePtr := ModelAssetNode sharedPointer.

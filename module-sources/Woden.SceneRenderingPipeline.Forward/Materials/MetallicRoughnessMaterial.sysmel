@@ -38,6 +38,76 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let screenPosition := self cameraState projectionMatrix * viewPosition.
 
         let normal := self transformNormal: input normal.
+
+        out send: (VertexIO()
+            position: viewPosition xyz;
+            texcoord: input texcoord;
+            color: self materialState albedo;
+            normal: normal;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: screenPosition;
+            yourself
+        ).
+    }.
+
+    function vertexColor vertexShader(in: GenericVertexColorInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
+        let viewPosition := self cameraState viewMatrix * worldPosition.
+        let screenPosition := self cameraState projectionMatrix * viewPosition.
+
+        let normal := self transformNormal: input normal.
+
+        out send: (VertexIO()
+            position: viewPosition xyz;
+            texcoord: input texcoord;
+            color: self materialState albedo * input color;
+            normal: normal;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: screenPosition;
+            yourself
+        ).
+    }.
+
+    function vertexTangent vertexShader(in: GenericVertexTangentInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
+        let viewPosition := self cameraState viewMatrix * worldPosition.
+        let screenPosition := self cameraState projectionMatrix * viewPosition.
+
+        let normal := self transformNormal: input normal.
+        let tangent := self transformNormal: input tangent4 xyz.
+        let bitangent := (normal cross: tangent) * input tangent4 w.
+
+        out send: (VertexIO()
+            position: viewPosition xyz;
+            texcoord: input texcoord;
+            color: self materialState albedo;
+            normal: normal;
+            tangent: tangent;
+            bitangent: bitangent;
+            yourself).
+
+        stageOut send: (GPU VertexStageOutput()
+            screenPosition: screenPosition;
+            yourself
+        ).
+    }.
+
+    function vertexColorTangent vertexShader(in: GenericVertexColorTangentInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+        let input := in receive.
+
+        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
+        let viewPosition := self cameraState viewMatrix * worldPosition.
+        let screenPosition := self cameraState projectionMatrix * viewPosition.
+
+        let normal := self transformNormal: input normal.
         let tangent := self transformNormal: input tangent4 xyz.
         let bitangent := (normal cross: tangent) * input tangent4 w.
 
