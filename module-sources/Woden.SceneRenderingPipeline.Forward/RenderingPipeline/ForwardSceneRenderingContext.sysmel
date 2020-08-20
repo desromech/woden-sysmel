@@ -65,7 +65,7 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
                 bindOn: 1 sampledTextureWithView: material validAlbedoTexture;
                 bindOn: 2 sampledTextureWithView: material validNormalTexture;
                 bindOn: 3 sampledTextureWithView: material validEmissionTexture;
-                bindOn: 4 sampledTextureWithView: material validMetallicRoughnessTexture.
+                bindOn: 4 sampledTextureWithView: material validMetallicRoughnessOcclusionTexture.
         }.
 
         true

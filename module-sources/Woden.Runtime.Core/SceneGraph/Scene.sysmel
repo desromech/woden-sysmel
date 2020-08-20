@@ -10,8 +10,8 @@ class Scene superclass: Stdn SharedObject; definition: {
     public field engine type: EnginePtr.
 
     public field backgroundColor type: Float32x4.
-    public field groundLighting type: Float32x4.
-    public field skyLighting type: Float32x4.
+    public field groundLighting type: Float32x3.
+    public field skyLighting type: Float32x3.
     public field sunDirection type: Float32x3.
 
     public field currentTime type: Float32.
@@ -28,6 +28,11 @@ class Scene superclass: Stdn SharedObject; definition: {
 
     const inline method foregroundLayer => SceneLayerPtr const ref
         := foregroundLayer.
+
+    method backgroundLighting: (lighting: Float32x3) ::=> Void := {
+        groundLighting := lighting.
+        skyLighting := lighting.
+    }.
 
     override method initialize => Void := {
         backgroundColor := Float32x4 black.

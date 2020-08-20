@@ -44,6 +44,8 @@ class WaveFrontObjModelImporter definition: {
     field currentMeshPrimitive type: ModelAssetMeshPrimitivePtr.
     field currentMeshPrimitiveFirstIndex type: UIntPointer.
 
+    field textureNameDictiory type: Stdn Collections Dictionary(Stdn String, ModelAssetTexturePtr).
+
     method parseFaceVertex: (faceVertex: Stdn String const ref) ::=> WaveFrontFaceVertexIndices := {
         let positionIndex mutable type: UInt32.
         let texcoordIndex mutable type: UInt32.
@@ -210,6 +212,17 @@ class WaveFrontObjModelImporter definition: {
             offset: vertexBufferByteSize.
     }.
 
+    method getOrCreateTextureNamed: (name: Stdn String const ref) ::=> ModelAssetTexturePtr := {
+        textureNameDictiory at: name ifAbsentPut: { :: ModelAssetTexturePtr |
+            let image := modelAsset _ newImage.
+            image _ uri: name.
+
+            let texture := modelAsset _ newTexture.
+            texture _ image: image.
+            texture
+        }
+    }.
+
     method loadMaterialLibFromFileReference:(fileReference: Stdn FileReference const ref) ::=> Void := {
         let inStream := fileReference binaryReadStream.
         inStream ifNil: {return: void}.
@@ -246,10 +259,16 @@ class WaveFrontObjModelImporter definition: {
             "illum" : {
             }.
             "map_Kd" : {
-                Stdn stdout << "TODO: support diffuse map"; nl.
+                let textureName := commandReader nextToken.
+                textureName ifNotEmpty: {
+                    currentMaterial _ albedoTexture: (self getOrCreateTextureNamed: textureName)
+                }.
             }.
             "bump" : {
-                Stdn stdout << "TODO: support bump map"; nl.
+                let textureName := commandReader nextToken.
+                textureName ifNotEmpty: {
+                    currentMaterial _ normalTexture: (self getOrCreateTextureNamed: textureName)
+                }.
             }.
             _ : {
                 ## We ignore the remaining commands.
@@ -263,6 +282,7 @@ class WaveFrontObjModelImporter definition: {
         inStream ifNil: {return: ModelAssetPtr nil}.
 
         modelAsset := ModelAsset sharedNew.
+        modelAsset _ parentFolder := fileReference parent.
         self createBufferViewsAndAccessors.
         self startFirstMesh.
 
@@ -276,7 +296,7 @@ class WaveFrontObjModelImporter definition: {
             "mtllib" : {
                 let mtllibName := commandReader nextToken.
                 mtllibName ifNotEmpty: {
-                    self loadMaterialLibFromFileReference: fileReference parent / mtllibName asArraySlice
+                    self loadMaterialLibFromFileReference: modelAsset _ parentFolder / mtllibName asArraySlice
                 }.
             }.
 
@@ -305,7 +325,7 @@ class WaveFrontObjModelImporter definition: {
 
             }.
             "vt" : {
-                let texcoord := Float32x2(commandReader nextFloat32, commandReader nextFloat32).
+                let texcoord := Float32x2(commandReader nextFloat32, 1.0f - commandReader nextFloat32).
                 rawTexcoords add: texcoord
             }.
             "f" : {

@@ -22,6 +22,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
     }.
 
+    public field parentFolder type: Stdn FileReference.
     public field buffers type: Stdn Collections Vector(ModelAssetBinaryBufferPtr).
 
     method addBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> Void := {
@@ -67,19 +68,19 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         bufferAccesor
     }.
 
-    public field textures type: Stdn Collections Vector(ModelAssetTexturePtr).
+    public field images type: Stdn Collections Vector(ModelAssetImagePtr).
 
-    method addTexture: (texture: ModelAssetTexturePtr const ref) ::=> Void := {
-        texture _
+    method addImage: (image: ModelAssetImagePtr const ref) ::=> Void := {
+        image _
             modelAssetWeakPointer: self asWeakPointer;
-            index: textures size.
-        textures add: texture
+            index: images size.
+        images add: image
     }.
 
-    method newTexture => ModelAssetTexturePtr := {
-        let texture := ModelAssetTexture sharedNew.
-        self addTexture: texture.
-        texture
+    method newImage => ModelAssetImagePtr := {
+        let image := ModelAssetImage sharedNew.
+        self addImage: image.
+        image
     }.
 
     public field samplers type: Stdn Collections Vector(ModelAssetSamplerPtr).
@@ -95,6 +96,21 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         let sampler := ModelAssetSampler sharedNew.
         self addSampler: sampler.
         sampler
+    }.
+
+    public field textures type: Stdn Collections Vector(ModelAssetTexturePtr).
+
+    method addTexture: (texture: ModelAssetTexturePtr const ref) ::=> Void := {
+        texture _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: textures size.
+        textures add: texture
+    }.
+
+    method newTexture => ModelAssetTexturePtr := {
+        let texture := ModelAssetTexture sharedNew.
+        self addTexture: texture.
+        texture
     }.
 
     public field materials type: Stdn Collections Vector(ModelAssetMaterialPtr).

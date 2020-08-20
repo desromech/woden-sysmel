@@ -1,0 +1,42 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a texture in a model asset.
+ *#
+class ModelAssetImage superclass: ModelAssetElement; definition: {
+    public field uri type: Stdn String.
+    public field mimeType type: Stdn String.
+    public field bufferView type: ModelAssetBinaryBufferViewPtr.
+
+    method asTextureDataFromFileFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
+        uri ifEmpty: {return: TextureDataPtr nil}.
+
+        let fileReference := self modelAsset _ parentFolder resolve: uri asNativeFileReference.
+        let solvedFileReference := engine _ resourceCache _ solveTextureFileReference: fileReference.
+        TextureData readFromFileReference: solvedFileReference
+    }.
+
+    method asTextureDataFromBufferViewFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
+        mimeType ifEmpty: {return: TextureDataPtr nil}.
+
+        let memoryStream mutable := bufferView _ asFixedMemoryStream.
+        TextureData readFromStream: memoryStream withMimeType: mimeType asArraySlice.
+    }.
+
+    method asTextureDataFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
+        bufferView ifNil: {
+            self asTextureDataFromFileFor: engine
+        } ifNotNil: {
+            self asTextureDataFromBufferViewFor: engine
+        }
+    }.
+}.
+
+compileTime constant ModelAssetImagePtr := ModelAssetImage sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

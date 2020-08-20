@@ -131,7 +131,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
             interpolateTo: self globalLightingState skyLighting
             at: hemiFactor.
 
-        let result mutable := hemiLightingFactor rgb * Cdiff.
+        let result mutable := hemiLightingFactor rgb * (Cdiff + F0).
 
         ## Apply the ambient occlusion.
         let ssao := (self albedoSampler sample: self lightingStateBinding _ ssaoTexture at: lightingParameters fragCoord xy * self cameraState inverseScreenSize) r.

@@ -22,6 +22,9 @@ class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
 
     method asGpuBufferOffset => UIntPointer
         := offset.
+
+    method asFixedMemoryStream => Stdn IO FixedMemoryStream
+        := Stdn IO FixedMemoryStream for: buffer _ data getPointer + offset withSize: size.
 }.
 
 compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView sharedPointer.

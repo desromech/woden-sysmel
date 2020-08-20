@@ -2,11 +2,41 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
 
 #**
  * I am a texture in a model asset.
  *#
 class ModelAssetTexture superclass: ModelAssetElement; definition: {
+    public field image type: ModelAssetImagePtr.
+    public field sampler type: ModelAssetSamplerPtr.
+
+    field srgbTextureWithView type: TextureWithViewPtr.
+    field linearTextureWithView type: TextureWithViewPtr.
+
+    method asSRGBTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
+        image ifNil: {return: TextureWithViewPtr nil}.
+
+        let textureData := image _ asTextureDataFor: engine.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
+
+        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
+
+        texture _ asTextureWithView
+    }.
+
+    method asLinearTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
+        image ifNil: {return: TextureWithViewPtr nil}.
+
+        let textureData := image _ asTextureDataFor: engine.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
+
+        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
+
+        texture _ asTextureWithView
+    }.
 }.
 
 compileTime constant ModelAssetTexturePtr := ModelAssetTexture sharedPointer.

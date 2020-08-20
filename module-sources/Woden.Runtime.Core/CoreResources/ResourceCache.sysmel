@@ -82,6 +82,15 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
             return: fileReference
         }.
 
+        {
+            extensions do: {:each :: Void |
+                let candidate := fileReference withExtension: each.
+                candidate exists ifTrue: {
+                    return: candidate
+                }.
+            }.
+        }.
+
         assetLocations reverseDo: {:location :: Void |
             let fileRefWithParent := location resolve: fileReference.
             fileRefWithParent exists ifTrue: {
@@ -100,8 +109,14 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     }.
 
     method solveTextureFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+        ## FIXME: Retrieve the list of available extensions during the runtime.
         let extensions mutable := Char8 const arraySlice array(
-            "dds"
+            "dds",
+            "png",
+            "jpg",
+            "jpeg",
+            "bmp",
+            "tga"
         ).
 
         self solveResourceFileReference: fileReference withExtensions: extensions

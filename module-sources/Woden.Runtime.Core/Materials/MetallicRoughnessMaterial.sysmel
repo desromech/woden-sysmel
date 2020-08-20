@@ -23,7 +23,7 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field albedoTexture type: TextureWithViewPtr.
     public field normalTexture type: TextureWithViewPtr.
     public field emissionTexture type: TextureWithViewPtr.
-    public field metallicRoughnessTexture type: TextureWithViewPtr.
+    public field metallicRoughnessOcclusionTexture type: TextureWithViewPtr.
 
     public field doubleSided type: Boolean8.
 
@@ -76,9 +76,9 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
         emissionTexture
     }.
 
-    method validMetallicRoughnessTexture => TextureWithViewPtr := {
-        metallicRoughnessTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
-        metallicRoughnessTexture
+    method validMetallicRoughnessOcclusionTexture => TextureWithViewPtr := {
+        metallicRoughnessOcclusionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        metallicRoughnessOcclusionTexture
     }.
 }.
 

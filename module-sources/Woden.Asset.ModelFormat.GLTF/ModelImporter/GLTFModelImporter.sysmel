@@ -70,6 +70,11 @@ class GLTFModelImporter definition: {
             let jsonText := binaryReader nextUTF8StringOfSize: chunkLength.
             jsonObject := (JSON ValueParser parseString: jsonText) get: JSON ObjectPtr.
 
+            #*{
+                let dump := (fileReference withExtension: "dump.json") binaryWriteStream.
+                dump _ write: jsonText data size: jsonText size.
+            }.*#
+
             remainingLength := remainingLength - (8u + chunkLength min: remainingLength).
         }.
 
@@ -203,11 +208,47 @@ class GLTFModelImporter definition: {
         }.
     }.
 
+    method parseImage: (object: JSON Object const ref) ::=> Void := {
+        let image := modelAsset _ newImage.
+        image _
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            uri: (object getString: "uri" asMutableString default: "" asMutableString);
+            mimeType: (object getString: "mimeType" asMutableString default: "" asMutableString).
+        object at: "bufferView" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            image _ bufferView: (modelAsset _ bufferViews[JSON valueToUIntPointer(value)])
+        }.
+    }.
+
+    method parseImages: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseImage: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
+    method parseSampler: (object: JSON Object const ref) ::=> Void := {
+        let sampler := modelAsset _ newSampler.
+        sampler _
+            name: (object getString: "name" asMutableString default: "" asMutableString).
+        Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
+    }.
+
+    method parseSamplers: (list: JSON List const ref) ::=> Void := {
+        list do: {:each :: Void |
+            self parseSampler: (each get: JSON ObjectPtr) _
+        }.
+    }.
+
     method parseTexture: (object: JSON Object const ref) ::=> Void := {
         let texture := modelAsset _ newTexture.
         texture _
             name: (object getString: "name" asMutableString default: "" asMutableString).
-        Stdn stdout << "TODO: parseTexture " << texture _ name; nl.
+
+        object at: "sampler" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            texture _ sampler: (modelAsset _ samplers[JSON valueToUIntPointer(value)])
+        }.
+        object at: "source" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            texture _ image: (modelAsset _ images[JSON valueToUIntPointer(value)])
+        }.
     }.
 
     method parseTextures: (list: JSON List const ref) ::=> Void := {
@@ -216,18 +257,27 @@ class GLTFModelImporter definition: {
         }.
     }.
 
+    method parseMaterialTexture: (object: JSON Object const ref) ::=> ModelAssetTexturePtr := {
+        let result mutable := ModelAssetTexturePtr nil.
+        object at: "index" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            result := modelAsset _ textures[JSON valueToUIntPointer(value)]
+        }.
+
+        result
+    }.
+
     method parsePbrMetallicRoughnessMaterial: (object: JSON Object const ref) ::=> ModelAssetMaterialPtr := {
         let material := modelAsset _ newMetallicRoughnessMaterial.
 
         material _
-            albedoFactor: (object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
+            albedoFactor: Stdn Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
             roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
         object at: "baseColorTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            Stdn stdout << "TODO: parse baseColorTexture"; nl.
+            material _ albedoTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
         }.
         object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            Stdn stdout << "TODO: parse metallicRoughnessTexture"; nl.
+            material _ metallicRoughnessTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
         }.
 
         material upCastFor: ModelAssetMaterial.
@@ -245,20 +295,20 @@ class GLTFModelImporter definition: {
 
         material _
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            emissionFactor: (object getFloat32x3: "emissiveFactor" asMutableString default: 0);
+            emissionFactor: Stdn Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" asMutableString default: 0, 0)) rgb;
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
 
         object at: "occlusionTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            Stdn stdout << "TODO: parse occlusionTexture"; nl.
+            material _ occlusionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
         }.
 
         object at: "emissiveTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            Stdn stdout << "TODO: parse emissiveTexture"; nl.
+            material _ emissionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
         }.
 
         object at: "normalTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            Stdn stdout << "TODO: parse normalTexture"; nl.
+            material _ normalTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
         }.
     }.
 
@@ -399,6 +449,7 @@ class GLTFModelImporter definition: {
 
     method parseTopLevel: (object: JSON Object const ref) ::=> ModelAssetPtr := {
         modelAsset := ModelAsset sharedNew.
+        modelAsset _ parentFolder: parentFolder.
         object at: "buffers" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             self parseBuffers: (value get: JSON ListPtr) _
         }.
@@ -407,6 +458,12 @@ class GLTFModelImporter definition: {
         }.
         object at: "accessors" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             self parseAccessors: (value get: JSON ListPtr) _
+        }.
+        object at: "images" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseImages: (value get: JSON ListPtr) _
+        }.
+        object at: "samplers" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            self parseSamplers: (value get: JSON ListPtr) _
         }.
         object at: "textures" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             self parseTextures: (value get: JSON ListPtr) _

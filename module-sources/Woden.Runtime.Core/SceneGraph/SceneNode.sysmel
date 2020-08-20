@@ -131,6 +131,16 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         children add: aChild.
     }.
 
+    inline method scaleBy: (scale: Float32x3) ::=> Void := {
+        transform scaleBy: scale.
+        self transformChanged.
+    }.
+
+    inline method scaleByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
+        transform scaleByX: x y: y z: z.
+        self transformChanged.
+    }.
+
     inline method rotateDegreesOnX: (x: Float32) ::=> Void := {
         transform rotateDegreesOnX: x.
         self transformChanged.

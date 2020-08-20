@@ -77,8 +77,8 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
         lightingState := Woden Shaders GlobalLightingStateData().
 
         lightingState
-            groundLighting: scene _ groundLighting;
-            skyLighting: scene _ skyLighting;
+            groundLighting: Float32x4(scene _ groundLighting, 0.0f);
+            skyLighting: Float32x4(scene _ skyLighting, 0.0f);
             sunDirection: scene _ sunDirection.
 
         ## TODO: Support light probes properly.
