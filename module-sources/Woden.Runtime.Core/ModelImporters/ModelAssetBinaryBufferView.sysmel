@@ -25,6 +25,9 @@ class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
 
     method asFixedMemoryStream => Stdn IO FixedMemoryStream
         := Stdn IO FixedMemoryStream for: buffer _ data getPointer + offset withSize: size.
+
+    method asCPUBufferPointer => UInt8 pointer
+        := buffer _ data getPointer + offset.
 }.
 
 compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView sharedPointer.

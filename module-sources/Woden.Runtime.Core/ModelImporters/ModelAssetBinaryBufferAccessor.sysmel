@@ -32,6 +32,37 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     method asIndexBufferStride ::=> UIntPointer
         := format bytesPerPixel.
 
+    method asCPUBufferPointer => UInt8 pointer
+        := bufferView _ asCPUBufferPointer + offset.
+
+    method trianglesDo: (aBlock: ((UInt32 -- UInt32 -- UInt32) => Void) nativeStackBlockClosure) ::=> Void := {
+        format selectCase: #{
+        PixelFormat R8_UInt : {
+            let indices mutable := self asCPUBufferPointer reinterpretCastTo: UInt8 pointer.
+
+            0 until: count / 3 do: {:i :: Void |
+                aBlock(indices[0], indices[1], indices[2]).
+                indices := indices + 3
+            }
+        }.
+        PixelFormat R16_UInt : {
+            let indices mutable := self asCPUBufferPointer reinterpretCastTo: UInt16 pointer.
+
+            0 until: count / 3 do: {:i :: Void |
+                aBlock(indices[0], indices[1], indices[2]).
+                indices := indices + 3
+            }
+        }.
+        PixelFormat R32_UInt : {
+            let indices mutable := self asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
+
+            0 until: count / 3 do: {:i :: Void |
+                aBlock(indices[0], indices[1], indices[2]).
+                indices := indices + 3
+            }
+        }.
+        }.
+    }
 }.
 
 compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor sharedPointer.

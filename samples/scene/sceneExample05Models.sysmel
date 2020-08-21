@@ -83,8 +83,24 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         modelAsset ifNotNil: {
             let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
             chairNode _
-                scaleBy: 0.2f; translateByY: 1.18f.
+                scaleBy: 0.2f; translateByY: 1.18f; translateByX: 0.3f.
             scene _ add: chairNode.
+        }.
+    }.
+
+    ## Wodanic
+    {
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/samples/wodanic" asNativeFileReference.
+        modelAsset ifNotNil: {
+            let node := modelAsset _ createSceneNodeNamed: "Wodanic" asMutableString for: model engine.
+            node ifNotNil: {
+                node _
+                    scaleBy: 0.01f;
+                    rotateDegreesOnY: -90.0f;
+                    translateByY: 1.05f;
+                    translateByX: -0.3f.
+                scene _ add: node.
+            }.
         }.
     }.
 

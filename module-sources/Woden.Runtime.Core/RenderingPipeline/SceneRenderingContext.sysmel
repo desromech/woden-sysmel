@@ -53,7 +53,7 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
     }.
 
     const method hasColor0VertexAttribute => Boolean8
-        := vertexAttributeMask anyMask: VertexAttributeLocation Position asAttributeBitMask.
+        := vertexAttributeMask anyMask: VertexAttributeLocation Color0 asAttributeBitMask.
 
     const method hasTangent4VertexAttribute => Boolean8
         := vertexAttributeMask anyMask: VertexAttributeLocation Tangent4 asAttributeBitMask.

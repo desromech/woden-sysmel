@@ -16,6 +16,7 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
     method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
         GenericSubmesh()
             vertexBinding: (attributes _ asVertexBindingFor: engine);
+            vertexAttributeMask: attributes _ vertexAttributeMask;
             indexBuffer: (indices _ asIndexBufferFor: engine);
             indexBufferOffset: indices _ asIndexBufferOffset;
             indexBufferStride: indices _ asIndexBufferStride;

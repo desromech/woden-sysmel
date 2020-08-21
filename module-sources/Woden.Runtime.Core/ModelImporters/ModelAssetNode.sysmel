@@ -9,6 +9,7 @@ useNamespace: Stdn Math LinearAlgebra.
  * I am a scene node in a model asset.
  *#
 class ModelAssetNode superclass: ModelAssetElement; definition: {
+    public field children type: Stdn Collections Vector(ModelAssetNode sharedPointer).
     public field mesh type: ModelAssetMeshPtr.
     public field transform type: ReversibleAffineTransform3dF32.
     public field scale type: Float32x3.
@@ -28,6 +29,13 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
         }.
 
         node _ transform: transform.
+        children do: {:each :: Void |
+            let childNode := each _ asSceneNodeFor: engine.
+            childNode ifNotNil: {
+                node _ addChild: childNode.
+            }
+        }.
+
         node upCastFor: SceneNode.
     }.
 }.

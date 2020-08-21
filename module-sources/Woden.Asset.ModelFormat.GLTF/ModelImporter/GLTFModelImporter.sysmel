@@ -419,6 +419,14 @@ class GLTFModelImporter definition: {
             Stdn stdout << matrix thirdRow; nl.
             Stdn stdout << matrix fourthRow; nl.
         }.
+
+        object at: "children" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
+            let children ref := (value get: JSON ListPtr) _.
+            node _ children reserve: children size.
+            0 until: children size do: {:i :: Void |
+                node _ children add: (modelAsset _ nodes[children getUIntPointer: i])
+            }
+        }
     }.
 
     method parseNodes: (list: JSON List const ref) ::=> Void := {
@@ -481,6 +489,7 @@ class GLTFModelImporter definition: {
             self parseScenes: (value get: JSON ListPtr) _
         }.
 
+        modelAsset _ cleanupMeshes.
         modelAsset
     }.
 

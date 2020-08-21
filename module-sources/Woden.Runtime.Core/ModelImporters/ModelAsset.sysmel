@@ -173,6 +173,23 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         node
     }.
 
+    method getNodeNamed: (name: Stdn String const ref) ::=> ModelAssetNodePtr := {
+        nodes do: {:each :: Void |
+            each _ name = name ifTrue: {
+                return: each
+            }
+        }.
+
+        ModelAssetNodePtr nil
+    }.
+
+    method createSceneNodeNamed: (name: Stdn String const ref) for: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
+        let node := self getNodeNamed: name.
+        node ifNil: {return: SceneNodePtr nil}.
+
+        node _ asSceneNodeFor: engine
+    }.
+
     public field scenes type: Stdn Collections Vector(ModelAssetScenePtr).
 
     method addScene: (scene: ModelAssetScenePtr const ref) ::=> Void := {
@@ -198,6 +215,169 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
     }.
 
+    compileTime constant VertexDataWithPendingTangeSpaceFrames := Stdn Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Stdn Collections Vector(ModelAssetMeshPrimitivePtr)).
+
+    method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)
+        into: (encodedTangent4: Stdn Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+
+        let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
+        let normalsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Normal.
+        let texcoordAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Texcoord0.
+        Stdn assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
+        positionsAccessors isNil || normalsAccessors isNil || texcoordAccessors isNil ||
+        positionsAccessors _ count = 0 ||
+        positionsAccessors _ count ~= normalsAccessors _ count || normalsAccessors _ count ~= texcoordAccessors _ count ||
+
+        ## FIXME: relax this restrictions on the format.
+        positionsAccessors _ format ~= PixelFormat R32G32B32_Float || normalsAccessors _ format ~= PixelFormat R32G32B32_Float ||
+        texcoordAccessors _ format ~= PixelFormat R32G32_Float
+        ifTrue: {
+            return: void
+        }.
+
+        ## Create linear buffers that are more convenient to process.
+        let vertexCount := positionsAccessors _ count.
+        let positions mutable := Stdn Collections Vector(Float32x3)().
+        let texcoords mutable := Stdn Collections Vector(Float32x2)().
+        let normals mutable := Stdn Collections Vector(Float32x3)().
+        let tangents mutable := Stdn Collections Vector(Float32x3)().
+        let bitangents mutable := Stdn Collections Vector(Float32x3)().
+
+        positions resizeTo: vertexCount.
+        texcoords resizeTo: vertexCount.
+        normals resizeTo: vertexCount.
+        tangents resizeTo: vertexCount.
+        bitangents resizeTo: vertexCount.
+
+        ## Read the positions, texcoords, and normals.
+        ## FIXME: Refactor this into the accessors.
+        {
+            let positionsStride := positionsAccessors _ bufferView _ stride max: 12.
+            let positionsBuffer := positionsAccessors _ asCPUBufferPointer.
+
+            let normalsStride := normalsAccessors _ bufferView _ stride max: 12.
+            let normalsBuffer := normalsAccessors _ asCPUBufferPointer.
+
+            let texcoordStride := texcoordAccessors _ bufferView _ stride max: 8.
+            let texcoordBuffer := texcoordAccessors _ asCPUBufferPointer.
+
+            0 until: vertexCount do: {:i :: Void |
+                let position := positionsBuffer + i*positionsStride reinterpretCastTo: Float32 pointer.
+                positions[i] := Float32x3(position[0], position[1], position[2]).
+
+                let normal := normalsBuffer + i*normalsStride reinterpretCastTo: Float32 pointer.
+                normals[i] := Float32x3(normal[0], normal[1], normal[2]).
+
+                let texcoord := texcoordBuffer + i*texcoordStride reinterpretCastTo: Float32 pointer.
+                texcoords[i] := Float32x2(texcoord[0], texcoord[1]).
+            }.
+        }.
+
+        ## Process all of the triangles.
+        ## FIXME: Use Mikktspace here.
+        primitives do: {:each :: Void |
+            let indicesAccessor := each _ indices.
+            each _ primitiveTopology = PrimitiveTopology Triangles && indicesAccessor isNotNil ifTrue: {
+                indicesAccessor _ trianglesDo: {:i1 :i2 :i3 :: Void |
+                    let p1 := positions[i1].
+                    let p2 := positions[i2].
+                    let p3 := positions[i3].
+
+                    let tc1 := texcoords[i1].
+                    let tc2 := texcoords[i2].
+                    let tc3 := texcoords[i3].
+
+                    let u := p2 - p1.
+                    let v := p3 - p1.
+
+                    let du1 := tc2 x - tc1 x.
+                    let dv1 := tc2 y - tc1 y.
+
+                    let du2 := tc3 x - tc1 x.
+                    let dv2 := tc3 y - tc1 y.
+
+                    let det := (du1*dv2) - (du2*dv1).
+                    (det closeTo: 0.0) ifFalse: {
+                        let den := 1.0 / det.
+
+                        let tangent := (u * (den*dv2))  - (v * (den*dv1)).
+                        let bitangent := (v * (den*du1)) - (u * (den*du2)).
+
+                        tangents[i1] := tangents[i1] + tangent.
+                        tangents[i2] := tangents[i2] + tangent.
+                        tangents[i3] := tangents[i3] + tangent.
+
+                        bitangents[i1] := bitangents[i1] + bitangent.
+                        bitangents[i2] := bitangents[i2] + bitangent.
+                        bitangents[i3] := bitangents[i3] + bitangent.
+                    }.
+                }
+            }
+        }.
+
+        let firstTangentIndex := encodedTangent4 size.
+        encodedTangent4 reserve: vertexCount.
+        0 until: vertexCount do: {:i :: Void |
+            let normal := normals[i].
+            let tangent mutable := tangents[i].
+            let bitangent mutable := bitangents[i].
+
+            (tangent closeTo: Float32x3 zeros) && (bitangent closeTo: Float32x3 zeros) ifTrue: {
+                tangent := Float32x3(1, 0, 0).
+                bitangent := Float32x3(0, 1, 0).
+            }.
+
+            ## Gram schmidth orthogonalization
+            tangent := (tangent - (normal * (normal dot: tangent))) normalized.
+            bitangent := (bitangent - (normal * (normal dot: bitangent)) - (tangent * (tangent dot: bitangent))) normalized.
+            let scaleFactor := (normal cross: tangent) dot: bitangent.
+            encodedTangent4 add: Float32x4(tangent, scaleFactor)
+        }.
+
+        let tangents4Accessors := self newBufferAccessor.
+        tangents4Accessors _
+            bufferView: tangent4BufferView;
+            offset: firstTangentIndex * 16;
+            count: vertexCount;
+            format: PixelFormat R32G32B32A32_Float.
+        attributes _ attributes add: (ModelAssetMeshPrimitiveAttribute()
+            accessor: tangents4Accessors;
+            location: VertexAttributeLocation Tangent4;
+            yourself
+        ).
+    }.
+
+    method generateMissingVertexTangentSpaceFrames: (vertexDataWithSubmeshes: VertexDataWithPendingTangeSpaceFrames ref) ::=> Void := {
+        let tangent4 mutable := Stdn Collections Vector(Float32x4)().
+        let tangent4BufferView mutable := self newBufferView.
+
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+            self generateVertexDataTangentSpaceFrame: attributes primitives: primitives into: tangent4 withBufferView: tangent4BufferView
+        }.
+
+        tangent4 ifEmpty: {return: void}.
+
+        let tangent4Buffer mutable := self newBuffer.
+        tangent4Buffer _ dataSize: tangent4 size * Float32x4 instanceSize.
+        tangent4Buffer _ data reset: (Stdn malloc(tangent4Buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+        Stdn memcpy(tangent4Buffer _ data getPointer, tangent4 data, tangent4Buffer _ dataSize).
+        tangent4BufferView _ buffer: tangent4Buffer.
+    }.
+
+    method cleanupMeshes => Void := {
+        let vertexDataToGenerateTangentSpace mutable := VertexDataWithPendingTangeSpaceFrames().
+        meshes do: {:each :: Void |
+            each _ primitives do: {:eachPrimitive :: Void |
+                eachPrimitive _ material isNotNil && eachPrimitive _ material _ normalTexture isNotNil && eachPrimitive _ attributes _ hasTangent4 not ifTrue: {
+                    let primitiveList ref := vertexDataToGenerateTangentSpace at: eachPrimitive _ attributes ifAbsentPut: { :: (Stdn Collections Vector(ModelAssetMeshPrimitivePtr)) | Stdn Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+                    primitiveList add: eachPrimitive
+                }.
+            }.
+        }.
+
+        vertexDataToGenerateTangentSpace ifEmpty: {return: void}.
+        self generateMissingVertexTangentSpaceFrames: vertexDataToGenerateTangentSpace
+    }.
 }.
 
 compileTime constant ModelAssetPtr := ModelAsset sharedPointer.

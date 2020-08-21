@@ -8,6 +8,15 @@ useNamespace: Woden Runtime.
  *#
 class ModelAssetScene superclass: ModelAssetElement; definition: {
     public field rootNodes type: Stdn Collections Vector(ModelAssetNodePtr).
+
+    method createSceneNodesFor: (engine: EnginePtr const ref) in: (scene: ScenePtr const ref) ::=> Void := {
+        rootNodes do: {:each :: Void |
+            let node := each _ asSceneNodeFor: engine.
+            node ifNotNil: {
+                scene _ add: node
+            }
+        }
+    }.
 }.
 
 compileTime constant ModelAssetScenePtr := ModelAssetScene sharedPointer.
