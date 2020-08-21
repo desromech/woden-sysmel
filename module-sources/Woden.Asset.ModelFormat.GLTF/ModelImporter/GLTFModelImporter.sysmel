@@ -229,7 +229,7 @@ class GLTFModelImporter definition: {
         let sampler := modelAsset _ newSampler.
         sampler _
             name: (object getString: "name" asMutableString default: "" asMutableString).
-        Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
+        ##Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
     }.
 
     method parseSamplers: (list: JSON List const ref) ::=> Void := {

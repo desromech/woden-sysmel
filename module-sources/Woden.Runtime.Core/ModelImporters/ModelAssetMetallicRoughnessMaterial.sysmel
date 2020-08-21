@@ -49,6 +49,14 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
             convertedMaterial _ normalTexture: (normalTexture _ asLinearTextureWithViewFor: engine)
         }.
 
+        metallicRoughnessTexture ifNotNil: {
+            convertedMaterial _ metallicRoughnessTexture: (metallicRoughnessTexture _ asLinearTextureWithViewFor: engine)
+        }.
+
+        occlusionTexture ifNotNil: {
+            convertedMaterial _ occlusionTexture: (occlusionTexture _ asLinearTextureWithViewFor: engine)
+        }.
+
         renderingMaterial := convertedMaterial upCastFor: Material
     }.
 }.

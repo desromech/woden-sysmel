@@ -9,7 +9,8 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
     macro method albedoTexture := ``(`,self materialStateBinding _ texture0).
     macro method normalTexture := ``(`,self materialStateBinding _ texture1).
     macro method emissionTexture := ``(`,self materialStateBinding _ texture2).
-    macro method occlusionRoughnessMetallicTexture := ``(`,self materialStateBinding _ texture3).
+    macro method occlusionTexture := ``(`,self materialStateBinding _ texture3).
+    macro method roughnessMetallicTexture := ``(`,self materialStateBinding _ texture4).
 
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
@@ -141,10 +142,10 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
 
-        let occlusionRoughnessMetallicSample := self albedoSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
-        let occlusion := occlusionRoughnessMetallicSample r.
-        let roughness := self materialState roughnessFactor * occlusionRoughnessMetallicSample g.
-        let metallic := self materialState metallicFactor * occlusionRoughnessMetallicSample b.
+        let roughnessMetallicSample := self albedoSampler sample: self roughnessMetallicTexture at: input texcoord.
+        let occlusion := (self albedoSampler sample: self occlusionTexture at: input texcoord) r.
+        let roughness := self materialState roughnessFactor * roughnessMetallicSample g.
+        let metallic := self materialState metallicFactor * roughnessMetallicSample b.
 
         let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
             P: P;
@@ -185,10 +186,10 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
         let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
 
-        let occlusionRoughnessMetallicSample := self albedoSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
-        let occlusion := occlusionRoughnessMetallicSample r.
-        let roughness := self materialState roughnessFactor * occlusionRoughnessMetallicSample g.
-        let metallic := self materialState metallicFactor * occlusionRoughnessMetallicSample b.
+        let roughnessMetallicSample := self albedoSampler sample: self roughnessMetallicTexture at: input texcoord.
+        let occlusion := (self albedoSampler sample: self occlusionTexture at: input texcoord) r.
+        let roughness := self materialState roughnessFactor * roughnessMetallicSample g.
+        let metallic := self materialState metallicFactor * roughnessMetallicSample b.
 
         let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
             P: P;
