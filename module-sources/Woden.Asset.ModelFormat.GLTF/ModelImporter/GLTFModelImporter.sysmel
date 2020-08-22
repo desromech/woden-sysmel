@@ -111,7 +111,7 @@ class GLTFModelImporter definition: {
                 buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
                 readStream _ read: buffer _ data getPointer size: buffer _ dataSize
             }.
-        } ifAbsent: { :: Void |
+        } ifAbsent: {
             embeddedBinaryBufferSize >= 0 && buffer _ dataSize <= embeddedBinaryBufferSize && embeddedBinaryBufferData isNotNil ifTrue: {
                 buffer _ data reset: embeddedBinaryBufferData release
             }.

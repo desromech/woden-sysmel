@@ -158,7 +158,7 @@ class WaveFrontObjModelImporter definition: {
     }.
 
     method beginSubmeshWithMaterialNamed: (materialName: Stdn String const ref) ::=> Void := {
-        let material := parsedMaterials at: materialName ifAbsent: {:: ModelAssetMaterialPtr | ModelAssetMaterialPtr nil}.
+        let material := parsedMaterials at: materialName ifAbsent: ModelAssetMaterialPtr nil.
         currentMeshPrimitive isNotNil && currentMeshPrimitive _ material = material ifTrue: {return: void}.
         self finishLastSubmesh.
 
