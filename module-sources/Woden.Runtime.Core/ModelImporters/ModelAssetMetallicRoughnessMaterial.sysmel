@@ -38,23 +38,23 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
             roughnessFactor: roughnessFactor.
 
         albedoTexture ifNotNil: {
-            convertedMaterial _ albedoTexture: (albedoTexture _ asSRGBTextureWithViewFor: engine)
+            convertedMaterial _ albedoTexture: (albedoTexture _ asTextureWithViewFor: engine)
         }.
 
         emissionTexture ifNotNil: {
-            convertedMaterial _ emissionTexture: (emissionTexture _ asSRGBTextureWithViewFor: engine)
+            convertedMaterial _ emissionTexture: (emissionTexture _ asTextureWithViewFor: engine)
         }.
 
         normalTexture ifNotNil: {
-            convertedMaterial _ normalTexture: (normalTexture _ asLinearTextureWithViewFor: engine)
+            convertedMaterial _ normalTexture: (normalTexture _ asTextureWithViewFor: engine)
         }.
 
         metallicRoughnessTexture ifNotNil: {
-            convertedMaterial _ metallicRoughnessTexture: (metallicRoughnessTexture _ asLinearTextureWithViewFor: engine)
+            convertedMaterial _ metallicRoughnessTexture: (metallicRoughnessTexture _ asTextureWithViewFor: engine)
         }.
 
         occlusionTexture ifNotNil: {
-            convertedMaterial _ occlusionTexture: (occlusionTexture _ asLinearTextureWithViewFor: engine)
+            convertedMaterial _ occlusionTexture: (occlusionTexture _ asTextureWithViewFor: engine)
         }.
 
         renderingMaterial := convertedMaterial upCastFor: Material

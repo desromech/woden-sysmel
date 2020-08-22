@@ -274,10 +274,12 @@ class GLTFModelImporter definition: {
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
             roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
         object at: "baseColorTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ albedoTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
+            material _ albedoTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)..
+            material _ albedoTexture _ setColorUsage
         }.
         object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ metallicRoughnessTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
+            material _ metallicRoughnessTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+            material _ metallicRoughnessTexture _ setLinearUsage
         }.
 
         material upCastFor: ModelAssetMaterial.
@@ -300,15 +302,18 @@ class GLTFModelImporter definition: {
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
 
         object at: "occlusionTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ occlusionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
+            material _ occlusionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+            material _ occlusionTexture _ setLinearUsage
         }.
 
         object at: "emissiveTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ emissionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
+            material _ emissionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+            material _ emissionTexture _ setColorUsage
         }.
 
         object at: "normalTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ normalTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)
+            material _ normalTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+            material _ normalTexture _ setNormalUsage
         }.
     }.
 

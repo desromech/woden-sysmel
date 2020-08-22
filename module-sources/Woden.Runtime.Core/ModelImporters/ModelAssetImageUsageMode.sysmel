@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+#**
+ * I represent a specific image usage mode. I am typically used for selecting
+ * the adequate color space, and the way for generating miplevels.
+ *#
+enum ModelAssetImageUsageMode valueType: UInt8; values: #{
+    Color: 0.
+    Linear: 1.
+    Normal: 2
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

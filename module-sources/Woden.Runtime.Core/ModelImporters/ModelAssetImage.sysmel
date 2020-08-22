@@ -4,6 +4,7 @@ namespace Assets definition: {
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
 
+
 #**
  * I am a texture in a model asset.
  *#
@@ -11,6 +12,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     public field uri type: Stdn String.
     public field mimeType type: Stdn String.
     public field bufferView type: ModelAssetBinaryBufferViewPtr.
+    public field usageMode type: ModelAssetImageUsageMode.
 
     method asTextureDataFromFileFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
         uri ifEmpty: {return: TextureDataPtr nil}.
@@ -28,11 +30,20 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     }.
 
     method asTextureDataFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
-        bufferView ifNil: {
+        let result := bufferView ifNil: {
             self asTextureDataFromFileFor: engine
         } ifNotNil: {
             self asTextureDataFromBufferViewFor: engine
-        }
+        }.
+        result ifNil: {return: TextureDataPtr nil}.
+
+        let resultWithMiplevels := usageMode selectCase: #{
+        ModelAssetImageUsageMode Color : {result _ generateColorMiplevels}.
+        ModelAssetImageUsageMode Linear : {result _ generateMiplevels}.
+        ModelAssetImageUsageMode Normal : {result _ generateNormalMiplevels}.
+        }.
+        resultWithMiplevels ifNil: {return: result}.
+        resultWithMiplevels
     }.
 }.
 

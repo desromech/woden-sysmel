@@ -2,6 +2,7 @@ loadFileOnce: "ModelAssetElement.sysmel".
 loadFileOnce: "ModelAssetBinaryBuffer.sysmel".
 loadFileOnce: "ModelAssetBinaryBufferView.sysmel".
 loadFileOnce: "ModelAssetBinaryBufferAccessor.sysmel".
+loadFileOnce: "ModelAssetImageUsageMode.sysmel".
 loadFileOnce: "ModelAssetImage.sysmel".
 loadFileOnce: "ModelAssetSampler.sysmel".
 loadFileOnce: "ModelAssetTexture.sysmel".

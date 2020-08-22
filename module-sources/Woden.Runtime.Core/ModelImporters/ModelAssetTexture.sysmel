@@ -11,28 +11,35 @@ class ModelAssetTexture superclass: ModelAssetElement; definition: {
     public field image type: ModelAssetImagePtr.
     public field sampler type: ModelAssetSamplerPtr.
 
-    field srgbTextureWithView type: TextureWithViewPtr.
-    field linearTextureWithView type: TextureWithViewPtr.
+    field textureWithView type: TextureWithViewPtr.
 
-    method asSRGBTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
-        image ifNil: {return: TextureWithViewPtr nil}.
-
-        let textureData := image _ asTextureDataFor: engine.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
-
-        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
-        texture ifNil: {return: TextureWithViewPtr nil}.
-
-        texture _ asTextureWithView
+    method setColorUsage => Void := {
+        image ifNotNil: {
+            image _ usageMode: ModelAssetImageUsageMode Color
+        }
     }.
 
-    method asLinearTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
+    method setNormalUsage => Void := {
+        image ifNotNil: {
+            image _ usageMode: ModelAssetImageUsageMode Normal
+        }
+    }.
+
+    method setLinearUsage => Void := {
+        image ifNotNil: {
+            image _ usageMode: ModelAssetImageUsageMode Linear
+        }
+    }.
+
+    method asTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
         image ifNil: {return: TextureWithViewPtr nil}.
 
         let textureData := image _ asTextureDataFor: engine.
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
-        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
+        let texture := image _ usageMode = ModelAssetImageUsageMode Color
+            ifTrue: {engine _ renderingDevice _ createColorTextureWithData: textureData _}
+            ifFalse: {engine _ renderingDevice _ createTextureWithData: textureData _}.
         texture ifNil: {return: TextureWithViewPtr nil}.
 
         texture _ asTextureWithView

@@ -261,13 +261,15 @@ class WaveFrontObjModelImporter definition: {
             "map_Kd" : {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
-                    currentMaterial _ albedoTexture: (self getOrCreateTextureNamed: textureName)
+                    currentMaterial _ albedoTexture: (self getOrCreateTextureNamed: textureName).
+                    currentMaterial _ albedoTexture _ setColorUsage.
                 }.
             }.
             "bump" : {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
-                    currentMaterial _ normalTexture: (self getOrCreateTextureNamed: textureName)
+                    currentMaterial _ normalTexture: (self getOrCreateTextureNamed: textureName).
+                    currentMaterial _ albedoTexture _ setNormalUsage.
                 }.
             }.
             _ : {
