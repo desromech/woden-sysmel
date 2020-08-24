@@ -108,10 +108,13 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let light := LightSourceNode sharedNew.
         light _
-            makePoint;
+            makeSpot;
             radius: 10.0;
-            intensity: Float32x3(1.0f, 1.0f, 0.9f);
-            translateByX: 0.0f y: 2.0f z: 0.0f.
+            intensity: Float32x3(1.0f, 1.0f, 0.9f)*1.5f;
+            spotOuterCutoff: 65.0f;
+            spotInnerCutoff: 60.0f;
+            translateByX: 0.0f y: 2.5f z: 0.0f;
+            lookAtBottom.
         scene _ add: (light upCastFor: SceneNode).
     }.
 }.

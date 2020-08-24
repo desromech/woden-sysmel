@@ -159,21 +159,36 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
             let NdotL := (N dot: L) max: 0.0f.
             NdotL > 0.0f ifTrue: {
+
                 let attenuation mutable := 1.0f.
                 isDirectional ifFalse: {
                     attenuation := computeLightFalloff(dist, lightSource radius).
+
+                    ## Apply the spot attenuation factor.
+                    lightSource outerCosCutoff > -1.0f ifTrue: {
+                        let spotCos := L dot: lightSource spotDirection.
+                        spotCos < lightSource outerCosCutoff ifTrue: {
+                            attenuation := 0.0f.
+                        } ifFalse: {
+                            let spotAttenuation := (lightSource outerCosCutoff smoothStepTo: lightSource innerCosCutoff value: spotCos) *
+                                spotCos raisedTo: lightSource spotExponent.
+                            attenuation := attenuation * spotAttenuation
+                        }
+                    }.
                 }.
 
-                ## Compute the specular input factors.
-                let H := (L + V) normalized.
-                let NdotH := (N dot: H) max: 0.0f.
-        		let VdotH := (V dot: H) max: 0.0f.
+                attenuation > 0.0f ifTrue: {
+                    ## Compute the specular input factors.
+                    let H := (L + V) normalized.
+                    let NdotH := (N dot: H) max: 0.0f.
+            		let VdotH := (V dot: H) max: 0.0f.
 
-                let F := fresnelSchlick(F0, VdotH).
-                let D := specularDistribution(directAlpha, NdotH).
-                let G := cookTorranceMasking(directAlpha, NdotL, NdotV).
+                    let F := fresnelSchlick(F0, VdotH).
+                    let D := specularDistribution(directAlpha, NdotH).
+                    let G := cookTorranceMasking(directAlpha, NdotL, NdotV).
 
-                result := result + lightSource intensity rgb * (diff + F*D*G) * (attenuation * Float32 pi * NdotL).
+                    result := result + lightSource intensity rgb * (diff + F*D*G) * (attenuation * Float32 pi * NdotL).
+                }.
             }.
         }.
 

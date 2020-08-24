@@ -81,6 +81,13 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
             return: false.
         }.
 
+        material isTranslucent ifTrue: {
+            renderPass isDepthPass ifTrue: {return: false}.
+            self materialBlendingEquation: BlendingMode CompositePremultipliedAlphaOver asBlendingEquation.
+        } ifFalse: {
+            self materialBlendingEquation: BlendingMode Copy asBlendingEquation.
+        }.
+
         stateTracker _
             useGraphicShaderBindings: material stateBinding.
 

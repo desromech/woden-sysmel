@@ -303,6 +303,13 @@ class GLTFModelImporter definition: {
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
 
+        let alphaMode := object getString: "alphaMode" asMutableString default: "OPAQUE" asMutableString.
+        material _ alphaMode: (alphaMode asArraySlice selectCase: #{
+        "MASK" : ModelAssetMaterialAlphaMode Mask.
+        "BLEND" : ModelAssetMaterialAlphaMode Blend.
+        _ : ModelAssetMaterialAlphaMode Opaque.
+        }).
+
         object at: "occlusionTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             material _ occlusionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
             material _ occlusionTexture _ setLinearUsage

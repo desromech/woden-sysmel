@@ -28,12 +28,13 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
         let convertedMaterial := MetallicRoughnessMaterial for: engine.
 
         convertedMaterial _
-            doubleSided: doubleSided.
+            doubleSided: doubleSided;
+            isTranslucent: alphaMode = ModelAssetMaterialAlphaMode Blend.
 
         convertedMaterial _ state
             emission: Float32x4(emissionFactor, 1.0f);
             albedo: albedoFactor;
-            alphaCutoff: alphaCutoff;
+            alphaCutoff: (alphaMode = ModelAssetMaterialAlphaMode Mask ifTrue: alphaCutoff ifFalse: 0.0f);
             metallicFactor: metallicFactor;
             roughnessFactor: roughnessFactor.
 

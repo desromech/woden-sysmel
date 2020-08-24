@@ -6,6 +6,7 @@ loadFileOnce: "ModelAssetImageUsageMode.sysmel".
 loadFileOnce: "ModelAssetImage.sysmel".
 loadFileOnce: "ModelAssetSampler.sysmel".
 loadFileOnce: "ModelAssetTexture.sysmel".
+loadFileOnce: "ModelAssetMaterialAlphaMode.sysmel".
 loadFileOnce: "ModelAssetMaterial.sysmel".
 loadFileOnce: "ModelAssetMetallicRoughnessMaterial.sysmel".
 loadFileOnce: "ModelAssetMeshPrimitiveAttribute.sysmel".

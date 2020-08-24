@@ -5,13 +5,26 @@ namespace Runtime definition: {
  * I represent a light source in the Woden scene graph.
  *#
 class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
+	compileTime constant DefaultSpotOuterCutoff := 45.0f.
+	compileTime constant DefaultSpotInnerCutoff := 40.0f.
+
     private field objectState type: LightSourceObjectPtr.
     private field renderingSceneObject type: RenderingSceneLightSourcePtr.
+    private field spotOuterCutoff type: Float32.
+    private field spotInnerCutoff type: Float32.
+    private field spotExponent type: Float32.
 
     override method initialize => Void := {
+        spotOuterCutoff := DefaultSpotOuterCutoff.
+        spotInnerCutoff := DefaultSpotInnerCutoff.
+        spotExponent := 1.0f.
+
         objectState := LightSourceObject sharedNew.
         objectState _ lightState
             intensity: Float32x4 ones;
+            innerCosCutoff: -1;
+            outerCosCutoff: -1;
+            spotExponent: 1;
             radius: 3.0f.
 
         renderingSceneObject := RenderingSceneLightSource sharedNew.
@@ -23,17 +36,40 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method makePoint => Void := {
         objectState _ lightType: LightSourceType Point.
+        objectState _ lightState
+            innerCosCutoff: -1;
+            outerCosCutoff: -1;
+            spotExponent: 1.
         renderingSceneObject _ transformChanged.
     }.
 
     method makeDirectional => Void := {
         objectState _ lightType: LightSourceType Directional.
+        objectState _ lightState
+            innerCosCutoff: -1;
+            outerCosCutoff: -1;
+            spotExponent: 1.
         renderingSceneObject _ transformChanged.
     }.
 
     method makeSpot => Void := {
         objectState _ lightType: LightSourceType Spot.
+        objectState _ lightState
+            innerCosCutoff: spotInnerCutoff degreesToRadians cos;
+            outerCosCutoff: spotOuterCutoff degreesToRadians cos;
+            spotExponent: spotExponent.
         renderingSceneObject _ transformChanged.
+    }.
+
+
+    method spotOuterCutoff: (cutoffAngle: Float32) ::=> Void := {
+        spotOuterCutoff := cutoffAngle.
+        objectState _ lightState outerCosCutoff: spotOuterCutoff degreesToRadians cos.
+    }.
+
+    method spotInnerCutoff: (cutoffAngle: Float32) ::=> Void := {
+        spotInnerCutoff := cutoffAngle.
+        objectState _ lightState innerCosCutoff: spotInnerCutoff degreesToRadians cos.
     }.
 
     method radius: (radius: Float32) ::=> Void := {

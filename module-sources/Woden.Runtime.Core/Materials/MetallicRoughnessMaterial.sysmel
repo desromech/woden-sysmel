@@ -27,6 +27,7 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field metallicRoughnessTexture type: TextureWithViewPtr.
 
     public field doubleSided type: Boolean8.
+    public field isTranslucent type: Boolean8.
 
     const inline method albedoColor => Float32x4
         := state albedo.

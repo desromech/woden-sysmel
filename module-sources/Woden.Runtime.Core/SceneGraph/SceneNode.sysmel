@@ -221,6 +221,36 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         self transformChanged.
     }.
 
+    inline method lookAtBack => Void := {
+        transform lookAtBack.
+        self transformChanged.
+    }.
+
+    inline method lookAtBottom => Void := {
+        transform lookAtBottom.
+        self transformChanged.
+    }.
+
+    inline method lookAtFront => Void := {
+        transform lookAtFront.
+        self transformChanged.
+    }.
+
+    inline method lookAtLeft => Void := {
+        transform lookAtLeft.
+        self transformChanged.
+    }.
+
+    inline method lookAtRight => Void := {
+        transform lookAtRight.
+        self transformChanged.
+    }.
+
+    inline method lookAtTop => Void := {
+        transform lookAtTop.
+        self transformChanged.
+    }.
+
     method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
         children do: {:each :: Void |
             each _ withAllNodesDo: aBlock

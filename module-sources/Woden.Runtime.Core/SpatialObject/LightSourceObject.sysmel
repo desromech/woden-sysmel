@@ -22,7 +22,7 @@ class LightSourceObject superclass: AbstractSpatialObject; definition: {
             lightState position: Float32x4(transform transformVector: Float32x3(0, 0, 1), 0.0).
         }.
         LightSourceType Spot : {
-            lightState position: Float32x4(transform translation, 0.0).
+            lightState position: Float32x4(transform translation, 1.0).
             lightState spotDirection: (transform transformVector: Float32x3(0, 0, 1)).
         }.
         }.

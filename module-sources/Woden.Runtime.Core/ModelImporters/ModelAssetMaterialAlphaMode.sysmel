@@ -1,0 +1,17 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I repressent the mode that the alpha channel is being used in a material.
+ *#
+enum ModelAssetMaterialAlphaMode valueType: UInt8; values: #{
+    Opaque: 0.
+    Mask:.
+    Blend:.
+}.
+
+
+} ## End of namespace Assets
+} ## End of namespace Woden

@@ -14,16 +14,17 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
     public field occlusionTexture type: ModelAssetTexturePtr.
 
     public field doubleSided type: Boolean8.
+    public field alphaMode type: ModelAssetMaterialAlphaMode.
     public field alphaCutoff type: Float32.
 
     virtual method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr
         := engine _ resourceCache _ defaultMaterial.
 
     method isTranslucent => Boolean8
-        := false.
+        := alphaMode = ModelAssetMaterialAlphaMode Blend.
 
     method isOpaque => Boolean8
-        := true.
+        := alphaMode ~= ModelAssetMaterialAlphaMode Blend.
 }.
 
 compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial sharedPointer.
