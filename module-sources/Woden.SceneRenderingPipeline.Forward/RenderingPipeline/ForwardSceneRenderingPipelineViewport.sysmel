@@ -9,6 +9,7 @@ useNamespace: Stdn Math LinearAlgebra.
 
 class ForwardSceneRenderingPipelineViewportLayer definition: {
     public field cameraState type: Woden Shaders CameraStateData.
+    public field frustum type: FrustumF32.
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
     public field lightSources type: Stdn Collections Vector(RenderingSceneLightSourcePtr).
@@ -400,9 +401,20 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         backgroundCameraTransform translation: Float32x3 zeros.
         let foregroundCameraTransform := ReversibleAffineTransform3dF32 identity.
 
+        let fov := camera _ fov.
+        let nearDistance := camera _ nearDistance.
+        let farDistance := camera _ farDistance.
+
         let screenSize := (currentExtent castTo: Float32x2).
         let aspect := screenSize x / screenSize y.
-        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: 60.0f aspect: aspect near: 0.1f far: 100.0f invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let frustum := FrustumF32()
+            makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
+            yourself.
+
+        let backgroundFrustum := frustum transformedWith: backgroundCameraTransform.
+        let normalFrustum := frustum transformedWith: normalCameraTransform.
+        let foregroundFrustum := frustum transformedWith: foregroundCameraTransform.
 
         let normalCameraState mutable := Woden Shaders CameraStateData()
             matrix: normalCameraTransform matrix4;
@@ -431,9 +443,15 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             matrix: foregroundCameraTransform matrix4;
             inverseMatrix: foregroundCameraTransform inverseMatrix4.
 
-        backgroundLayer cameraState: backgroundCameraState.
-        normalLayer cameraState: normalCameraState.
-        foregroundLayer cameraState: foregroundCameraState.
+        backgroundLayer
+            cameraState: backgroundCameraState;
+            frustum: backgroundFrustum.
+        normalLayer
+            cameraState: normalCameraState;
+            frustum: normalFrustum.
+        foregroundLayer
+            cameraState: foregroundCameraState;
+            frustum: foregroundFrustum.
     }.
 
     method uploadCameraState => Void := {
@@ -461,12 +479,14 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         viewportLayer lightSources removeAll.
         viewportLayer renderableSceneObject removeAll.
 
+        let frustum ref := viewportLayer frustum.
         sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
-            each _ isRenderable ifTrue: {
+            ## TODO: Compare the light bounding box with the frustum in the case of point and spot lights.
+            each _ isLightSource ifTrue: {
                 viewportLayer lightSources add: (each downCastFor: RenderingSceneLightSource)
             }.
 
-            each _ isLightSource ifTrue: {
+            each _ isRenderable && (frustum intersectsOrContainsBox: each _ boundingBox) ifTrue: {
                 viewportLayer renderableSceneObject add: (each downCastFor: RenderingSceneRenderable)
             }.
         }.
@@ -561,6 +581,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         stateTracker _
             endRenderPass.
+    }.
+
+    override method getLastFrameVisibleObjectCount => UIntPointer := {
+        backgroundLayer renderableSceneObject size + normalLayer renderableSceneObject size + foregroundLayer renderableSceneObject size
     }.
 
     override method prepareRendering ::=> Void := {

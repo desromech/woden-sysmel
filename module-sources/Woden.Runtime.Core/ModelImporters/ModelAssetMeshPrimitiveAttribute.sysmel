@@ -3,6 +3,7 @@ namespace Assets definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
 
 compileTime constant VertexAttributeLocation := Woden GpuStructures VertexAttributeLocation.
 
@@ -64,6 +65,24 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
         }.
 
         false
+    }.
+
+    method boundingBox => BoxF32 := {
+        attributes do: {:each :: Void |
+            each location = VertexAttributeLocation Position ifTrue: {
+                return: each accessor _ boundingBox.
+            }
+        }.
+
+        BoxF32 empty
+    }.
+
+    method boundingBox: (box: BoxF32 const ref) ::=> Void := {
+        attributes do: {:each :: Void |
+            each location = VertexAttributeLocation Position ifTrue: {
+                each accessor _ boundingBox: box.
+            }
+        }.
     }.
 
     field convertedVertexBinding type: VertexBindingPtr.

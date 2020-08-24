@@ -3,6 +3,7 @@ namespace Assets definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
 
 #**
  * I am an accessor for structured data in a binary buffer view.
@@ -62,7 +63,15 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
             }
         }.
         }.
-    }
+    }.
+
+    method boundingBox => BoxF32
+        := BoxF32 min: (minValue xyz castTo: Float32x3) max: (maxValue xyz castTo: Float32x3).
+
+    method boundingBox: (box: BoxF32 const ref) ::=> Void := {
+        minValue := Float64x4(box min castTo: Float64x3, 0).
+        maxValue := Float64x4(box max castTo: Float64x3, 0).
+    }.
 }.
 
 compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor sharedPointer.

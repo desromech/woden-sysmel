@@ -54,12 +54,14 @@ class SceneView superclass: View; definition: {
 
     protected field framePreparationTime type: Float32.
     protected field commandListConstructionTime type: Float32.
+    protected field lastFrameVisibleObjectCount type: UIntPointer.
 
     override method prepareRendering => Void := {
         viewWindow ifNil: {return: void}.
 
         framePreparationTime := (Stdn Chrono profileTimeToRun: {
             self ensureRenderingViewportWithExtent: viewWindow _ validatedExtent.
+            lastFrameVisibleObjectCount := sceneRenderingPipelineViewport _ getLastFrameVisibleObjectCount.
             currentBackbuffer := viewWindow _ getCurrentBackBuffer.
             self prepareViewCamera.
             sceneRenderingPipelineViewport _
@@ -98,6 +100,7 @@ class SceneView superclass: View; definition: {
         let frameTimeString := Stdn String textStreamContents: {:out :: Void |
             out << "Preparation time " << (framePreparationTime * 1000.0f) << " ms "; nl.
             out << "3D CMDLIST time " << (commandListConstructionTime* 1000.0f) << " ms "; nl.
+            out << "Rendered objects: " << lastFrameVisibleObjectCount; nl.
         }.
 
         let result mutable := (builder _ text: frameTimeString asArraySlice at: Float32x2(10.0f, 10.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Stdn Graphics Scene2D Node.

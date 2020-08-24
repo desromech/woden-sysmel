@@ -248,7 +248,8 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         := false.
 
     virtual method validateRenderingSceneObjectTransform: (renderingSceneObject: RenderingSceneObject ref) ::=> Void := {
-        renderingSceneObject spatialObject _ setCurrentTransform: self globalTransform
+        renderingSceneObject spatialObject _ setCurrentTransform: self globalTransform.
+        renderingSceneObject boundingBox: (renderingSceneObject localBoundingBox transformedWith: globalTransform)
     }.
 }.
 

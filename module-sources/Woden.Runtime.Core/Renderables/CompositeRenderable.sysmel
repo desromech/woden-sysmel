@@ -1,0 +1,38 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math Geometry.
+
+#**
+ * I am a renderable with additional deformation state.
+ *#
+class CompositeRenderable superclass: MutableRenderable; definition: {
+    public field components type: Stdn Collections Vector(RenderablePtr).
+
+    method addComponent: (component: RenderablePtr const ref) ::=> Void := {
+        components add: component
+    }.
+
+    method computeBoundingBox => Void := {
+        localBoundingBox := BoxF32 empty.
+        components do: {:each :: Void |
+            localBoundingBox := localBoundingBox unionWith: each _ localBoundingBox
+        }.
+    }.
+
+    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Stdn Collections Vector(RenderingSceneObject sharedPointer) := {
+        let result mutable := RenderingSceneObjectList().
+        components do: {:each :: Void |
+            let renderingSceneObjects := each _ createRenderingSceneObjectsFor: spatialObject.
+            result addAll: renderingSceneObjects
+        }.
+
+        result asMoveReference
+    }.
+
+}.
+
+compileTime constant CompositeRenderablePtr := CompositeRenderable sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

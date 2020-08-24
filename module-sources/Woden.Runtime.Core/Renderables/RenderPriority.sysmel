@@ -5,11 +5,11 @@ namespace Runtime definition: {
  * Render priority
  *#
 enum RenderPriority valueType: UInt8; values: #{
-    Opaque: 1.
+    Opaque: 0.
 
-    TranslucentSorted: 2.
+    TranslucentSorted: 1.
 
-    Default: 0.
+    Default: Opaque.
 }.
 
 }. ## End of namespace Runtime

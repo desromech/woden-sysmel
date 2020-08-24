@@ -3,6 +3,7 @@ namespace Assets definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
 
 #**
  * I am a primitive in a mesh.
@@ -12,6 +13,9 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
     public field indices type: ModelAssetBinaryBufferAccessorPtr.
     public field material type: ModelAssetMaterialPtr.
     public field primitiveTopology type: PrimitiveTopology.
+
+    method boundingBox => BoxF32
+        := attributes _ boundingBox.
 
     method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
         GenericSubmesh()
@@ -28,6 +32,12 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
             primitiveTopology: primitiveTopology;
             yourself
     }.
+
+    method isTranslucent => Boolean8
+        := material isNotNil && material _ isTranslucent.
+
+    method isOpaque => Boolean8
+        := material isNil || material _ isOpaque.
 }.
 
 compileTime constant ModelAssetMeshPrimitivePtr := ModelAssetMeshPrimitive sharedPointer.

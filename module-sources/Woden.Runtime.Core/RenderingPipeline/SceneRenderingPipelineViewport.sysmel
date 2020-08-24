@@ -24,6 +24,9 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
 
     }.
 
+    virtual method getLastFrameVisibleObjectCount => UIntPointer
+        := 0.
+        
     virtual method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
         := Stdn Graphics Scene2D BuilderPtr nil.
 

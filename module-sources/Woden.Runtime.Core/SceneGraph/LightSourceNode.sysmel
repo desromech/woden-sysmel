@@ -12,10 +12,11 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         objectState := LightSourceObject sharedNew.
         objectState _ lightState
             intensity: Float32x4 ones;
-            radius: 3.0.
+            radius: 3.0f.
 
         renderingSceneObject := RenderingSceneLightSource sharedNew.
         renderingSceneObject _
+            radius: 3.0f;
             spatialObject: (objectState upCastFor: AbstractSpatialObject);
             node: (self asWeakPointer upCastFor: SceneNode)
     }.
@@ -36,7 +37,8 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
     }.
 
     method radius: (radius: Float32) ::=> Void := {
-        objectState _ lightState radius: radius
+        objectState _ lightState radius: radius.
+        renderingSceneObject _ radius: radius.
     }.
 
     method intensity: (intensity: Float32x3) ::=> Void := {

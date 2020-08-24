@@ -2,25 +2,86 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
+useNamespace: Stdn Math Geometry.
 
 #**
  * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
  *#
 class ModelAssetMesh superclass: ModelAssetElement; definition: {
+    compileTime constant Primitives := Stdn Collections Vector(ModelAssetMeshPrimitivePtr).
     public field primitives type: Stdn Collections Vector(ModelAssetMeshPrimitivePtr).
 
     public field renderable type: RenderablePtr.
+
+    method createRenderableWithPrimitives: (primitives: Primitives const ref) for: (engine: EnginePtr const ref) ::=> RenderablePtr := {
+        let meshRenderable := GenericMeshRenderable sharedNew.
+        meshRenderable _ submeshes reserve: primitives size.
+        let boundingBox mutable := BoxF32 empty.
+        primitives do: {:each :: Void |
+            boundingBox := boundingBox unionWith: each _ boundingBox.
+            meshRenderable _ submeshes add: (each _ asSubmeshFor: engine)
+        }.
+
+        meshRenderable _ localBoundingBox: boundingBox.
+
+        ## Set the mesh renderable type according to its opacity.
+        primitives first _ isOpaque ifTrue: {
+            meshRenderable _
+                renderPriority: RenderPriority Opaque
+        } ifFalse: {
+            meshRenderable _
+                renderPriority: RenderPriority TranslucentSorted;
+                withoutDepthWrite
+        }.
+
+        meshRenderable upCastFor: Renderable
+    }.
 
     method asRenderableFor: (engine: EnginePtr const ref) ::=> RenderablePtr := {
         renderable ifNotNil: {
             return: renderable
         }.
 
-        let meshRenderable := GenericMeshRenderable sharedNew.
-        renderable := meshRenderable upCastFor: Renderable.
-        meshRenderable _ submeshes reserve: primitives size.
-        primitives do: {:each :: Void |
-            meshRenderable _ submeshes add: (each _ asSubmeshFor: engine)
+        primitives ifEmpty: {
+            renderable := NullRenderable sharedNew upCastFor: Renderable.
+            void.
+        } ifNotEmpty: {
+            let opaquePrimitiveCount mutable type: UIntPointer.
+            let translucentPrimitiveCount mutable type: UIntPointer.
+
+            primitives do: {:each :: Void |
+                each _ isOpaque ifTrue: {
+                    opaquePrimitiveCount := opaquePrimitiveCount + 1
+                } ifFalse: {
+                    translucentPrimitiveCount := translucentPrimitiveCount + 1
+                }
+            }.
+
+            opaquePrimitiveCount == 0 || translucentPrimitiveCount == 0 ifTrue: {
+                renderable := self createRenderableWithPrimitives: primitives for: engine.
+                void.
+            } ifFalse: {
+                let opaquePrimitives mutable := Primitives().
+                let translucentPrimitives mutable := Primitives().
+                opaquePrimitives reserve: opaquePrimitiveCount.
+                translucentPrimitives reserve: translucentPrimitiveCount.
+
+                primitives do: {:each :: Void |
+                    each _ isOpaque ifTrue: {
+                        opaquePrimitives add: each
+                    } ifFalse: {
+                        translucentPrimitives add: each
+                    }
+                }.
+
+                let compositeRenderable := CompositeRenderable sharedNew.
+                compositeRenderable _
+                    addComponent: (self createRenderableWithPrimitives: opaquePrimitives for: engine);
+                    addComponent: (self createRenderableWithPrimitives: translucentPrimitives for: engine);
+                    computeBoundingBox.
+                renderable := compositeRenderable upCastFor: Renderable.
+                void.
+            }.
         }.
 
         renderable

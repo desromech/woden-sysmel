@@ -18,6 +18,12 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
 
     virtual method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr
         := engine _ resourceCache _ defaultMaterial.
+
+    method isTranslucent => Boolean8
+        := false.
+
+    method isOpaque => Boolean8
+        := true.
 }.
 
 compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial sharedPointer.

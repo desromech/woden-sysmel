@@ -295,8 +295,15 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
                 indexBufferStride: IndexType instanceSize.
         }.
 
+        let boundingBox mutable := BoxF32 empty.
+        vertices do: {:eachVertex :: Void |
+            boundingBox := boundingBox unionWith: eachVertex position.
+        }.
+
         let result := GenericMeshRenderable sharedNew.
-        result _ submeshes: submeshes.
+        result _
+            localBoundingBox: boundingBox;
+            submeshes: submeshes.
         result upCastFor: Renderable
     }.
 

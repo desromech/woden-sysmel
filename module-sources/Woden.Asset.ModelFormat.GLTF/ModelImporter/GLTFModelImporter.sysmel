@@ -154,7 +154,9 @@ class GLTFModelImporter definition: {
             name: (object getString: "name" asMutableString default: "" asMutableString);
             bufferView: (modelAsset _ bufferViews[object getUIntPointer: "bufferView" asMutableString]);
             offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
-            count: (object getUIntPointer: "count" asMutableString).
+            count: (object getUIntPointer: "count" asMutableString);
+            minValue: (object getFloat64x4: "min" asMutableString default: 0);
+            maxValue: (object getFloat64x4: "max" asMutableString default: 0).
 
         let componentType := (object getUIntPointer: "componentType" asMutableString) castTo: GLTFAccessorComponentType.
         let type := object getString: "type" asMutableString.

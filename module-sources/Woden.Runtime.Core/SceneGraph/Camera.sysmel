@@ -9,9 +9,15 @@ class Camera superclass: SceneNode; definition: {
 
     public field exposure type: Float32.
     public field autoExposureInfluenceFactor type: Float32.
+    public field fov type: Float32.
+    public field nearDistance type: Float32.
+    public field farDistance type: Float32.
 
     override method initialize => Void := {
         exposure := 1.0f.
+        fov := 60.0f.
+        nearDistance := 0.1f.
+        farDistance := 100.0f.
     }.
 
     override method isCamera => Boolean8

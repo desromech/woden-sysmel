@@ -9,6 +9,7 @@ useNamespace: Stdn Math LinearAlgebra.
  *#
 class RenderingSceneObject superclass: Stdn SharedObject; definition: {
     public field spatialObject type: AbstractSpatialObjectPtr.
+    public field localBoundingBox type: BoxF32.
     public field boundingBox type: BoxF32.
     public field node type: SceneNode weakPointer.
     protected field transformValidated type: Boolean8.

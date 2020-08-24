@@ -4,6 +4,7 @@ namespace Assets definition: {
 useNamespace: Woden Runtime.
 useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Stdn Math Geometry.
 
 struct WaveFrontFaceVertexIndices definition: {
     public field positionIndex type: UInt32.
@@ -155,6 +156,17 @@ class WaveFrontObjModelImporter definition: {
             maxValue: maxIndex.
 
         currentMeshPrimitive reset.
+    }.
+
+    method computeBoundingBox => Void := {
+        rawPositions ifEmpty: { return: void }.
+
+        let boundingBox mutable := BoxF32 empty.
+        rawPositions do: {:each :: Void |
+            boundingBox := boundingBox unionWith: each
+        }.
+
+        vertexAttributeAccessors _ boundingBox: boundingBox.
     }.
 
     method beginSubmeshWithMaterialNamed: (materialName: Stdn String const ref) ::=> Void := {
@@ -353,6 +365,7 @@ class WaveFrontObjModelImporter definition: {
         }.
 
         self finishLastSubmesh.
+        self computeBoundingBox.
         self encodeBinaryBuffers.
         modelAsset _ cleanupMeshes.
         modelAsset

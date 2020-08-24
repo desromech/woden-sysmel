@@ -8,6 +8,7 @@ loadFileOnce: "GenericMeshRenderable.sysmel".
 loadFileOnce: "GenericSubmesh.sysmel".
 
 loadFileOnce: "MutableRenderable.sysmel".
+loadFileOnce: "CompositeRenderable.sysmel".
 loadFileOnce: "DeformationStateCache.sysmel".
 loadFileOnce: "DeformableRenderable.sysmel".
 loadFileOnce: "MeshWithExtraDeformationRenderable.sysmel".

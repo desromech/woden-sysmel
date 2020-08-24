@@ -8,11 +8,16 @@ useNamespace: Stdn Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
-    const override method isRenderable => Boolean8
+    const override method isLightSource => Boolean8
         := true.
 
     method lightSourceObject => LightSourceObjectPtr
         := spatialObject downCastFor: LightSourceObject.
+
+    method radius: (newRadius: Float32) ::=> Void := {
+        localBoundingBox := BoxF32 min: newRadius * -0.5f max: newRadius * 0.5f.
+        self transformChanged
+    }.
 }.
 
 compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource sharedPointer.

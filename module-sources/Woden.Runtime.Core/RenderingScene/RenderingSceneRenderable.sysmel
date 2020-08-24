@@ -10,9 +10,8 @@ useNamespace: Stdn Math LinearAlgebra.
 class RenderingSceneRenderable superclass: RenderingSceneObject; definition: {
     public field renderable type: RenderablePtr.
 
-    const override method isLightSource => Boolean8
+    const override method isRenderable => Boolean8
         := true.
-
 }.
 
 compileTime constant RenderingSceneRenderablePtr := RenderingSceneRenderable sharedPointer.
