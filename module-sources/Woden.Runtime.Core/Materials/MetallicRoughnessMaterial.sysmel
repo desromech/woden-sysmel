@@ -29,6 +29,9 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field doubleSided type: Boolean8.
     public field isTranslucent type: Boolean8.
 
+    const inline method hasAlphaMask => Boolean8
+        := state alphaCutoff > 0.
+
     const inline method albedoColor => Float32x4
         := state albedo.
 

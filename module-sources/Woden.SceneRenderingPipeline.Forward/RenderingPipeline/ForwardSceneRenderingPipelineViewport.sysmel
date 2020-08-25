@@ -669,7 +669,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let scene := sceneRenderingPipeline _ scene.
         scene ifNil: {return: void}.
 
-        self gatherShadowCastingRenderingObjectsOf: scene _ normalLayer on: layer
+        self gatherShadowCastingRenderingObjectsOf: scene _ normalLayer on: layer.
+        layer sortRenderingObjects.
     }.
 
     method prepareShadowMapLayers => Void := {

@@ -94,22 +94,35 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
         let hasColor0 := self hasColor0VertexAttribute.
         let hasTangent4 := self hasTangent4VertexAttribute.
 
-        stateTracker _
-            vertexShader: ((hasColor0, hasTangent4) selectCase: #{
-            (false, false) : Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address.
-            (true, false) : Woden Shaders MetallicRoughnessMaterialShaders vertexColor shaderEntryPointInfo address.
-            (false, true) : Woden Shaders MetallicRoughnessMaterialShaders vertexTangent shaderEntryPointInfo address.
-            (true, true) : Woden Shaders MetallicRoughnessMaterialShaders vertexColorTangent shaderEntryPointInfo address.
-            }
-        ).
+        renderPass isDepthOnlyPass ifTrue: {
+            stateTracker _
+                vertexShader: (hasColor0 && material hasAlphaMask
+                        ifTrue: {Woden Shaders MetallicRoughnessMaterialShaders vertexColor shaderEntryPointInfo address}
+                        ifFalse: { Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address}
+                )
+        } ifFalse: {
+            stateTracker _
+                vertexShader: ((hasColor0, hasTangent4) selectCase: #{
+                (false, false) : Woden Shaders MetallicRoughnessMaterialShaders vertex shaderEntryPointInfo address.
+                (true, false) : Woden Shaders MetallicRoughnessMaterialShaders vertexColor shaderEntryPointInfo address.
+                (false, true) : Woden Shaders MetallicRoughnessMaterialShaders vertexTangent shaderEntryPointInfo address.
+                (true, true) : Woden Shaders MetallicRoughnessMaterialShaders vertexColorTangent shaderEntryPointInfo address.
+                }
+            ).
+        }.
 
         renderPass isDepthPass ifTrue: {
             renderPass isDepthNormalPass ifTrue: {
                 stateTracker _
                     fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders surfaceNormalValueFragment shaderEntryPointInfo address.
             } ifFalse: {
-                stateTracker _
-                    fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders alphaTestingFragment shaderEntryPointInfo address.            
+                material hasAlphaMask ifTrue: {
+                    stateTracker _
+                        fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders alphaTestingFragment shaderEntryPointInfo address.
+                } ifFalse: {
+                    stateTracker _
+                        fragmentShader: nil.
+                }.
             }.
         } ifFalse: {
             material normalTexture isNotNil && hasTangent4 ifTrue: {

@@ -13,6 +13,9 @@ enum SceneRenderPass valueType: UInt8; values: #{
     const inline method isDepthNormalPass => Boolean8
         := self = DepthNormal.
 
+    const inline method isDepthOnlyPass => Boolean8
+        := self = DepthOnly.
+
     const inline method isDepthPass => Boolean8
         := self = DepthOnly || self = DepthNormal.
 }.
