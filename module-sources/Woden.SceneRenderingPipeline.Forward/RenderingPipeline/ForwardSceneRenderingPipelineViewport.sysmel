@@ -7,25 +7,48 @@ useNamespace: Stdn Graphics GUI.
 useNamespace: Stdn Math Geometry.
 useNamespace: Stdn Math LinearAlgebra.
 
-class ForwardSceneRenderingPipelineViewportLayer definition: {
+struct ViewportLayerLightSource definition: {
+    public field cameraDistance type: Float32.
+    public field object type: RenderingSceneLightSourcePtr.
+    public field shadowMap type: ShadowMapRenderingPipelineLayer pointer.
+
+    const method < (o: SelfType const ref) ::=> Boolean8
+        := cameraDistance < o cameraDistance.
+}.
+
+struct ViewportLayerRenderableObject definition: {
+    public field priority type: RenderPriority.
+    public field cameraDistance type: Float32.
+    public field object type: RenderingSceneRenderablePtr.
+
+    const method < (o: SelfType const ref) ::=> Boolean8 := {
+        priority = o priority ifTrue: {
+            priority < RenderPriority TranslucentSorted ifTrue: {
+                cameraDistance > o cameraDistance.
+            } ifFalse: {
+                cameraDistance < o cameraDistance.
+            }
+        } ifFalse: {
+            priority < o priority
+        }
+    }
+}.
+
+class RenderingPipelineCameraLayer definition: {
+    public field cameraTransform type: ReversibleAffineTransform3dF32.
     public field cameraState type: Woden Shaders CameraStateData.
     public field frustum type: FrustumF32.
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
-    public field lightSources type: Stdn Collections Vector(RenderingSceneLightSourcePtr).
-    public field renderableSceneObject type: Stdn Collections Vector(RenderingSceneRenderablePtr).
+    public field renderableSceneObjects type: Stdn Collections Vector(ViewportLayerRenderableObject).
 
     public field cameraStateBuffers type: FrameBufferedBuffer.
     public field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
 
-    public field lightingStateBuffers type: FrameBufferedBuffer.
-    public field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
-    public field lightingState type: Woden Shaders GlobalLightingStateData.
-
     const inline method engine => EnginePtr
         := sceneRenderingPipeline _ engine.
 
-    method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) ::=> Void := {
+    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) ::=> Void := {
         sceneRenderingPipeline := theSceneRenderingPipeline.
 
         ## Create the camera state buffer and binding.
@@ -44,78 +67,14 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
                 each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
             }.
         }.
-
-        ## Create the lighting state buffer and binding.
-        lightingStateBuffers isCreated ifFalse: {
-            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
-                size: Woden Shaders GlobalLightingStateData instanceSize;
-                heapType: MemoryHeapType HostToDevice;
-                usageModes: BufferUsageMode Uniform;
-                mainUsageMode: BufferUsageMode Uniform;
-                mappingFlags: BufferMappingFlags DynamicStorage;
-                yourself
-            ) initialData: nil.
-
-            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
-            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _
-                    bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
-                    bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
-            }.
-        }.
     }.
 
-    method cameraPostProcessingStateBuffer: (buffer: BufferPtr const ref) ::=> Void := {
-        cameraStateBindings bindings do: {:each :: Void |
-            each _ bindOn: 1 storageBuffer: buffer
-        }.
+    method sortRenderingObjects => Void := {
+        renderableSceneObjects sort
     }.
 
-    method gatherSceneLightingState => Void := {
-        let scene := sceneRenderingPipeline _ scene.
-        scene ifNil: {return: void}.
-
-        lightingState := Woden Shaders GlobalLightingStateData().
-
-        lightingState
-            groundLighting: Float32x4(scene _ groundLighting, 0.0f);
-            skyLighting: Float32x4(scene _ skyLighting, 0.0f);
-            sunDirection: scene _ sunDirection.
-
-        ## TODO: Support light probes properly.
-        let blackTexture := self engine _ resourceCache _ blackTexture.
-        lightingStateBindings current _
-            bindOn: 5 sampledTextureWithView: blackTexture;
-            bindOn: 6 sampledTextureWithView: blackTexture.
-
-        let lightCount := lightSources size min: Woden Shaders MaxNumberOfLights.
-        lightingState numberOfLights: (lightCount castTo: Int32).
-        0 until: lightCount do: {:i :: Void |
-            let lightSourceObject ref := lightSources[i].
-            let lightSourceState mutable := lightSourceObject _ lightSourceObject _ lightState.
-
-            lightSourceState position w = 0 ifTrue: {
-                lightSourceState
-                    position: Float32x4((lightSourceState position * cameraState inverseViewMatrix) xyz normalized, 0);
-                    spotDirection: Float32x3 zeros.
-            } ifFalse: {
-                lightSourceState
-                    position: cameraState viewMatrix * lightSourceState position;
-                    spotDirection: (Float32x4(lightSourceState spotDirection, 0) * cameraState inverseViewMatrix) xyz.
-            }.
-
-            lightingState lightSources[i] := lightSourceState.
-        }.
-    }.
-
-    method setSSAOTextureView: (textureView: TextureViewPtr const ref) ::=> Void := {
-        lightingStateBindings current _
-            bindOn: 3 sampledTextureView: textureView.
-    }.
-
-    method uploadLightingState => Void := {
-        lightingStateBuffers current _
-            uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+    method uploadCameraState => Void := {
+        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
     method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
@@ -147,19 +106,121 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
         renderObject renderable _ renderWithContext: context.
     }.
 
-    method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+    virtual method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
         context stateTracker _
-            useGraphicShaderBindings: cameraStateBindings current;
-            useGraphicShaderBindings: lightingStateBindings current.
+            useGraphicShaderBindings: cameraStateBindings current.
 
-        renderableSceneObject do: {:each :: Void |
+        renderableSceneObjects do: {:each :: Void |
             context resetObjectAttributes.
-            self renderSceneObject: each _ with: context
+            self renderSceneObject: each object _ with: context
+        }.
+    }.
+}.
+
+sealed class ShadowMapRenderingPipelineLayer superclass: RenderingPipelineCameraLayer; definition: {
+
+}.
+
+sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPipelineCameraLayer; definition: {
+    public field lightSources type: Stdn Collections Vector(ViewportLayerLightSource).
+
+    public field lightingStateBuffers type: FrameBufferedBuffer.
+    public field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
+    public field lightingState type: Woden Shaders GlobalLightingStateData.
+
+    const inline method layerLightSourceCount => UIntPointer
+        := lightSources size min: Woden Shaders MaxNumberOfLights .
+
+    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) ::=> Void := {
+        super ensureResourcesAreCreatedFor: theSceneRenderingPipeline.
+
+        ## Create the lighting state buffer and binding.
+        lightingStateBuffers isCreated ifFalse: {
+            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders GlobalLightingStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
+            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _
+                    bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
+                    bindOn: 1 sampledTextureView: sceneRenderingPipeline _ shadowMapTextureView;
+                    bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
+            }.
         }.
     }.
 
-    method uploadCameraState => Void := {
-        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+
+    method cameraPostProcessingStateBuffer: (buffer: BufferPtr const ref) ::=> Void := {
+        cameraStateBindings bindings do: {:each :: Void |
+            each _ bindOn: 1 storageBuffer: buffer
+        }.
+    }.
+
+    method sortLights => Void := {
+        lightSources sort
+    }.
+
+    method gatherSceneLightingState => Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        lightingState := Woden Shaders GlobalLightingStateData().
+
+        lightingState
+            groundLighting: Float32x4(scene _ groundLighting, 0.0f);
+            skyLighting: Float32x4(scene _ skyLighting, 0.0f);
+            sunDirection: scene _ sunDirection.
+
+        ## TODO: Support light probes properly.
+        let blackTexture := self engine _ resourceCache _ blackTextureCube.
+        lightingStateBindings current _
+            bindOn: 5 sampledTextureWithView: blackTexture;
+            bindOn: 6 sampledTextureWithView: blackTexture.
+
+        let lightCount := self layerLightSourceCount.
+        lightingState numberOfLights: (lightCount castTo: Int32).
+        0 until: lightCount do: {:i :: Void |
+            let lightSourceObject ref := lightSources[i] object.
+            let lightSourceObjectState ref := lightSourceObject _ lightSourceObject _.
+            let lightSourceState mutable := lightSourceObjectState lightState.
+
+            lightSourceState shadowMapLayer: -1.
+
+            lightSourceState position w = 0 ifTrue: {
+                lightSourceState
+                    position: Float32x4((lightSourceState position * cameraState inverseViewMatrix) xyz normalized, 0);
+                    spotDirection: Float32x3 zeros.
+            } ifFalse: {
+                lightSourceState
+                    position: cameraState viewMatrix * lightSourceState position;
+                    spotDirection: (Float32x4(lightSourceState spotDirection, 0) * cameraState inverseViewMatrix) xyz.
+            }.
+
+            lightingState lightSources[i] := lightSourceState.
+        }.
+    }.
+
+    method setSSAOTextureView: (textureView: TextureViewPtr const ref) ::=> Void := {
+        lightingStateBindings current _
+            bindOn: 3 sampledTextureView: textureView.
+    }.
+
+    method uploadLightingState => Void := {
+        lightingStateBuffers current _
+            uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+    }.
+
+    override method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+        context stateTracker _
+            useGraphicShaderBindings: lightingStateBindings current.
+
+        super renderSceneObjectsWith: context
     }.
 }.
 
@@ -167,11 +228,16 @@ class ForwardSceneRenderingPipelineViewportLayer definition: {
  * An abstract pipeline for rendering a null scene.
  *#
 class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineViewport; definition: {
+    compileTime constant ShadowMapTextureLayers := ForwardSceneRenderingPipeline ShadowMapTextureLayers.
+
     protected field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
     protected field backgroundLayer type: ForwardSceneRenderingPipelineViewportLayer.
     protected field normalLayer type: ForwardSceneRenderingPipelineViewportLayer.
     protected field foregroundLayer type: ForwardSceneRenderingPipelineViewportLayer.
+
+    protected field activeShadowMapLayerCount type: UIntPointer.
+    protected field shadowMapLayers type: (ShadowMapRenderingPipelineLayer array: ShadowMapTextureLayers).
 
     protected field currentExtent type: UInt32x2.
     protected field toneMappingOperator type: ToneMappingOperator.
@@ -378,6 +444,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             ensureResourcesAreCreatedFor: sceneRenderingPipeline;
             cameraPostProcessingStateBuffer: cameraPostProcessingStateBuffer.
 
+        0 until: ShadowMapTextureLayers do: {:i :: Void |
+            shadowMapLayers[i]
+                ensureResourcesAreCreatedFor: sceneRenderingPipeline.
+        }.
+
         ## Get the rendering command queue.
         renderingCommandQueue := device _ getDefaultCommandQueue.
 
@@ -444,12 +515,15 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             inverseMatrix: foregroundCameraTransform inverseMatrix4.
 
         backgroundLayer
+            cameraTransform: backgroundCameraTransform;
             cameraState: backgroundCameraState;
             frustum: backgroundFrustum.
         normalLayer
+            cameraTransform: normalCameraTransform;
             cameraState: normalCameraState;
             frustum: normalFrustum.
         foregroundLayer
+            cameraTransform: foregroundCameraTransform;
             cameraState: foregroundCameraState;
             frustum: foregroundFrustum.
     }.
@@ -458,6 +532,9 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         backgroundLayer uploadCameraState.
         normalLayer uploadCameraState.
         foregroundLayer uploadCameraState.
+        0 until: activeShadowMapLayerCount do: {:i :: Void |
+            shadowMapLayers[i] uploadCameraState
+        }.
     }.
 
     method uploadLightingState => Void := {
@@ -477,29 +554,150 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         scene ifNil: {return: void}.
 
         viewportLayer lightSources removeAll.
-        viewportLayer renderableSceneObject removeAll.
+        viewportLayer renderableSceneObjects removeAll.
 
         let frustum ref := viewportLayer frustum.
         sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
+            let cameraDistance := (viewportLayer cameraTransform translation - each _ boundingBox center) length.
+
             ## TODO: Compare the light bounding box with the frustum in the case of point and spot lights.
             each _ isLightSource ifTrue: {
-                viewportLayer lightSources add: (each downCastFor: RenderingSceneLightSource)
+                viewportLayer lightSources add: (ViewportLayerLightSource()
+                    cameraDistance: cameraDistance;
+                    object: (each downCastFor: RenderingSceneLightSource);
+                    yourself)
             }.
 
             each _ isRenderable && (frustum intersectsOrContainsBox: each _ boundingBox) ifTrue: {
-                viewportLayer renderableSceneObject add: (each downCastFor: RenderingSceneRenderable)
+                let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
+                viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
+                    priority: renderingSceneRenderable _ renderable _ renderPriority;
+                    cameraDistance: cameraDistance;
+                    object: renderingSceneRenderable;
+                    yourself)
             }.
         }.
+    }.
+
+    method gatherShadowCastingRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ShadowMapRenderingPipelineLayer ref) ::=> Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        viewportLayer renderableSceneObjects removeAll.
+
+        let frustum ref := viewportLayer frustum.
+        sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
+            let cameraDistance := (viewportLayer cameraTransform translation - each _ boundingBox center) length.
+
+            each _ isRenderable && (frustum intersectsOrContainsBox: each _ boundingBox) ifTrue: {
+                let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
+                let priority := renderingSceneRenderable _ renderable _ renderPriority.
+                priority < RenderPriority TranslucentSorted ifTrue: {
+                    viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
+                        priority: priority;
+                        cameraDistance: cameraDistance;
+                        object: renderingSceneRenderable;
+                        yourself)
+                }.
+            }.
+        }.
+    }.
+
+    method selectAndPrepareShadowCastingSpotLight: (spotLight: ViewportLayerLightSource ref)
+        lightState: (lightState: Woden Shaders LightSourceData ref)
+        in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        let lightSourceObject := spotLight object _ lightSourceObject.
+
+        let fov := lightSourceObject _ spotOuterCutoff.
+        let nearDistance := 0.01f.
+        let farDistance := lightState radius.
+        let aspect := 1.0f.
+
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let frustum := FrustumF32()
+            makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
+            yourself.
+
+        let cameraTransform := spotLight object _ currentTransform.
+        let worldFrustum := frustum transformedWith: cameraTransform.
+        let cameraState mutable := Woden Shaders CameraStateData()
+            matrix: cameraTransform matrix4;
+            inverseMatrix: cameraTransform inverseMatrix4;
+
+            projectionMatrix: projectionMatrix;
+            currentTime: scene _ currentTime;
+            yourself.
+
+        let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
+        shadowLayer
+            cameraTransform: cameraTransform;
+            cameraState: cameraState;
+            frustum: worldFrustum.
+
+        let shadowMapBias := self engine _ projectiveTextureMatrix.
+        lightState
+            cascadeSplitOffsets: 0;
+            cascadeFrustumPlane: 0;
+            shadowMapLayer: activeShadowMapLayerCount;
+            shadowMapTransform: (shadowMapBias * (projectionMatrix * (cameraState viewMatrix * viewportLayer cameraState inverseViewMatrix))).
+
+        activeShadowMapLayerCount := activeShadowMapLayerCount + 1
+    }.
+
+    method selectAndPrepareShadowCastingLightsIn: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+        activeShadowMapLayerCount >= ShadowMapTextureLayers ifTrue: {return: void}.
+
+        0 until: viewportLayer layerLightSourceCount do: {:i :: Void |
+            let lightSource ref := viewportLayer lightSources[i].
+            let lightState ref := viewportLayer lightingState lightSources[i].
+
+            lightSource object _ castShadows ifTrue: {
+                lightSource object _ lightType selectCase: #{
+                LightSourceType Spot : { self selectAndPrepareShadowCastingSpotLight: lightSource lightState: lightState in: viewportLayer }.
+                _ : {}
+                }.
+
+                activeShadowMapLayerCount >= ShadowMapTextureLayers ifTrue: {return: void}.
+            }
+        }
+    }.
+
+    method prepareShadowMapLayer: (layer: ShadowMapRenderingPipelineLayer ref) ::=> Void := {
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        self gatherShadowCastingRenderingObjectsOf: scene _ normalLayer on: layer
+    }.
+
+    method prepareShadowMapLayers => Void := {
+        0 until: activeShadowMapLayerCount do: {:i :: Void |
+            self prepareShadowMapLayer: shadowMapLayers[i]
+        }
     }.
 
     method prepareSceneLayer: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
         self gatherVisibleRenderingObjectsOf: sceneLayer on: viewportLayer.
 
         viewportLayer
-            gatherSceneLightingState
+            sortRenderingObjects;
+            sortLights;
+            gatherSceneLightingState.
+
+        viewportLayer address == normalLayer address ifTrue: {
+            self selectAndPrepareShadowCastingLightsIn: viewportLayer
+        }.
     }.
 
-    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref) on: (framebuffer: FramebufferPtr const ref) ::=> Void := {
+    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref)
+        on: (framebuffer: FramebufferPtr const ref) ::=> Void
+        := self setupStateTracker: stateTracker forRenderPass: renderPass
+            on: framebuffer viewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
+
+    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref)
+        on: (framebuffer: FramebufferPtr const ref) viewport: (viewport: RectangleI32) ::=> Void := {
         stateTracker _
             resetState;
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
@@ -509,14 +707,43 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             depthFunction: CompareFunction GreaterOrEqual;
 
             beginRenderPass: renderPass on: framebuffer contentOnBundle: false;
-            setViewport: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2));
-            setScissor: (RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2)).
+            setViewport: viewport;
+            setScissor: viewport.
     }.
 
     method renderSceneObjectsWith: (renderingContext: SceneRenderingContext ref) ::=> Void := {
         backgroundLayer renderSceneObjectsWith: renderingContext.
         normalLayer renderSceneObjectsWith: renderingContext.
         foregroundLayer renderSceneObjectsWith: renderingContext.
+    }.
+
+    method renderShadowMaps => Void := {
+        let stateTracker := stateTrackers current.
+
+        0 until: activeShadowMapLayerCount do: {:i :: Void |
+            let renderingContext mutable := ForwardSceneRenderingContext().
+
+            self setupStateTracker: stateTracker forRenderPass: sceneRenderingPipeline _ shadowMapRenderPass on: sceneRenderingPipeline _ shadowMapFramebuffers[i]
+                viewport: (RectangleI32 min: 0 max: (sceneRenderingPipeline _ shadowMapTextureExtent castTo: Int32x2)).
+
+            renderingContext
+                stateTracker: stateTracker;
+                renderPass: SceneRenderPass DepthOnly;
+                sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+                sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
+                sceneFaceCullingMode: FaceCullingMode Back;
+                sceneDepthTestingEnabled: OverrideableBoolean True;
+                sceneDepthWriteMask: OverrideableBoolean True.
+
+            stateTracker _
+                depthBiasConstantFactor: 4.0f;
+                depthBiasSlopeFactor: 1.5f.
+
+            shadowMapLayers[i] renderSceneObjectsWith: renderingContext.
+
+            stateTracker _
+                endRenderPass.
+        }
     }.
 
     method renderDepthNormalPass => Void := {
@@ -584,18 +811,20 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     override method getLastFrameVisibleObjectCount => UIntPointer := {
-        backgroundLayer renderableSceneObject size + normalLayer renderableSceneObject size + foregroundLayer renderableSceneObject size
+        backgroundLayer renderableSceneObjects size + normalLayer renderableSceneObjects size + foregroundLayer renderableSceneObjects size
     }.
 
     override method prepareRendering ::=> Void := {
         let scene := sceneRenderingPipeline _ scene.
         scene ifNil: {return: void}.
 
+        activeShadowMapLayerCount := 0.
         self
             prepareCameraState;
             prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
             prepareSceneLayer: scene _ normalLayer on: normalLayer;
-            prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer.
+            prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer;
+            prepareShadowMapLayers.
     }.
 
     method renderHDRScene => Void := {
@@ -718,7 +947,9 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             uploadLightingState.
 
         let stateTracker := stateTrackers currentReseted.
-        self renderHDRScene;
+        self
+            renderShadowMaps;
+            renderHDRScene;
             computeAverageLuminance;
             toneMapAndComposeHDRScene.
 

@@ -11,13 +11,20 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     const override method isLightSource => Boolean8
         := true.
 
-    method lightSourceObject => LightSourceObjectPtr
+    const method lightSourceObject => LightSourceObjectPtr
         := spatialObject downCastFor: LightSourceObject.
 
     method radius: (newRadius: Float32) ::=> Void := {
         localBoundingBox := BoxF32 min: newRadius * -0.5f max: newRadius * 0.5f.
         self transformChanged
     }.
+
+    const inline method castShadows => Boolean8
+        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ castShadows.
+
+    const inline method lightType => LightSourceType
+        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightType.
+
 }.
 
 compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource sharedPointer.

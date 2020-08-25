@@ -9,8 +9,12 @@ useNamespace: Stdn Math Geometry.
  * An abstract pipeline for rendering a null scene.
  *#
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
+    compileTime constant DefaultShadowMapTextureSize := 2048u.
+    compileTime constant ShadowMapTextureLayers := 8u.
+
     public field shaderSignature type: ShaderSignaturePtr.
     protected field sampler type: SamplerPtr.
+    protected field cubeMapSampler type: SamplerPtr.
     protected field deferredSampler type: SamplerPtr.
     public field samplingStateBinding type: ShaderResourceBindingsPtr.
 
@@ -26,8 +30,17 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     public field luminanceComputationFramebuffers type: (FramebufferPtr array: LuminanceComputationTextureCount).
     public field luminanceComputationMaterialBindings type: (ShaderResourceBindingsPtr array: LuminanceComputationTextureCount).
 
+    protected field shadowMapSampler type: SamplerPtr.
+    public field shadowMapTexture type: TexturePtr.
+    public field shadowMapTextureView type: TextureViewPtr.
+    public field shadowMapRenderPass type: RenderPassPtr.
+    public field shadowMapFramebuffers type: (FramebufferPtr array: ShadowMapTextureLayers).
+
     method luminanceComputationResultMaterialBindings => ShaderResourceBindingsPtr const ref
         := luminanceComputationMaterialBindings[LuminanceComputationTextureCount - 1].
+
+    const inline method shadowMapTextureExtent => UInt32x2
+        := UInt32x2(DefaultShadowMapTextureSize, DefaultShadowMapTextureSize).
 
     override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         super initializeForEngine: anEngine.
@@ -118,6 +131,25 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 samplingStateBinding _ bindOn: i sampler: sampler.
             }.
 
+            shadowMapSampler := device _ createSampler: (SamplerDescription()
+                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapNearest;
+                addressU: TextureAddressMode Clamp;
+                addressV: TextureAddressMode Clamp;
+                addressW: TextureAddressMode Clamp;
+                comparisonEnabled: true;
+                comparisonFunction: CompareFunction GreaterThan;
+                maxLod: 10000.0f;
+                yourself).
+            samplingStateBinding _ bindOn: 3 sampler: shadowMapSampler.
+
+            cubeMapSampler := device _ createSampler: (SamplerDescription()
+                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear;
+                addressU: TextureAddressMode Border;
+                addressV: TextureAddressMode Border;
+                addressW: TextureAddressMode Border;
+                yourself).
+            samplingStateBinding _ bindOn: 4 sampler: cubeMapSampler.
+
             deferredSampler := device _ createSampler: (SamplerDescription()
                 filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapNearest;
                 addressU: TextureAddressMode Clamp;
@@ -126,6 +158,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 maxLod: 10000.0f;
                 yourself).
             samplingStateBinding _ bindOn: 6 sampler: deferredSampler.
+
         }.
 
         ## Create the specularBRDFLut texture.
@@ -185,6 +218,49 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             ).
 
             luminanceComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
+
+        ## Create the shadow map texture and associated framebuffers.
+        {
+            let extent := self shadowMapTextureExtent.
+            shadowMapTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: extent x;
+                height: extent y;
+                depth: 1;
+                layers: ShadowMapTextureLayers;
+                miplevels: 1;
+                format: PixelFormat D32_Float;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode DepthAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            shadowMapTextureView := shadowMapTexture _ getOrCreateFullView.
+
+            0 until: ShadowMapTextureLayers do: {:(UInt32)i :: Void |
+                let layerDescription mutable := shadowMapTexture _ getFullViewDescription.
+                layerDescription subresourceRange: (TextureSubResourceRange()
+                    usageModes: TextureUsageMode DepthAttachment;
+                    baseMipLevel: 0;
+                    levelCount: 1;
+                    baseArrayLayer: i;
+                    layerCount: 1;
+                    yourself).
+
+                let layerView := shadowMapTexture _ createView: layerDescription.
+                shadowMapFramebuffers[i] := device _ createFramebuffer: extent colorViews: TextureViewPtr const arraySlice() depthStencilView: layerView.
+            }.
+        }.
+
+        {
+            let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
+                format: PixelFormat D32_Float;
+                beginAction: RenderPassAttachmentAction Clear;
+                endAction: RenderPassAttachmentAction Keep;
+                yourself.
+
+            shadowMapRenderPass := device _ createRenderPass: RenderPassColorAttachmentDescription const arraySlice() depthStencilAttachment: depthStencilAttachment address.
         }.
     }.
 

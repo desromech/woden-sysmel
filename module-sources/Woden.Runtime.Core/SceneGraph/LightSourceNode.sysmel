@@ -26,6 +26,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
             outerCosCutoff: -1;
             spotExponent: 1;
             radius: 3.0f.
+        objectState _ spotOuterCutoff: spotOuterCutoff.
 
         renderingSceneObject := RenderingSceneLightSource sharedNew.
         renderingSceneObject _
@@ -64,6 +65,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method spotOuterCutoff: (cutoffAngle: Float32) ::=> Void := {
         spotOuterCutoff := cutoffAngle.
+        objectState _ spotOuterCutoff: spotOuterCutoff.
         objectState _ lightState outerCosCutoff: spotOuterCutoff degreesToRadians cos.
     }.
 
@@ -85,10 +87,10 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         := true.
 
     method castShadows ::=> Boolean8
-        := false.
+        := objectState _ castShadows.
 
     method castShadows: (value: Boolean8) ::=> Void := {
-
+        objectState _ castShadows: value
     }.
 
     override method globalTransformChanged => Void := {

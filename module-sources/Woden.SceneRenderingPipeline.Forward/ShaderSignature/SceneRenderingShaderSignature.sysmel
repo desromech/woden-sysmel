@@ -9,6 +9,7 @@ class CommonSceneRenderingShaderSignature definition: {
     macro method normalSampler := ``(`,self samplingStateBinding _ normalSampler).
     macro method cubeMapSampler := ``(`,self samplingStateBinding _ cubeMapSampler).
     macro method deferredSampler := ``(`,self samplingStateBinding _ deferredSampler).
+    macro method shadowSampler := ``(`,self samplingStateBinding _ shadowSampler).
 
     macro method cameraState := ``(`,self cameraStateBinding _ state _ ).
     macro method cameraPostProcessingState := ``(`,self cameraStateBinding _ postProcessingState _ ).

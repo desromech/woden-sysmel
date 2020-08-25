@@ -36,6 +36,9 @@ class RenderingSceneObject superclass: Stdn SharedObject; definition: {
             }.
         }.
     }.
+
+    const inline method currentTransform => ReversibleAffineTransform3dF32
+        := spatialObject _ currentTransform.
 }.
 
 compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject sharedPointer const ref) => Void) nativeBlockClosure.

@@ -9,10 +9,11 @@ useNamespace: Stdn Math LinearAlgebra.
  *#
 class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
     public field state type: Woden Shaders ObjectStateData.
+    public field currentTransform type: ReversibleAffineTransform3dF32.
 
     virtual method isGPUSpatialObject => Boolean8
         := false.
-        
+
     override method initialize => Void := {
         state
             visible: 1;
@@ -20,6 +21,7 @@ class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
     }.
 
     virtual method setCurrentTransform: (transform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        currentTransform := transform.
         state
             matrix: transform matrix4;
             inverseMatrix: transform inverseMatrix4.

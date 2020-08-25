@@ -4,8 +4,8 @@ namespace Shaders definition: {
 class LightingStateBinding definition: {
     public field state type: GlobalLightingStateData uniformBufferPointer.
 
-    public field spotShadowMaps type: GPU Texture2DArray.
-    public field pointShadowMaps type: GPU TextureCubeArray.
+    public field spotShadowMaps type: GPU DepthTexture2DArray.
+    public field pointShadowMaps type: GPU DepthTextureCubeArray.
     public field ssaoTexture type: GPU Texture2D.
     public field specularBRDFLut type: GPU Texture2D.
     public field diffuseIrradianceMap type: GPU TextureCube.

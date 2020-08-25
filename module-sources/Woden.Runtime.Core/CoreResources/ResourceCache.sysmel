@@ -55,6 +55,11 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     const inline method whiteTextureCube => TextureWithViewPtr const ref
         := whiteTextureCube.
 
+    private field blackTextureCube type: TextureWithViewPtr.
+
+    const inline method blackTextureCube => TextureWithViewPtr const ref
+        := blackTextureCube.
+
     method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         engine := anEngine.
 
@@ -67,6 +72,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         transparentTexture := self createTextureWithSolidColor: UInt8x4 zeros format: PixelFormat R8G8B8A8_UNorm.
         neutralNormalTexture := self createTextureWithSolidColor: UInt8x4(128, 128, 255, 0) format: PixelFormat R8G8B8A8_UNorm.
         whiteTextureCube := self createTextureCubeWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
+        blackTextureCube := self createTextureCubeWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
         checkboardTexture := self createCheckboardTexture.
 
         defaultMaterial := (MetallicRoughnessMaterial for: engine) upCastFor: Material.

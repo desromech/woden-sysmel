@@ -104,8 +104,13 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
         ).
 
         renderPass isDepthPass ifTrue: {
-            stateTracker _
-                fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders surfaceNormalValueFragment shaderEntryPointInfo address.
+            renderPass isDepthNormalPass ifTrue: {
+                stateTracker _
+                    fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders surfaceNormalValueFragment shaderEntryPointInfo address.
+            } ifFalse: {
+                stateTracker _
+                    fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders alphaTestingFragment shaderEntryPointInfo address.            
+            }.
         } ifFalse: {
             material normalTexture isNotNil && hasTangent4 ifTrue: {
                 stateTracker _

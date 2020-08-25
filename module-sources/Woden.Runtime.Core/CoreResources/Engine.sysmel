@@ -60,10 +60,36 @@ class Engine superclass: Stdn SharedObject; definition: {
         renderingDevice := RenderingDriverRegistry defaultDriver _ getMainDevice.
         renderingDevice ifNil: {return: false }.
 
+        self queryDeviceCapabilities.
+
         resourceCache := ResourceCache sharedNew.
         resourceCache _ initializeWithEngine: self asSharedPointer.
 
         true
+    }.
+
+    protected field projectiveTextureMatrix type: Float32x4x4.
+
+    const inline method projectiveTextureMatrix => Float32x4x4
+        := projectiveTextureMatrix.
+
+    method queryDeviceCapabilities => Void := {
+        ## Do we need to flip the texture coordinates when doing projective texturing?
+        renderingDevice _ shouldInvertProjectionY not ifTrue: {
+            projectiveTextureMatrix := Float32x4x4(
+                0.5, 0, 0, 0,
+                0, -0.5, 0, 0,
+                0, 0, 1.0, 0,
+                0.5, 0.5, 0, 1
+            )
+        } ifFalse: {
+            projectiveTextureMatrix := Float32x4x4(
+                0.5, 0, 0, 0,
+                0, 0.5, 0, 0,
+                0, 0, 1.0, 0,
+                0.5, 0.5, 0, 1
+            )
+        }
     }.
 
     private field globalEventHandler type: EngineGlobalEventHandlerPtr.

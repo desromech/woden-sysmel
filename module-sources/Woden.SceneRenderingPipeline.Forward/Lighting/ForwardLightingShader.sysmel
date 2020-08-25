@@ -49,6 +49,12 @@ function cookTorranceSmithSchlickGGXMasking(alpha: Float32, NdotL: Float32, Ndot
 function cookTorranceMasking(alpha: Float32, NdotL: Float32, NdotV: Float32) => Float32
     := cookTorranceSmithSchlickGGXMasking(alpha, NdotL, NdotV).
 
+function projectShadowPosition(shadowPoint: Float32x4, shadowMapLayer: Float32) => Float32x4 := {
+    let projectedShadowPoint := shadowPoint xyz / shadowPoint w.
+    let shadowCoord := Float32x3(projectedShadowPoint xy, shadowMapLayer).
+    Float32x4(shadowCoord, projectedShadowPoint z).
+}.
+
 struct LightingParameters definition: {
     public field P type: Float32x3.
     public field V type: Float32x3.
@@ -106,6 +112,10 @@ struct MetallicRoughnessLightingParameters definition: {
 }.
 
 class ForwardSceneRenderingShaderSignature; definition: {
+
+    method computeShadowFactorFor: (shadowPoint: Float32x3) depthReference: (depthReference: Float32) ::=> Float32 := {
+        (self shadowSampler sample: self lightingStateBinding _ spotShadowMaps at: shadowPoint depth: depthReference)
+    }.
 
     method computeForwardLightingWith: (lightingParameters: MetallicRoughnessLightingParameters) ::=> Float32x4 := {
         self computeForwardLightingWith: lightingParameters asGenericLightingParameters
@@ -175,6 +185,19 @@ class ForwardSceneRenderingShaderSignature; definition: {
                             attenuation := attenuation * spotAttenuation
                         }
                     }.
+                }.
+
+                attenuation > 0.0f && lightSource shadowMapLayer >= 0.0f ifTrue: {
+                    let shadowFactor mutable := 1.0f.
+
+                    let surfaceNormal := N.
+                    let cameraShadowPosition := Float32x4(P + surfaceNormal*0.01f, 1.0f).
+                    let shadowPosition := lightSource shadowMapTransform * cameraShadowPosition.
+
+                    let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer).
+                    shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+
+                    attenuation := attenuation * shadowFactor
                 }.
 
                 attenuation > 0.0f ifTrue: {

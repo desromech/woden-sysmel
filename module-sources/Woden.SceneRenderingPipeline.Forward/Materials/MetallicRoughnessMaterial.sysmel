@@ -225,7 +225,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         albedo a < self materialState alphaCutoff ifTrue: {
             GPU discardFragment
         }.
-        
+
         let N mutable := input normal normalized.
         stageInput isFrontFacing ifFalse: {
             N := N negated.
@@ -236,6 +236,15 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
             yourself)
     }.
 
+    function alphaTestingFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel) => Void := {
+        let input := in receive.
+        let stageInput := stageIn receive.
+
+        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
+        albedo a < self materialState alphaCutoff ifTrue: {
+            GPU discardFragment
+        }.
+    }.
 }.
 
 }. ## End of namespace Shaders
