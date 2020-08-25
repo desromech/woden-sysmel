@@ -172,10 +172,14 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
 
         lightingState := Woden Shaders GlobalLightingStateData().
 
+        let shadowMapExtent := sceneRenderingPipeline _ shadowMapTextureExtent castTo: Float32x2.
         lightingState
             groundLighting: Float32x4(scene _ groundLighting, 0.0f);
             skyLighting: Float32x4(scene _ skyLighting, 0.0f);
-            sunDirection: scene _ sunDirection.
+            sunDirection: scene _ sunDirection;
+
+            shadowMapExtent: shadowMapExtent;
+            shadowMapInverseExtent: 1.0f/shadowMapExtent.
 
         ## TODO: Support light probes properly.
         let blackTexture := self engine _ resourceCache _ blackTextureCube.
@@ -603,25 +607,14 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
     }.
 
-    method selectAndPrepareShadowCastingSpotLight: (spotLight: ViewportLayerLightSource ref)
-        lightState: (lightState: Woden Shaders LightSourceData ref)
-        in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+    method setupShadowMapLayer: (layer: ShadowMapRenderingPipelineLayer ref)
+        withCameraTransform: (cameraTransform: ReversibleAffineTransform3dF32 const ref)
+        projectionMatrix: (projectionMatrix: Float32x4x4)
+        frustum: (frustum: FrustumF32 const ref) ::=> Void := {
+
         let scene := sceneRenderingPipeline _ scene.
         scene ifNil: {return: void}.
 
-        let lightSourceObject := spotLight object _ lightSourceObject.
-
-        let fov := lightSourceObject _ spotOuterCutoff.
-        let nearDistance := 0.01f.
-        let farDistance := lightState radius.
-        let aspect := 1.0f.
-
-        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
-        let frustum := FrustumF32()
-            makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
-            yourself.
-
-        let cameraTransform := spotLight object _ currentTransform.
         let worldFrustum := frustum transformedWith: cameraTransform.
         let cameraState mutable := Woden Shaders CameraStateData()
             matrix: cameraTransform matrix4;
@@ -631,20 +624,158 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             currentTime: scene _ currentTime;
             yourself.
 
-        let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
-        shadowLayer
+        layer
             cameraTransform: cameraTransform;
             cameraState: cameraState;
             frustum: worldFrustum.
+    }.
+
+    method selectAndPrepareShadowCastingSpotLight: (spotLight: ViewportLayerLightSource ref)
+        lightState: (lightState: Woden Shaders LightSourceData ref)
+        in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+        let lightSourceObject := spotLight object _ lightSourceObject.
+
+        let fov := lightSourceObject _ spotOuterCutoff.
+        let nearDistance := 0.01f.
+        let farDistance := lightState radius.
+        let aspect := 1.0f.
+
+        let cameraTransform := spotLight object _ currentTransform.
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let frustum := FrustumF32()
+            makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
+            yourself.
+
+        let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
+        self setupShadowMapLayer: shadowLayer
+            withCameraTransform: cameraTransform projectionMatrix: projectionMatrix frustum: frustum.
 
         let shadowMapBias := self engine _ projectiveTextureMatrix.
         lightState
-            cascadeSplitOffsets: 0;
+            cascadeSplitOffsets: 1;
             cascadeFrustumPlane: 0;
             shadowMapLayer: activeShadowMapLayerCount;
-            shadowMapTransform: (shadowMapBias * (projectionMatrix * (cameraState viewMatrix * viewportLayer cameraState inverseViewMatrix))).
+            shadowMapTransform: (shadowMapBias * (projectionMatrix * (shadowLayer cameraState viewMatrix * viewportLayer cameraState inverseViewMatrix))).
 
         activeShadowMapLayerCount := activeShadowMapLayerCount + 1
+    }.
+
+    const inline method extractShadowCastingBodyForFrustumCorners: (frustumCorners: (Float32x3 array: 8)) sceneBoundingBox: (sceneBoundingBox: BoxF32)
+        extrudeDirection: (extrudeDirection: Float32x3) ::=> (Float32x3 array: 16) := {
+
+        let maxExtrudeExtent mutable := Float32 negativeInfinity.
+        sceneBoundingBox corners do: {:each :: Void |
+            maxExtrudeExtent := maxExtrudeExtent max: (each dot: extrudeDirection)
+        }.
+        let maxExtrudeProjection := maxExtrudeExtent * extrudeDirection.
+
+        let result mutable type: (Float32x3 array: 16).
+        0 until: 8 do: {:i :: Void |
+            let worldCorner := frustumCorners[i].
+            let flattenedWorldCorner := worldCorner - (worldCorner dot: extrudeDirection)*extrudeDirection.
+
+            result[i*2] := worldCorner.
+            result[i*2 + 1] := flattenedWorldCorner + maxExtrudeProjection
+        }.
+
+        result
+    }.
+
+    method setupShadowCastingDirectionalLight: (directionalLight: ViewportLayerLightSource ref)
+        in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref)
+        cascadeFrustum: (cascadeFrustum: FrustumF32 const ref) ::=> Float32x4x4 := {
+
+        let scene := sceneRenderingPipeline _ scene.
+        let sceneBoundingBox := scene _ normalLayer _ boundingBox.
+
+        let extrudeDirection := directionalLight object _ position xyz.
+        let lookDirection := extrudeDirection negated.
+
+        let shadowCastingBody := self extractShadowCastingBodyForFrustumCorners: cascadeFrustum corners sceneBoundingBox: sceneBoundingBox
+            extrudeDirection: extrudeDirection.
+
+        ## Compute the shadow casting body bounding box to facilitate focusing the shadow.
+        let shadowCastingBodyBoundingBox mutable := BoxF32 empty.
+        shadowCastingBody do: {:each :: Void |
+            shadowCastingBodyBoundingBox := shadowCastingBodyBoundingBox unionWith: each
+        }.
+
+        let clippedShadowCastingBodyBoundingBox := shadowCastingBodyBoundingBox intersectionWith: sceneBoundingBox.
+        clippedShadowCastingBodyBoundingBox isEmpty ifFalse: {
+            shadowCastingBodyBoundingBox := clippedShadowCastingBodyBoundingBox
+        }.
+
+        let lightTransform mutable := directionalLight object _ currentTransform.
+        lightTransform translation: shadowCastingBodyBoundingBox center.
+
+        let frustumBoundingBox mutable := BoxF32 empty.
+        shadowCastingBodyBoundingBox corners do: {:each :: Void |
+            frustumBoundingBox := frustumBoundingBox unionWith: (lightTransform inverseTransformPosition: each)
+        }.
+
+        let projectionMatrix := frustumBoundingBox mappingToNDCCoordinatesReverseDepthWithInvertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let frustum := frustumBoundingBox asFrustum.
+
+        let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
+        self setupShadowMapLayer: shadowLayer
+            withCameraTransform: lightTransform projectionMatrix: projectionMatrix frustum: frustum.
+
+        let shadowMapBias := self engine _ projectiveTextureMatrix.
+        let shadowMapTransform := shadowMapBias * (projectionMatrix * (shadowLayer cameraState viewMatrix * viewportLayer cameraState inverseViewMatrix)).
+        activeShadowMapLayerCount := activeShadowMapLayerCount + 1.
+
+        shadowMapTransform
+    }.
+
+    method selectAndPrepareShadowCastingDirectionalLight: (directionalLight: ViewportLayerLightSource ref)
+        lightState: (lightState: Woden Shaders LightSourceData ref)
+        in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+        activeShadowMapLayerCount + 4 > ShadowMapTextureLayers ifTrue: {return: void}.
+
+        camera ifNil: {return: void}.
+        let scene := sceneRenderingPipeline _ scene.
+        scene ifNil: {return: void}.
+
+        let sceneBoundingBox := scene _ normalLayer _ boundingBox.
+        sceneBoundingBox isEmpty ifTrue: {return: void}.
+
+        let splitDistribution := camera _ cascadeSplitDistribution.
+        let firstCascadeLayer := activeShadowMapLayerCount.
+        let frustum := viewportLayer frustum.
+        let nearDistance := camera _ nearDistance.
+        let farDistance := camera _ farDistance.
+
+        ## Compute the frustum split distribution.
+        ## Parallel split shadow mapping: https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
+        let frustumSplitDistribution mutable type: (Float32 array: 5).
+        0 until: 5 do: {:i :: Void |
+            let alpha := i/4.0f.
+            let uniformSplit := nearDistance + (farDistance - nearDistance)*alpha.
+            let logarithmicSplit := nearDistance* (farDistance / nearDistance raisedTo: alpha).
+            frustumSplitDistribution[i] := logarithmicSplit interpolateTo: uniformSplit at: splitDistribution.
+        }.
+
+        ## Generate the cascade layers.
+        let shadowMapTransforms mutable type: (Float32x4x4 array: 4).
+        0 until: 4 do: {:i :: Void |
+            let splitNearDistance := frustumSplitDistribution[i].
+            let splitFarDistance := frustumSplitDistribution[i + 1].
+
+            let splitNearLambda := (splitNearDistance - nearDistance) / (farDistance - nearDistance).
+            let splitFarLambda := (splitFarDistance - nearDistance) / (farDistance - nearDistance).
+            let splitFrustum := frustum splitAtNearLambda: splitNearLambda farLambda: splitFarLambda.
+            shadowMapTransforms[i] := self setupShadowCastingDirectionalLight: directionalLight in: viewportLayer cascadeFrustum: splitFrustum
+        }.
+
+        let nearPlane := frustum nearPlane.
+        lightState
+            cascadeSplitOffsets: Float32x4(frustumSplitDistribution second, frustumSplitDistribution third, frustumSplitDistribution fourth, frustumSplitDistribution fifth);
+            cascadeFrustumPlane: Float32x4(0, 0, -1, 0);
+            shadowMapLayer: firstCascadeLayer;
+            shadowMapTransform: shadowMapTransforms first;
+            shadowMapTransform2: shadowMapTransforms second;
+            shadowMapTransform3: shadowMapTransforms third;
+            shadowMapTransform4: shadowMapTransforms fourth.
     }.
 
     method selectAndPrepareShadowCastingLightsIn: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
@@ -657,6 +788,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             lightSource object _ castShadows ifTrue: {
                 lightSource object _ lightType selectCase: #{
                 LightSourceType Spot : { self selectAndPrepareShadowCastingSpotLight: lightSource lightState: lightState in: viewportLayer }.
+                LightSourceType Directional : { self selectAndPrepareShadowCastingDirectionalLight: lightSource lightState: lightState in: viewportLayer }.
                 _ : {}
                 }.
 
@@ -737,8 +869,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 sceneDepthWriteMask: OverrideableBoolean True.
 
             stateTracker _
-                depthBiasConstantFactor: 4.0f;
-                depthBiasSlopeFactor: 1.5f.
+                depthBiasConstantFactor: -4.0f;
+                depthBiasSlopeFactor: -1.5f.
 
             shadowMapLayers[i] renderSceneObjectsWith: renderingContext.
 

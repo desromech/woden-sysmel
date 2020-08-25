@@ -9,7 +9,7 @@ useNamespace: Stdn Math Geometry.
  * An abstract pipeline for rendering a null scene.
  *#
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
-    compileTime constant DefaultShadowMapTextureSize := 2048u.
+    compileTime constant DefaultShadowMapTextureSize := 2048.
     compileTime constant ShadowMapTextureLayers := 8u.
 
     public field shaderSignature type: ShaderSignaturePtr.
@@ -38,6 +38,9 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
 
     method luminanceComputationResultMaterialBindings => ShaderResourceBindingsPtr const ref
         := luminanceComputationMaterialBindings[LuminanceComputationTextureCount - 1].
+
+    const inline method shadowMapTextureSize => UInt32
+        := DefaultShadowMapTextureSize.
 
     const inline method shadowMapTextureExtent => UInt32x2
         := UInt32x2(DefaultShadowMapTextureSize, DefaultShadowMapTextureSize).

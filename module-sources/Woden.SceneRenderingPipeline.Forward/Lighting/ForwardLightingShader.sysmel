@@ -55,10 +55,21 @@ function projectShadowPosition(shadowPoint: Float32x4, shadowMapLayer: Float32) 
     Float32x4(shadowCoord, projectedShadowPoint z).
 }.
 
+function shadowMapRandomRotation(shadowPoint: Float32x2) => Float32x2x2 := {
+	let randomFloat := ( (shadowPoint xy dot: Float32x2(12.9898f,78.233f)) sin * 43758.5453f) fract.
+	let s := randomFloat*2.0f - 1.0f.
+	let c := (1.0f - s*s) sqrt.
+
+	Float32x2x2(
+		Float32x2(c, s),
+		Float32x2(-s, c))
+}.
+
 struct LightingParameters definition: {
     public field P type: Float32x3.
     public field V type: Float32x3.
     public field N type: Float32x3.
+    public field surfaceNormal type: Float32x3.
     public field fragCoord type: Float32x4.
 
     public field emission type: Float32x3.
@@ -76,6 +87,7 @@ struct MetallicRoughnessLightingParameters definition: {
     public field P type: Float32x3.
     public field V type: Float32x3.
     public field N type: Float32x3.
+    public field surfaceNormal type: Float32x3.
     public field fragCoord type: Float32x4.
 
     public field emission type: Float32x3.
@@ -99,6 +111,7 @@ struct MetallicRoughnessLightingParameters definition: {
             P: P;
             V: V;
             N: N;
+            surfaceNormal: surfaceNormal;
             fragCoord: fragCoord;
             emission: emission;
             Cdiff: Cdiff;
@@ -113,8 +126,34 @@ struct MetallicRoughnessLightingParameters definition: {
 
 class ForwardSceneRenderingShaderSignature; definition: {
 
+    ## Poisson sampling disk from http://www.opengl-tutorial.org/es/intermediate-tutorials/tutorial-16-shadow-mapping/#pcf
+    let shadowPCFSampleCount := 4.
+    let shadowDisplacementRadius := 1.5f.
+    let shadowDisplacementOffsets := Float32x2 array(
+        Float32x2( -0.94201624f,  -0.39906216f ),
+        Float32x2(  0.94558609f,  -0.76890725f ),
+        Float32x2( -0.094184101f, -0.92938870f ),
+        Float32x2(  0.34495938f,   0.29387760f )
+    ).
+
+    method sampleShadowPoint: (shadowPoint: Float32x3) depthReference: (depthReference: Float32) rotation: (rotation: Float32x2x2) displacementIndex: (displacementIndex: Int32) ::=> Float32 := {
+        let displacement := (rotation*shadowDisplacementOffsets[displacementIndex])*shadowDisplacementRadius.
+
+        (self shadowSampler sample: self lightingStateBinding _ spotShadowMaps
+            at: shadowPoint + Float32x3(displacement * self globalLightingState shadowMapInverseExtent, 0)
+            depth: depthReference)
+    }.
+
     method computeShadowFactorFor: (shadowPoint: Float32x3) depthReference: (depthReference: Float32) ::=> Float32 := {
-        (self shadowSampler sample: self lightingStateBinding _ spotShadowMaps at: shadowPoint depth: depthReference)
+        shadowPCFSampleCount <= 1 ifTrue: {
+            (self shadowSampler sample: self lightingStateBinding _ spotShadowMaps at: shadowPoint depth: depthReference)
+        } ifFalse: {
+            let rotation := shadowMapRandomRotation(shadowPoint xy).
+            ((self sampleShadowPoint: shadowPoint depthReference: depthReference rotation: rotation displacementIndex: 0) +
+            (self sampleShadowPoint: shadowPoint depthReference: depthReference rotation: rotation displacementIndex: 1) +
+            (self sampleShadowPoint: shadowPoint depthReference: depthReference rotation: rotation displacementIndex: 2) +
+            (self sampleShadowPoint: shadowPoint depthReference: depthReference rotation: rotation displacementIndex: 3)) * 0.25f
+        }
     }.
 
     method computeForwardLightingWith: (lightingParameters: MetallicRoughnessLightingParameters) ::=> Float32x4 := {
@@ -125,6 +164,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
         let P := lightingParameters P.
         let V := lightingParameters V.
         let N := lightingParameters N.
+        let surfaceNormal := lightingParameters surfaceNormal.
 
         let emission := lightingParameters emission.
         let Cdiff := lightingParameters Cdiff.
@@ -189,13 +229,32 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
                 attenuation > 0.0f && lightSource shadowMapLayer >= 0.0f ifTrue: {
                     let shadowFactor mutable := 1.0f.
-
-                    let surfaceNormal := N.
                     let cameraShadowPosition := Float32x4(P + surfaceNormal*0.01f, 1.0f).
-                    let shadowPosition := lightSource shadowMapTransform * cameraShadowPosition.
 
-                    let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer).
-                    shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+                    let cascadeSplitOffsets := lightSource cascadeSplitOffsets.
+                    let cascadeDistance := lightSource cascadeFrustumPlane dot: cameraShadowPosition.
+
+                    cascadeDistance < cascadeSplitOffsets y ifTrue: {
+                        cascadeDistance < cascadeSplitOffsets x ifTrue: {
+                            let shadowPosition := lightSource shadowMapTransform * cameraShadowPosition.
+                            let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer).
+                            shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+                        } ifFalse: {
+                            let shadowPosition := lightSource shadowMapTransform2 * cameraShadowPosition.
+                            let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer + 1).
+                            shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+                        }.
+                    } ifFalse: {
+                        cascadeDistance < cascadeSplitOffsets z ifTrue: {
+                            let shadowPosition := lightSource shadowMapTransform3 * cameraShadowPosition.
+                            let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer + 2).
+                            shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+                        } ifFalse: {
+                            let shadowPosition := lightSource shadowMapTransform4 * cameraShadowPosition.
+                            let projectedShadowPoint := projectShadowPosition(shadowPosition, lightSource shadowMapLayer + 3).
+                            shadowFactor := self computeShadowFactorFor: projectedShadowPoint xyz depthReference: projectedShadowPoint w.
+                        }.
+                    }.
 
                     attenuation := attenuation * shadowFactor
                 }.

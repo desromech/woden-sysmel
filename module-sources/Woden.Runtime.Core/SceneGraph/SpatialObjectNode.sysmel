@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Math Geometry.
+
 #**
  * I am a node that poses a local coordinate system that is associated with a model matrix in the GPU.
  *#
@@ -12,6 +14,11 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
     override method initialize => Void := {
         objectState := SpatialObject sharedNew.
     }.
+
+    override method localInternalBoundingBox => BoxF32
+        := renderable
+            ifNil: {BoxF32 empty}
+            ifNotNil: { renderable _ localBoundingBox }.
 
     const inline method renderable => RenderablePtr const ref
         := renderable.

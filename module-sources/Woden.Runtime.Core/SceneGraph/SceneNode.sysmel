@@ -16,6 +16,12 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     private field globalTransform type: ReversibleAffineTransform3dF32.
     private field globalTransformIsValid type: Boolean8.
 
+    private field localBoundingBox type: BoxF32.
+    private field localBoundingBoxIsValid type: Boolean8.
+
+    private field boundingBox type: BoxF32.
+    private field boundingBoxIsValid type: Boolean8.
+
     override method initialize => Void := {
         transform setIdentity.
     }.
@@ -48,11 +54,12 @@ class SceneNode superclass: Stdn SharedObject; definition: {
             p _ childTransformChanged: self
         }.
 
+        self boundingBoxChanged.
         self parentTransformChanged.
     }.
 
     method childTransformChanged: (aChild: SceneNode ref) ::=> Void := {
-
+        self localBoundingBoxChanged.
     }.
 
     virtual method globalTransformChanged => Void := {
@@ -79,6 +86,45 @@ class SceneNode superclass: Stdn SharedObject; definition: {
         }.
 
         globalTransformIsValid := true.
+    }.
+
+    virtual method localInternalBoundingBox => BoxF32
+        := BoxF32 empty.
+
+    virtual method localBoundingBoxChanged => Void := {
+        localBoundingBoxIsValid := false.
+    }.
+
+    method validateLocalBoundingBox => Void := {
+        localBoundingBox := self localInternalBoundingBox.
+        children do: {:each :: Void |
+            localBoundingBox := localBoundingBox unionWith: each _ boundingBox
+        }.
+
+        localBoundingBoxIsValid := true.
+    }.
+
+    inline method localBoundingBox => BoxF32 := {
+        localBoundingBoxIsValid ifFalse: {self validateLocalBoundingBox}.
+        localBoundingBox
+    }.
+
+    method validateBoundingBox => Void := {
+        boundingBox := self localBoundingBox.
+        boundingBox isEmpty ifFalse: {
+            boundingBox := boundingBox transformedWith: self transform
+        }.
+
+        boundingBoxIsValid := true
+    }.
+
+    inline method boundingBox => BoxF32 := {
+        boundingBoxIsValid ifFalse: {self validateBoundingBox}.
+        boundingBox
+    }.
+
+    virtual method boundingBoxChanged ::=> Void := {
+        boundingBoxIsValid := false.
     }.
 
     virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {

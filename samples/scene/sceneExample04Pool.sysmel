@@ -127,6 +127,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
             castShadows: true;
             intensity: Float32x3(1f, 1f, 0.8f) normalized * 0.7f;
             rotateDegreesOnX: -35;
+            rotateDegreesOnY: -5;
             translateToX: 0.0f y: 1.5f z: 2.5f.
         scene _ add: (sunLight upCastFor: SceneNode).
     }.

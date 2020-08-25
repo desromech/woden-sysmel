@@ -150,6 +150,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             P: P;
             V: P negated normalized;
             N: N;
+            surfaceNormal: N;
             emission: emission rgb;
             albedo: albedo rgb;
             occlusion: occlusion;

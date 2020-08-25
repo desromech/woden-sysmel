@@ -25,6 +25,9 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     const inline method lightType => LightSourceType
         := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightType.
 
+    const inline method position => Float32x4
+        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightState position.
+
 }.
 
 compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource sharedPointer.
