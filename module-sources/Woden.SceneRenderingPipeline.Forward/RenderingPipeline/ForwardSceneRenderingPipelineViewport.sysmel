@@ -255,8 +255,12 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field ssaoTextureExtent type: UInt32x2.
     protected field ssaoTextureView type: TextureViewPtr.
     protected field ssaoFramebuffer type: FramebufferPtr.
+    protected field ssaoPingTextureView type: TextureViewPtr.
+    protected field ssaoPingFramebuffer type: FramebufferPtr.
     protected field ssaoComputationRenderPass type: RenderPassPtr.
     protected field ssaoComputationBinding type: ShaderResourceBindingsPtr.
+    protected field ssaoBlurPingBinding type: ShaderResourceBindingsPtr.
+    protected field ssaoBlurPongBinding type: ShaderResourceBindingsPtr.
 
     protected field hdrColorFramebuffer type: FramebufferPtr.
     protected field hdrColorRenderPass type: RenderPassPtr.
@@ -368,6 +372,36 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let colorAttachments mutable := TextureViewPtr array(ssaoTextureView).
             ssaoFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
         }.
+
+        {
+            let ssaoPingTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: ssaoTextureExtent x;
+                height: ssaoTextureExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat R8_UNorm;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            ssaoPingTextureView := ssaoPingTexture _ getOrCreateFullView.
+
+            let colorAttachments mutable := TextureViewPtr array(ssaoPingTextureView).
+            ssaoPingFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        ssaoBlurPingBinding ifNil: {
+            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoBlurPingBinding _ bindOn: 1 sampledTextureView: ssaoTextureView.
+
+        ssaoBlurPongBinding ifNil: {
+            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoBlurPongBinding _ bindOn: 1 sampledTextureView: ssaoPingTextureView.
 
         ssaoComputationRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
@@ -903,6 +937,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     method computeScreenSpaceAmbientOcclusion => Void := {
         let stateTracker := stateTrackers current.
 
+        let ssaoViewport := RectangleI32 min: Int32x2 zeros max: (ssaoTextureExtent castTo: Int32x2).
         stateTracker _
             resetState;
 
@@ -912,15 +947,39 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             useGraphicShaderBindings: ssaoComputationBinding;
 
             beginRenderPass: ssaoComputationRenderPass on: ssaoFramebuffer contentOnBundle: false;
-            setViewport: (RectangleI32 min: Int32x2 zeros max: (ssaoTextureExtent castTo: Int32x2));
-            setScissor: (RectangleI32 min: Int32x2 zeros max: (ssaoTextureExtent castTo: Int32x2));
+            setViewport: ssaoViewport;
+            setScissor: ssaoViewport;
 
             vertexShader: self screenQuadShader;
             fragmentShader: Woden Shaders SSAOComputationMaterialShaders ssaoComputation shaderEntryPointInfo address;
             primitiveTopology: PrimitiveTopology Triangles;
             drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
 
-            endRenderPass
+            endRenderPass.
+
+        0 until: 2 do: {:blurPass :: Void |
+            ## Horizontal blur.
+            stateTracker _
+                useGraphicShaderBindings: ssaoBlurPingBinding;
+                beginRenderPass: ssaoComputationRenderPass on: ssaoPingFramebuffer contentOnBundle: false;
+                setViewport: ssaoViewport;
+                setScissor: ssaoViewport;
+                fragmentShader: Woden Shaders SSAOComputationMaterialShaders ssaoHorizontalBlur shaderEntryPointInfo address;
+                primitiveTopology: PrimitiveTopology Triangles;
+                drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+                endRenderPass.
+
+            ## Vertical blur.
+            stateTracker _
+                useGraphicShaderBindings: ssaoBlurPongBinding;
+                beginRenderPass: ssaoComputationRenderPass on: ssaoFramebuffer contentOnBundle: false;
+                setViewport: ssaoViewport;
+                setScissor: ssaoViewport;
+                fragmentShader: Woden Shaders SSAOComputationMaterialShaders ssaoVerticalBlur shaderEntryPointInfo address;
+                primitiveTopology: PrimitiveTopology Triangles;
+                drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+                endRenderPass
+        }.
     }.
 
     method renderColorPass => Void := {

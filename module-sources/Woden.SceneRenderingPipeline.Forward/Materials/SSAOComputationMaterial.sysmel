@@ -25,6 +25,7 @@ function signedRandomNoise(position: Float32x2) ::=> Float32
 class SSAOComputationMaterialShaders superclass: CompositionMaterialShaders; definition: {
     macro method depthTexture := ``(`,self materialStateBinding _ texture0).
 	macro method normalTexture := ``(`,self materialStateBinding _ texture1).
+	macro method blurInputTexture := ``(`,self materialStateBinding _ texture0).
 
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
@@ -140,6 +141,38 @@ class SSAOComputationMaterialShaders superclass: CompositionMaterialShaders; def
 		}.
 
 		let value := 1.0f - outSampleCount / (SamplingDistributionSize castTo: Float32).
+
+        out send: (FragmentOutput()
+            color0: value;
+            yourself)
+    }.
+
+	function ssaoHorizontalBlur fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let uv := in receive texcoord.
+		let texelSize := 2.5f / ((self blurInputTexture extentOfLod: 0) castTo: Float32x2).
+		let value := (
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(-2, 0)*texelSize lod: 0.0f) r +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(-1, 0)*texelSize lod: 0.0f) r*4 +
+			(self deferredSampler sample: self blurInputTexture at: uv lod: 0.0f) r * 6 +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2( 1, 0)*texelSize lod: 0.0f) r*4 +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2( 2, 0)*texelSize lod: 0.0f) r
+		) * 0.0625f.
+
+        out send: (FragmentOutput()
+            color0: value;
+            yourself)
+    }.
+
+	function ssaoVerticalBlur fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let uv := in receive texcoord.
+		let texelSize := 2.5f / ((self blurInputTexture extentOfLod: 0) castTo: Float32x2).
+		let value := (
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(0, -2)*texelSize lod: 0.0f) r +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(0, -1)*texelSize lod: 0.0f) r*4 +
+			(self deferredSampler sample: self blurInputTexture at: uv lod: 0.0f) r * 6 +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(0, 1)*texelSize lod: 0.0f) r*4 +
+			(self deferredSampler sample: self blurInputTexture at: uv + Float32x2(0, 2)*texelSize lod: 0.0f) r
+		) * 0.0625f.
 
         out send: (FragmentOutput()
             color0: value;
