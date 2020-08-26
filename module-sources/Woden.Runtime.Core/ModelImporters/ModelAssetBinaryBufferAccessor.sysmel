@@ -12,6 +12,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     public field bufferView type: ModelAssetBinaryBufferViewPtr.
     public field offset type: UIntPointer.
     public field count type: UIntPointer.
+    public field columnCount type: UIntPointer.
     public field format type: PixelFormat.
 
     ## Use doubles so that all integer also fit here.

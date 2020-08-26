@@ -18,19 +18,27 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
         := attributes _ boundingBox.
 
     method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
-        GenericSubmesh()
+        let result mutable :=  GenericSubmesh()
             vertexBinding: (attributes _ asVertexBindingFor: engine);
             vertexAttributeMask: attributes _ vertexAttributeMask;
-            indexBuffer: (indices _ asIndexBufferFor: engine);
-            indexBufferOffset: indices _ asIndexBufferOffset;
-            indexBufferStride: indices _ asIndexBufferStride;
-            firstIndex: (indices _ asFirstIndex castTo: UInt32);
-            indexCount: (indices _ count castTo: UInt32);
             material: (material
                 ifNil: {engine _ resourceCache _ defaultMaterial}
                 ifNotNil: {material _ asRenderingMaterialFor: engine});
             primitiveTopology: primitiveTopology;
-            yourself
+            yourself.
+
+        indices ifNil: {
+            result indexOrVertexCount: (attributes _ vertexCount castTo: UInt32).
+        } ifNotNil: {
+            result
+                indexBuffer: (indices _ asIndexBufferFor: engine);
+                indexBufferOffset: indices _ asIndexBufferOffset;
+                indexBufferStride: indices _ asIndexBufferStride;
+                firstIndex: (indices _ asFirstIndex castTo: UInt32);
+                indexOrVertexCount: (indices _ count castTo: UInt32).
+        }.
+
+        result
     }.
 
     method isTranslucent => Boolean8

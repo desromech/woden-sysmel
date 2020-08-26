@@ -72,7 +72,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         submeshes ifEmpty: {return: void}.
 
         let lastSubmesh ref := submeshes last.
-        lastSubmesh indexCount: (indices size - lastSubmesh firstIndex castTo: UInt32).
+        lastSubmesh indexOrVertexCount: (indices size - lastSubmesh firstIndex castTo: UInt32).
     }.
 
     method beginWithNewBaseVertex ::=> Void := {
@@ -364,7 +364,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
             return: void
         }.
 
-        let triangleCount := submesh indexCount / 3.
+        let triangleCount := submesh indexOrVertexCount / 3.
         let indexBase := submesh firstIndex.
 
         let i1 mutable := indexBase.

@@ -669,7 +669,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
         let lightSourceObject := spotLight object _ lightSourceObject.
 
-        let fov := lightSourceObject _ spotOuterCutoff.
+        let fov := lightSourceObject _ spotOuterCutoff * 2.0f.
         let nearDistance := 0.01f.
         let farDistance := lightState radius.
         let aspect := 1.0f.

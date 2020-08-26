@@ -161,6 +161,7 @@ class GLTFModelImporter definition: {
         let componentType := (object getUIntPointer: "componentType" asMutableString) castTo: GLTFAccessorComponentType.
         let type := object getString: "type" asMutableString.
         let normalized := object getBoolean8: "normalized" asMutableString default: false.
+        let columnCount mutable := 1u.
 
         bufferAccessor _ format: (
             type asArraySlice selectCase: #{
@@ -200,8 +201,38 @@ class GLTFModelImporter definition: {
                 GLTFAccessorComponentType Float : PixelFormat R32G32B32A32_Float.
                 }
             }.
+            "MAT2" : {
+                let columnCount := 2u.
+                componentType selectCase: #{
+                GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8_SNorm ifFalse: PixelFormat R8G8_SInt).
+                GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8_UNorm ifFalse: PixelFormat R8G8_UInt).
+                GLTFAccessorComponentType Short : (normalized ifTrue: PixelFormat R16G16_SNorm ifFalse: PixelFormat R16G16_SInt).
+                GLTFAccessorComponentType UnsignedShort : (normalized ifTrue: PixelFormat R16G16_UNorm ifFalse: PixelFormat R16G16_UInt).
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32_Float.
+                }
+            }.
+            "MAT3" : {
+                let columnCount := 3u.
+                componentType selectCase: #{
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32B32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32B32_Float.
+                }
+            }.
+            "MAT4" : {
+                let columnCount := 4u.
+                componentType selectCase: #{
+                GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8B8A8_SNorm ifFalse: PixelFormat R8G8B8A8_SInt).
+                GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8B8A8_UNorm ifFalse: PixelFormat R8G8B8A8_UInt).
+                GLTFAccessorComponentType Short : (normalized ifTrue: PixelFormat R16G16B16A16_SNorm ifFalse: PixelFormat R16G16B16A16_SInt).
+                GLTFAccessorComponentType UnsignedShort : (normalized ifTrue: PixelFormat R16G16B16A16_UNorm ifFalse: PixelFormat R16G16B16A16_UInt).
+                GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32B32A32_UInt.
+                GLTFAccessorComponentType Float : PixelFormat R32G32B32A32_Float.
+                }
+            }.
             }
         ).
+        bufferAccessor _ columnCount: columnCount.
     }.
 
     method parseAccessors: (list: JSON List const ref) ::=> Void := {
@@ -434,6 +465,9 @@ class GLTFModelImporter definition: {
             Stdn stdout << matrix fourthRow; nl.
         }.
 
+    }.
+
+    method parseNode: (node: ModelAssetNodePtr const ref) children: (object: JSON Object const ref) ::=> Void := {
         object at: "children" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             let children ref := (value get: JSON ListPtr) _.
             node _ children reserve: children size.
@@ -446,6 +480,10 @@ class GLTFModelImporter definition: {
     method parseNodes: (list: JSON List const ref) ::=> Void := {
         list do: {:each :: Void |
             self parseNode: (each get: JSON ObjectPtr) _
+        }.
+
+        list doWithIndex: {:each :index :: Void |
+            self parseNode: modelAsset _ nodes[index] children: (each get: JSON ObjectPtr) _
         }.
     }.
 

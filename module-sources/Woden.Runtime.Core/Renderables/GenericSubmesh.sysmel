@@ -16,19 +16,26 @@ class GenericSubmesh definition: {
     public field material type: MaterialPtr.
 
     public field firstIndex type: UInt32.
-    public field indexCount type: UInt32.
+    public field indexOrVertexCount type: UInt32.
     public field primitiveTopology type: PrimitiveTopology.
 
     method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
-        material isNil || vertexBinding isNil || indexBuffer isNil ifTrue: {return: void}.
+        material isNil || vertexBinding isNil || indexOrVertexCount = 0 ifTrue: {return: void}.
         (context vertexAttributeMask: vertexAttributeMask; activateMaterial: material) ifFalse: { return: void }.
 
         context stateTracker _ useVertexBinding: vertexBinding.
-        context stateTracker _ useIndexBuffer: indexBuffer at: indexBufferOffset stride: indexBufferStride.
 
-        context stateTracker _
-            primitiveTopology: primitiveTopology;
-			drawElements: indexCount instanceCount: 1 firstIndex: firstIndex baseVertex: 0 baseInstance: 0.
+        indexBuffer ifNil: {
+            context stateTracker _
+                primitiveTopology: primitiveTopology;
+                drawArrays: indexOrVertexCount instanceCount: 1 firstVertex: 0 baseInstance: 0
+        } ifNotNil: {
+            context stateTracker _ useIndexBuffer: indexBuffer at: indexBufferOffset stride: indexBufferStride.
+
+            context stateTracker _
+                primitiveTopology: primitiveTopology;
+    			drawElements: indexOrVertexCount instanceCount: 1 firstIndex: firstIndex baseVertex: 0 baseInstance: 0.
+        }.
     }.
 }.
 

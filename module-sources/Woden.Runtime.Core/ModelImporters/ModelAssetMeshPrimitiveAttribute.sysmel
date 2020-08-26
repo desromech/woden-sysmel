@@ -57,6 +57,11 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
             yourself)
     }.
 
+    const method vertexCount => UIntPointer := {
+        attributes ifEmpty: {return: 0}.
+        attributes first accessor _ count.
+    }.
+
     const method hasTangent4 => Boolean8 := {
         attributes do: {:each :: Void |
             each location = VertexAttributeLocation Tangent4 ifTrue: {
