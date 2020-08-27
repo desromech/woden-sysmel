@@ -158,6 +158,21 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         mesh
     }.
 
+    public field skeletons type: Stdn Collections Vector(ModelAssetSkeletonPtr).
+
+    method addSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) ::=> Void := {
+        skeleton _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: skeletons size.
+        skeletons add: skeleton
+    }.
+
+    method newSkeleton => ModelAssetSkeletonPtr := {
+        let skeleton := ModelAssetSkeleton sharedNew.
+        self addSkeleton: skeleton.
+        skeleton
+    }.
+
     public field nodes type: Stdn Collections Vector(ModelAssetNodePtr).
 
     method addNode: (node: ModelAssetNodePtr const ref) ::=> Void := {
@@ -205,6 +220,21 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         scene
     }.
 
+    public field animations type: Stdn Collections Vector(ModelAssetAnimationPtr).
+
+    method addAnimation: (animation: ModelAssetAnimationPtr const ref) ::=> Void := {
+        animation _
+            modelAssetWeakPointer: self asWeakPointer;
+            index: animations size.
+        animations add: animation
+    }.
+
+    method newAnimation => ModelAssetAnimationPtr := {
+        let animation := ModelAssetAnimation sharedNew.
+        self addAnimation: animation.
+        animation
+    }.
+
     field vertexBindingCache type: Stdn Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingPtr).
 
     method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingPtr := {
@@ -237,41 +267,18 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
 
         ## Create linear buffers that are more convenient to process.
         let vertexCount := positionsAccessors _ count.
-        let positions mutable := Stdn Collections Vector(Float32x3)().
-        let texcoords mutable := Stdn Collections Vector(Float32x2)().
-        let normals mutable := Stdn Collections Vector(Float32x3)().
+        let positions mutable := positionsAccessors _ decodeAsVectorOfFloat32x3.
+        let texcoords mutable := texcoordAccessors _ decodeAsVectorOfFloat32x2.
+        let normals mutable := normalsAccessors _ decodeAsVectorOfFloat32x3.
+
+        positions isEmpty || texcoords isEmpty || normals isEmpty ifTrue: {
+            return: void
+        }.
+
         let tangents mutable := Stdn Collections Vector(Float32x3)().
         let bitangents mutable := Stdn Collections Vector(Float32x3)().
-
-        positions resizeTo: vertexCount.
-        texcoords resizeTo: vertexCount.
-        normals resizeTo: vertexCount.
         tangents resizeTo: vertexCount.
         bitangents resizeTo: vertexCount.
-
-        ## Read the positions, texcoords, and normals.
-        ## FIXME: Refactor this into the accessors.
-        {
-            let positionsStride := positionsAccessors _ bufferView _ stride max: 12.
-            let positionsBuffer := positionsAccessors _ asCPUBufferPointer.
-
-            let normalsStride := normalsAccessors _ bufferView _ stride max: 12.
-            let normalsBuffer := normalsAccessors _ asCPUBufferPointer.
-
-            let texcoordStride := texcoordAccessors _ bufferView _ stride max: 8.
-            let texcoordBuffer := texcoordAccessors _ asCPUBufferPointer.
-
-            0 until: vertexCount do: {:i :: Void |
-                let position := positionsBuffer + i*positionsStride reinterpretCastTo: Float32 pointer.
-                positions[i] := Float32x3(position[0], position[1], position[2]).
-
-                let normal := normalsBuffer + i*normalsStride reinterpretCastTo: Float32 pointer.
-                normals[i] := Float32x3(normal[0], normal[1], normal[2]).
-
-                let texcoord := texcoordBuffer + i*texcoordStride reinterpretCastTo: Float32 pointer.
-                texcoords[i] := Float32x2(texcoord[0], texcoord[1]).
-            }.
-        }.
 
         ## Process all of the triangles.
         ## FIXME: Use Mikktspace here.

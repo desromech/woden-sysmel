@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+#**
+ * I am an animation channel
+ *#
+class ModelAssetAnimationChannel definition: {
+    public field sampler type: ModelAssetAnimationSamplerPtr.
+    public field targetNode type: ModelAssetNodePtr.
+    public field targetProperty type: ModelAssetAnimationTargetProperty.
+}.
+compileTime constant ModelAssetAnimationChannelPtr := ModelAssetAnimationChannel sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

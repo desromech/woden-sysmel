@@ -1,0 +1,19 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Math Geometry.
+
+#**
+ * I represent a skeleton which is composed of a hierarchy of unions.
+ *#
+class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
+    public field inverseBindMatricesAccessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field joints type: Stdn Collections Vector(ModelAssetNodePtr).
+    public field rootJoint type: ModelAssetNodePtr.
+}.
+
+compileTime constant ModelAssetSkeletonPtr := ModelAssetSkeleton sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

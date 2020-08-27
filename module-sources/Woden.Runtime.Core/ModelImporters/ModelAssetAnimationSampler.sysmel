@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+#**
+ * I am an animation sampler
+ *#
+class ModelAssetAnimationSampler definition: {
+    public field inputAccessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field outputAccessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field interpolationMethod type: ModelAssetAnimationInterpolationMethod.
+}.
+
+compileTime constant ModelAssetAnimationSamplerPtr := ModelAssetAnimationSampler sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

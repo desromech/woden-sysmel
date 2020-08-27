@@ -1,0 +1,17 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Woden Runtime.
+
+#**
+ * I am an animation present in a model asset.
+ *#
+class ModelAssetAnimation superclass: ModelAssetElement; definition: {
+    public field channels type: Stdn Collections Vector(ModelAssetAnimationChannelPtr).
+    public field samplers type: Stdn Collections Vector(ModelAssetAnimationSamplerPtr).
+}.
+
+compileTime constant ModelAssetAnimationPtr := ModelAssetAnimation sharedPointer.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

@@ -12,8 +12,14 @@ loadFileOnce: "ModelAssetMetallicRoughnessMaterial.sysmel".
 loadFileOnce: "ModelAssetMeshPrimitiveAttribute.sysmel".
 loadFileOnce: "ModelAssetMeshPrimitive.sysmel".
 loadFileOnce: "ModelAssetMesh.sysmel".
+loadFileOnce: "ModelAssetSkeleton.sysmel".
 loadFileOnce: "ModelAssetNode.sysmel".
 loadFileOnce: "ModelAssetScene.sysmel".
+loadFileOnce: "ModelAssetAnimationInterpolationMethod.sysmel".
+loadFileOnce: "ModelAssetAnimationTargetProperty.sysmel".
+loadFileOnce: "ModelAssetAnimationSampler.sysmel".
+loadFileOnce: "ModelAssetAnimationChannel.sysmel".
+loadFileOnce: "ModelAssetAnimation.sysmel".
 loadFileOnce: "ModelAsset.sysmel".
 loadFileOnce: "ModelResourceCache.sysmel".
 loadFileOnce: "ModelImporterExporter.sysmel".

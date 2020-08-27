@@ -37,6 +37,111 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     method asCPUBufferPointer => UInt8 pointer
         := bufferView _ asCPUBufferPointer + offset.
 
+    method decodeAsVectorOfFloat32x2 => Stdn Collections Vector(Float32x2) := {
+        let result mutable type: Stdn Collections Vector(Float32x2).
+        bufferView ifNil: {return: result asMoveReference}.
+
+        let bufferPointer := self asCPUBufferPointer.
+
+        format selectCase: #{
+        PixelFormat R32G32_Float : {
+            let stride := bufferView _ stride max: 12.
+            result resizeTo: count.
+
+            let sourcePointer mutable := bufferPointer.
+            let destPointer := result data.
+            0 until: count do: {:i :: Void |
+                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                destPointer[i] := Float32x2(castedElement[0], castedElement[1]).
+                sourcePointer := sourcePointer + stride
+            }
+        }.
+        _ : {}
+        }.
+
+        result asMoveReference
+    }.
+
+    method decodeAsVectorOfFloat32x3 => Stdn Collections Vector(Float32x3) := {
+        let result mutable type: Stdn Collections Vector(Float32x3).
+        bufferView ifNil: {return: result asMoveReference}.
+
+        let bufferPointer := self asCPUBufferPointer.
+
+        format selectCase: #{
+        PixelFormat R32G32B32_Float : {
+            let stride := bufferView _ stride max: 12.
+            result resizeTo: count.
+
+            let sourcePointer mutable := bufferPointer.
+            let destPointer := result data.
+            0 until: count do: {:i :: Void |
+                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                destPointer[i] := Float32x3(castedElement[0], castedElement[1], castedElement[2]).
+                sourcePointer := sourcePointer + stride
+            }
+        }.
+        _ : {}
+        }.
+
+        result asMoveReference
+    }.
+
+    method decodeAsVectorOfFloat32x4 => Stdn Collections Vector(Float32x4) := {
+        let result mutable type: Stdn Collections Vector(Float32x4).
+        bufferView ifNil: {return: result asMoveReference}.
+
+        let bufferPointer := self asCPUBufferPointer.
+
+        format selectCase: #{
+        PixelFormat R32G32B32A32_Float : {
+            let stride := bufferView _ stride max: 12.
+            result resizeTo: count.
+
+            let sourcePointer mutable := bufferPointer.
+            let destPointer := result data.
+            0 until: count do: {:i :: Void |
+                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                destPointer[i] := Float32x4(castedElement[0], castedElement[1], castedElement[2], castedElement[3]).
+                sourcePointer := sourcePointer + stride
+            }
+        }.
+        _ : {}
+        }.
+
+        result asMoveReference
+    }.
+
+    method decodeAsVectorOfFloat32x4x4 => Stdn Collections Vector(Float32x4x4) := {
+        let result mutable type: Stdn Collections Vector(Float32x4x4).
+        columnCount ~= 4 || bufferView isNil ifTrue: {return: result asMoveReference}.
+
+        let bufferPointer := self asCPUBufferPointer.
+
+        format selectCase: #{
+        PixelFormat R32G32B32A32_Float : {
+            let stride := bufferView _ stride max: 12.
+            result resizeTo: count.
+
+            let sourcePointer mutable := bufferPointer.
+            let destPointer := result data.
+            0 until: count do: {:i :: Void |
+                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                let firstColumn := Float32x4(castedElement[0], castedElement[1], castedElement[2], castedElement[3]).
+                let secondColumn := Float32x4(castedElement[4], castedElement[5], castedElement[6], castedElement[7]).
+                let thirdColumn := Float32x4(castedElement[8], castedElement[9], castedElement[10], castedElement[11]).
+                let fourthColumn := Float32x4(castedElement[12], castedElement[13], castedElement[14], castedElement[15]).
+
+                destPointer[i] := Float32x4x4(firstColumn, secondColumn, thirdColumn, fourthColumn).
+                sourcePointer := sourcePointer + stride
+            }
+        }.
+        _ : {}
+        }.
+
+        result asMoveReference
+    }.
+
     method trianglesDo: (aBlock: ((UInt32 -- UInt32 -- UInt32) => Void) nativeStackBlockClosure) ::=> Void := {
         format selectCase: #{
         PixelFormat R8_UInt : {

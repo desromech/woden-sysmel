@@ -11,6 +11,7 @@ useNamespace: Stdn Math LinearAlgebra.
 class ModelAssetNode superclass: ModelAssetElement; definition: {
     public field children type: Stdn Collections Vector(ModelAssetNode sharedPointer).
     public field mesh type: ModelAssetMeshPtr.
+    public field skeleton type: ModelAssetSkeleton sharedPointer.
     public field transform type: ReversibleAffineTransform3dF32.
     public field scale type: Float32x3.
     public field rotationQuaternion type: QuaternionF32.
@@ -25,7 +26,11 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
     method asSceneNodeFor: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
         let node := SpatialObjectNode sharedNew.
         mesh ifNotNil: {
-            node _ renderable: (mesh _ asRenderableFor: engine)
+            node _ renderable: (mesh _ asRenderableFor: engine).
+
+            skeleton ifNotNil: {
+                Stdn stdout << "TODO: Create a MeshWithSkin renderable"; nl.
+            }
         }.
 
         node _ transform: transform.

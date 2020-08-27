@@ -35,7 +35,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/glTF-Samples/Fox/glTF/Fox" asNativeFileReference.
         modelAsset ifNotNil: {
-            let foxNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            let foxNode := modelAsset _  createSceneNodeNamed: "fox" asMutableString for: model engine.
             foxNode _
                 scaleBy: 0.015f;
                 rotateDegreesOnY: 90;
