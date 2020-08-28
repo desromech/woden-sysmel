@@ -1,0 +1,12 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+enum AnimationChannelTargetProperty valueType: UInt8; values: #{
+    Rotation: 0.
+    Scale:.
+    Translation:.
+    Weights:.
+}.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

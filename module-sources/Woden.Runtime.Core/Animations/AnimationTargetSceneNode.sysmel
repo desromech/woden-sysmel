@@ -1,0 +1,133 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math.
+
+class AnimationTargetSceneNode superclass: AnimationTarget; definition: {
+    field sceneNode type: SceneNodePtr.
+    field skeletonPose type: SkeletonPosePtr.
+
+    method initializeWithSceneNode: (theSceneNode: SceneNodePtr const ref) ::=> Void := {
+        sceneNode := theSceneNode.
+        sceneNode ifNotNil: {
+            skeletonPose := sceneNode _ getSkeletonPose
+        }.
+    }.
+
+    override method setJoint: (jointIndex: UIntPointer) scale: (scale: Float32x3) ::=> Void := {
+        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+
+        skeletonPose _ setJoint: jointIndex scale: scale
+    }.
+
+    override method setJoint: (jointIndex: UIntPointer) rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {
+        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+
+        skeletonPose _ setJoint: jointIndex rotation: rotation
+    }.
+
+    override method setJoint: (jointIndex: UIntPointer) translation: (translation: Float32x3) ::=> Void := {
+        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+
+        skeletonPose _ setJoint: jointIndex translation: translation
+    }.
+
+    override method scale: (scale: Float32x3) ::=> Void := {
+
+    }.
+
+    override method rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {
+
+    }.
+
+    override method rotationMatrix: (rotation: Float32x3x3) ::=> Void := {
+
+    }.
+
+    override method translation: (translation: Float32x3) ::=> Void := {
+        sceneNode _ translateTo: translation
+    }.
+
+    override method scaleBy: (scale: Float32x3) ::=> Void := {
+        sceneNode _ scaleBy: scale
+    }.
+
+    override method scaleByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
+        sceneNode _ scaleByX: x y: y z: z
+    }.
+
+    override method rotateRadiansOnX: (value: Float32) ::=> Void := {
+        sceneNode _ rotateRadiansOnX: value
+    }.
+
+    override method rotateRadiansOnY: (value: Float32) ::=> Void := {
+        sceneNode _ rotateRadiansOnY: value
+    }.
+
+    override method rotateRadiansOnZ: (value: Float32) ::=> Void := {
+        sceneNode _ rotateRadiansOnZ: value
+    }.
+
+    override method rotateDegreesOnX: (value: Float32) ::=> Void := {
+        sceneNode _ rotateDegreesOnX: value
+    }.
+
+    override method rotateDegreesOnY: (value: Float32) ::=> Void := {
+        sceneNode _ rotateDegreesOnY: value
+    }.
+
+    override method rotateDegreesOnZ: (value: Float32) ::=> Void := {
+        sceneNode _ rotateDegreesOnZ: value
+    }.
+
+    override method translateBy: (vector3: Float32x3) ::=> Void := {
+        sceneNode _ translateBy: vector3
+    }.
+
+    override method translateByX: (x: Float32) ::=> Void := {
+        sceneNode _ translateByX: x
+    }.
+
+    override method translateByY: (y: Float32) ::=> Void := {
+        sceneNode _ translateByY: y
+    }.
+
+    override method translateByZ: (z: Float32) ::=> Void := {
+        sceneNode _ translateByZ: z
+    }.
+
+    override method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32)::=> Void := {
+        sceneNode _ translateByX: x y: y z: z
+    }.
+
+    override method translateToX: (x: Float32) ::=> Void := {
+        sceneNode _ translateToX: x
+    }.
+
+    override method translateToY: (y: Float32) ::=> Void := {
+        sceneNode _ translateToY: y
+    }.
+
+    override method translateToZ: (z: Float32) ::=> Void := {
+        sceneNode _ translateToZ: z
+    }.
+
+    override method translateToX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
+        sceneNode _ translateToX: x y: y z: z
+    }.
+}.
+
+compileTime constant AnimationTargetSceneNodePtr := AnimationTargetSceneNode sharedPointer.
+
+AnimationTarget extend: {
+    meta definition: {
+        method forSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationTarget sharedPointer := {
+            let result := AnimationTargetSceneNode sharedNew.
+            result _ initializeWithSceneNode: sceneNode.
+            result upCastFor: AnimationTarget
+        }
+    }
+}.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

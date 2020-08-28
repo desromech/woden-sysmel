@@ -8,8 +8,7 @@ class WaterRenderableMesh superclass: SurfaceDeformationRenderableMesh; definiti
     public field waterDeformationState type: Woden Shaders WaterDeformationState.
 
     override method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8 := {
-        context uploadAndActivateDeformationState: waterDeformationState address size: Woden Shaders WaterDeformationState instanceSize
-            on: deformationStateCache
+        context uploadAndActivateWaterDeformationState: waterDeformationState on: deformationStateCache
     }.
 }.
 

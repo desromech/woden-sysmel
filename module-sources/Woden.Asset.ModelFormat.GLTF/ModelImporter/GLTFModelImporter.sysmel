@@ -202,7 +202,7 @@ class GLTFModelImporter definition: {
                 }
             }.
             "MAT2" : {
-                let columnCount := 2u.
+                columnCount := 2u.
                 componentType selectCase: #{
                 GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8_SNorm ifFalse: PixelFormat R8G8_SInt).
                 GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8_UNorm ifFalse: PixelFormat R8G8_UInt).
@@ -213,14 +213,14 @@ class GLTFModelImporter definition: {
                 }
             }.
             "MAT3" : {
-                let columnCount := 3u.
+                columnCount := 3u.
                 componentType selectCase: #{
                 GLTFAccessorComponentType UnsignedInt : PixelFormat R32G32B32_UInt.
                 GLTFAccessorComponentType Float : PixelFormat R32G32B32_Float.
                 }
             }.
             "MAT4" : {
-                let columnCount := 4u.
+                columnCount := 4u.
                 componentType selectCase: #{
                 GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8G8B8A8_SNorm ifFalse: PixelFormat R8G8B8A8_SInt).
                 GLTFAccessorComponentType UnsignedByte : (normalized ifTrue: PixelFormat R8G8B8A8_UNorm ifFalse: PixelFormat R8G8B8A8_UInt).
@@ -548,6 +548,7 @@ class GLTFModelImporter definition: {
     method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: JSON Object const ref) ::=> Void := {
         let sampler := ModelAssetAnimationSampler sharedNew.
         sampler _
+            index: animation _ samplers size;
             inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "input" asMutableString]);
             outputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "output" asMutableString]).
 
@@ -567,7 +568,7 @@ class GLTFModelImporter definition: {
 
         let target := object getObject: "target" asMutableString.
         let path := target _ getString: "path" asMutableString.
-        channel _ targetProperty: (path selectCase: #{
+        channel _ targetProperty: (path asArraySlice selectCase: #{
             "translation" : ModelAssetAnimationTargetProperty Translation.
             "rotation" : ModelAssetAnimationTargetProperty Rotation.
             "scale" : ModelAssetAnimationTargetProperty Scale.
@@ -648,7 +649,9 @@ class GLTFModelImporter definition: {
             self parseAnimations: (value get: JSON ListPtr) _
         }.
 
-        modelAsset _ cleanupMeshes.
+        modelAsset _
+            cleanupMeshes;
+            cleanupSkeletons.
         modelAsset
     }.
 

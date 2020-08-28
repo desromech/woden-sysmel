@@ -1,12 +1,9 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
-enum ModelAssetAnimationTargetProperty valueType: UInt8; values: #{
-    Rotation: 0.
-    Scale:.
-    Translation:.
-    Weights:.
-}.
+useNamespace: Woden Runtime.
+
+compileTime constant ModelAssetAnimationTargetProperty := AnimationChannelTargetProperty.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

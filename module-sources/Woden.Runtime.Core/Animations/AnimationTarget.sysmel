@@ -1,0 +1,43 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math.
+
+class AnimationTarget superclass: Stdn SharedObject; definition: {
+    virtual method setJoint: (jointIndex: UIntPointer) scale: (scale: Float32x3) ::=> Void := {}.
+    virtual method setJoint: (jointIndex: UIntPointer) rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {}.
+    virtual method setJoint: (jointIndex: UIntPointer) translation: (translation: Float32x3) ::=> Void := {}.
+
+    virtual method scale: (scale: Float32x3) ::=> Void := {}.
+    virtual method rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {}.
+    virtual method rotationMatrix: (rotation: Float32x3x3) ::=> Void := {}.
+    virtual method translation: (translation: Float32x3) ::=> Void := {}.
+
+    virtual method scaleBy: (scale: Float32x3) ::=> Void := {}.
+    virtual method scaleByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {}.
+
+    virtual method rotateRadiansOnX: (value: Float32) ::=> Void := {}.
+    virtual method rotateRadiansOnY: (value: Float32) ::=> Void := {}.
+    virtual method rotateRadiansOnZ: (value: Float32) ::=> Void := {}.
+
+    virtual method rotateDegreesOnX: (value: Float32) ::=> Void := {}.
+    virtual method rotateDegreesOnY: (value: Float32) ::=> Void := {}.
+    virtual method rotateDegreesOnZ: (value: Float32) ::=> Void := {}.
+
+    virtual method translateBy: (vector3: Float32x3) ::=> Void := {}.
+    virtual method translateByX: (x: Float32) ::=> Void := {}.
+    virtual method translateByY: (y: Float32) ::=> Void := {}.
+
+    virtual method translateByZ: (z: Float32) ::=> Void := {}.
+    virtual method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32)::=> Void := {}.
+
+    virtual method translateToX: (x: Float32) ::=> Void := {}.
+    virtual method translateToY: (y: Float32) ::=> Void := {}.
+    virtual method translateToZ: (z: Float32) ::=> Void := {}.
+    virtual method translateToX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {}.
+}.
+
+compileTime constant AnimationTargetPtr := AnimationTarget sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

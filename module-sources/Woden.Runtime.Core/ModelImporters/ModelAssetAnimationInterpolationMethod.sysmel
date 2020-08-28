@@ -1,11 +1,7 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
-enum ModelAssetAnimationInterpolationMethod valueType: UInt8; values: #{
-    Linear: 0.
-    Step:.
-    CubicSpline:.
-}.
+compileTime constant ModelAssetAnimationInterpolationMethod := Woden Runtime AnimationInterpolationMethod.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

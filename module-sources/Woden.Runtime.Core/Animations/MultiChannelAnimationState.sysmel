@@ -1,0 +1,12 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+
+class MultiChannelAnimationState superclass: AnimationState; definition: {
+    public field curveStates type: Stdn Collections Vector(AnimationCurveState).
+}.
+
+compileTime constant MultiChannelAnimationStatePtr := MultiChannelAnimationState sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

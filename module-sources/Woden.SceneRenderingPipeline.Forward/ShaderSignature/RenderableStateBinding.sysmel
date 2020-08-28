@@ -3,6 +3,7 @@ namespace Shaders definition: {
 
 class RenderableStateBinding definition: {
     public field waterDeformationState type: WaterDeformationState uniformBufferPointer.
+    public field skinDeformationState type: SkinDeformationState uniformBufferPointer; location: 0.
 }.
 
 }. ## End of namespace Shaders

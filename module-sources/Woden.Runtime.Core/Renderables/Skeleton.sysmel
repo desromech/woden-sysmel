@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a skeleton in a skinned mesh.
+ *#
+class Skeleton superclass: Stdn SharedObject; definition: {
+    public field bones type: Stdn Collections Vector(Bone).
+}.
+
+compileTime constant SkeletonPtr := Skeleton sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -47,6 +47,9 @@ class Renderable superclass: Stdn SharedObject; definition: {
     virtual method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
 
     }.
+
+    virtual method getSkeletonPose => SkeletonPosePtr
+        := SkeletonPosePtr nil.
 }.
 
 compileTime constant RenderablePtr := Renderable sharedPointer.

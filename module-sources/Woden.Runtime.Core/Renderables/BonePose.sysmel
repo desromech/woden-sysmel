@@ -1,0 +1,23 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math.
+
+#**
+ * I am a specific pose of a bone.
+ *#
+class BonePose definition: {
+    public field scale type: Float32x3.
+    public field rotation type: QuaternionF32.
+    public field translation type: Float32x3.
+
+    public field matrix type: Float32x4x4.
+
+    inline method computePoseMatrix => Void := {
+        let rotationScale := rotation asFloat32x3x3 * (Float32x3x3 scale: scale).
+        matrix := Float32x4x4 mat3: rotationScale translation: translation
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -1,0 +1,26 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class Animation superclass: Stdn SharedObject; definition: {
+    virtual method update: (time: Float32) withState: (state: AnimationState ref) ::=> Boolean8
+        := false.
+
+    virtual method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState sharedPointer := {
+        let result := AnimationState sharedNew.
+        result _
+            initializeWithAnimation: self asSharedPointer target: target;
+            isLooped: isLooped.
+        result
+    }.
+
+    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodePtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState sharedPointer
+        := self newStateForTarget: (AnimationTarget forSceneNode: sceneNode) looped: isLooped.
+
+    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationState sharedPointer
+        := self newStateForTargetSceneNode: sceneNode looped: false.
+}.
+
+compileTime constant AnimationPtr := Animation sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

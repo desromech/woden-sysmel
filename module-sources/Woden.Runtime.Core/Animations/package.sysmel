@@ -1,0 +1,16 @@
+loadFileOnce: "Animation.sysmel".
+loadFileOnce: "AnimationState.sysmel".
+loadFileOnce: "AnimationScheduler.sysmel".
+
+loadFileOnce: "AnimationInterpolationMethod.sysmel".
+loadFileOnce: "AnimationCurve.sysmel".
+loadFileOnce: "InterpolatedAnimationCurve.sysmel".
+loadFileOnce: "AnimationTarget.sysmel".
+loadFileOnce: "AnimationTargetSceneNode.sysmel".
+loadFileOnce: "AnimationChannel.sysmel".
+loadFileOnce: "AnimationChannelTargetProperty.sysmel".
+loadFileOnce: "AnimationChannelWithCurve.sysmel".
+loadFileOnce: "AnimationJointChannelWithCurve.sysmel".
+
+loadFileOnce: "MultiChannelAnimation.sysmel".
+loadFileOnce: "MultiChannelAnimationState.sysmel".

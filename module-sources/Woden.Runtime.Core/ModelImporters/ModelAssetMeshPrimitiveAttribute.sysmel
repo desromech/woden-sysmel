@@ -62,6 +62,16 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
         attributes first accessor _ count.
     }.
 
+    const method hasNormal => Boolean8 := {
+        attributes do: {:each :: Void |
+            each location = VertexAttributeLocation Normal ifTrue: {
+                return: true
+            }
+        }.
+
+        false
+    }.
+
     const method hasTangent4 => Boolean8 := {
         attributes do: {:each :: Void |
             each location = VertexAttributeLocation Tangent4 ifTrue: {
@@ -104,21 +114,27 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
         let lastBufferView mutable := ModelAssetBinaryBufferViewPtr nil.
 
         let bindingDescription mutable := ModelAssetPrimitiveAttributesBindingDescription().
+        let lastBufferAccessorStartOffset mutable type: UIntPointer.
+        let lastBufferStride mutable type: UIntPointer.
 
         convertedVertexAttributeMask := 0.
         attributes do: {:each :: Void |
             let newView := each accessor _ bufferView.
             let newViewStride := newView _ stride.
             let attributeStride := each accessor _ format bytesPerPixel.
-            lastBufferView ~= newView || newViewStride = 0 ifTrue: {
+            lastBufferView ~= newView || newViewStride = 0 ||
+            ((each accessor _ offset - lastBufferAccessorStartOffset castTo: IntPointer) abs >= (lastBufferStride castTo: IntPointer)) ifTrue: {
                 newViewStride = 0 ifTrue: {
                     vertexLayoutDescription addBufferWithStride: attributeStride
                 } ifFalse: {
                     vertexLayoutDescription addBufferWithStride: (newViewStride castTo: UInt32)
                 }.
                 let newBufferStride := vertexLayoutDescription strides last.
+                lastBufferStride := newBufferStride.
+                lastBufferAccessorStartOffset := (each accessor _ offset / newBufferStride) * newBufferStride.
+
                 bindingDescription buffers add: (newView _ asVertexBufferFor: engine).
-                bindingDescription offsets add: (newView _ asGpuBufferOffset + (each accessor _ offset / newBufferStride) * newBufferStride castTo: UInt32).
+                bindingDescription offsets add: (newView _ asGpuBufferOffset + lastBufferAccessorStartOffset castTo: UInt32).
 
                 lastBufferView := newView.
             }.

@@ -1,7 +1,27 @@
 namespace Woden definition: {
 namespace Application definition: {
 
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics GUI.
+
 class SampleSceneModel superclass: SceneModel; definition: {
+    field animationScheduler type: AnimationSchedulerPtr.
+
+    const inline method animationScheduler => AnimationSchedulerPtr const ref
+        := animationScheduler.
+
+    override method initializeModel => Boolean8 := {
+        super initializeModel ifFalse: {return: false}.
+        animationScheduler := AnimationScheduler sharedNew.
+        true.
+    }.
+
+    override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
+        super onStartFrameTick: event.
+
+        animationScheduler _ update: (event deltaSeconds castTo: Float32)
+    }.
+
     override method createNewView => ViewPtr
         := SampleSceneView sharedNew upCastFor: View.
 }.

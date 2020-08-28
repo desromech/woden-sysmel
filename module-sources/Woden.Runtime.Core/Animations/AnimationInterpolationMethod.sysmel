@@ -1,0 +1,11 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+enum AnimationInterpolationMethod valueType: UInt8; values: #{
+    Linear: 0.
+    Step:.
+    CubicSpline:.
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

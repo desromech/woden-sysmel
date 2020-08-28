@@ -1,0 +1,43 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class MultiChannelAnimation superclass: Animation; definition: {
+    public field duration type: Float32.
+    public field curves type: Stdn Collections Vector(AnimationCurvePtr).
+    public field channels type: Stdn Collections Vector(AnimationChannelPtr).
+
+    override method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState sharedPointer := {
+        let result := MultiChannelAnimationState sharedNew.
+        result _
+            initializeWithAnimation: (self asSharedPointer upCastFor: Animation) target: target;
+            isLooped: isLooped.
+        result _ curveStates resizeTo: curves size.
+        result upCastFor: AnimationState
+    }.
+
+    override method update: (deltaTime: Float32) withState: (state: AnimationState ref) ::=> Boolean8 := {
+        state currentTime >= duration ifTrue: {
+            state isLooped ifTrue: {
+                state currentTime := state currentTime - (state currentTime / duration) floor * duration.
+            } ifFalse: {
+                return: false
+            }
+        }.
+
+        let multiChannelState ref := (state address reinterpretCastTo: MultiChannelAnimationState pointer) _.
+        curves doWithIndex: {:eachCurve :index :: Void |
+            multiChannelState curveStates[index] := eachCurve _ computeCurveStateAtTime: state currentTime
+        }.
+
+        channels do: {:each :: Void |
+            each _ applyChannelState: multiChannelState atTime: state currentTime
+        }.
+
+        true
+    }.
+}.
+
+compileTime constant MultiChannelAnimationPtr := MultiChannelAnimation sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

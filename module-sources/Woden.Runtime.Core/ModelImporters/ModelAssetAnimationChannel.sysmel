@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
+useNamespace: Woden Runtime.
+
 #**
  * I am an animation channel
  *#
@@ -8,6 +10,23 @@ class ModelAssetAnimationChannel definition: {
     public field sampler type: ModelAssetAnimationSamplerPtr.
     public field targetNode type: ModelAssetNodePtr.
     public field targetProperty type: ModelAssetAnimationTargetProperty.
+
+    method asAnimationChannel => AnimationChannelPtr := {
+        targetNode _ isJoint ifFalse: {
+            let channel := AnimationChannelWithCurve sharedNew.
+            channel _
+                curveIndex: sampler _ index;
+                targetProperty: targetProperty.
+            channel upCastFor: AnimationChannel
+        } ifTrue: {
+            let channel := AnimationJointChannelWithCurve sharedNew.
+            channel _
+                curveIndex: sampler _ index;
+                jointIndex: targetNode _ jointIndex;
+                targetProperty: targetProperty.
+            channel upCastFor: AnimationChannel
+        }.
+    }
 }.
 compileTime constant ModelAssetAnimationChannelPtr := ModelAssetAnimationChannel sharedPointer.
 

@@ -19,6 +19,8 @@ class SceneModel superclass: Model; definition: {
         := mainCamera.
 
     override method initializeModel => Boolean8 := {
+        super initializeModel ifFalse: {return: false}.
+
         scene := Scene sharedNew.
         true.
     }.

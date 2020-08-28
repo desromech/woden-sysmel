@@ -11,7 +11,14 @@ useNamespace: Stdn Math LinearAlgebra.
 class ModelAssetNode superclass: ModelAssetElement; definition: {
     public field children type: Stdn Collections Vector(ModelAssetNode sharedPointer).
     public field mesh type: ModelAssetMeshPtr.
+
     public field skeleton type: ModelAssetSkeleton sharedPointer.
+
+    public field isJoint type: Boolean8.
+    public field hasValidJointIndex type: Boolean8.
+    public field jointIndex type: UIntPointer.
+    public field parentJointIndex type: IntPointer.
+
     public field transform type: ReversibleAffineTransform3dF32.
     public field scale type: Float32x3.
     public field rotationQuaternion type: QuaternionF32.
@@ -29,7 +36,12 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
             node _ renderable: (mesh _ asRenderableFor: engine).
 
             skeleton ifNotNil: {
-                Stdn stdout << "TODO: Create a MeshWithSkin renderable"; nl.
+                let skinnedMesh := SkinnedRenderableMesh sharedNew.
+                skinnedMesh _
+                    mesh: node _ renderable;
+                    skeleton: (skeleton _ asSkeleton);
+                    createRestPose.
+                node _ renderable: (skinnedMesh upCastFor: Renderable)
             }
         }.
 

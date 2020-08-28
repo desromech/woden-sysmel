@@ -1,0 +1,11 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct SkinDeformationState definition: {
+	<gpu>
+    compileTime constant MaxBoneCount := 256.
+    public field skinMatrices type: (Float32x4x4 array: MaxBoneCount).
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

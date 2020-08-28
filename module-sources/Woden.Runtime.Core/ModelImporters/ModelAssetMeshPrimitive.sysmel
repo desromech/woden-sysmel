@@ -17,6 +17,19 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
     method boundingBox => BoxF32
         := attributes _ boundingBox.
 
+    method trianglesDo: (aBlock: ((UInt32 -- UInt32 -- UInt32) => Void) nativeStackBlockClosure) ::=> Void := {
+        primitiveTopology = PrimitiveTopology Triangles ifTrue: {
+            indices ifNil: {
+                let triangleCount := attributes _ vertexCount / 3u castTo: UInt32.
+                0 until: triangleCount do: {:i :: Void |
+                    aBlock(i*3, i*3 + 1, i*3 + 2)
+                }.
+            } ifNotNil: {
+                indices _ trianglesDo: aBlock
+            }.
+        }.
+    }.
+
     method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
         let result mutable :=  GenericSubmesh()
             vertexBinding: (attributes _ asVertexBindingFor: engine);

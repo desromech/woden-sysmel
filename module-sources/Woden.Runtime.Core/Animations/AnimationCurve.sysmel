@@ -1,0 +1,52 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math.
+
+struct AnimationCurveState definition: {
+    public field value type: Float32x4.
+
+    meta definition: {
+        static method value: (scalar: Float32) ::=> InstanceType
+            := InstanceType()
+                value: Float32x4(scalar, 0, 0, 0);
+                yourself.
+
+        static method value: (vector2: Float32x2) ::=> InstanceType
+            := InstanceType()
+                value: Float32x4(vector2, 0, 0);
+                yourself.
+
+        static method value: (vector3: Float32x3) ::=> InstanceType
+            := InstanceType()
+                value: Float32x4(vector3, 0);
+                yourself.
+
+        static method value: (vector4: Float32x4) ::=> InstanceType
+            := InstanceType()
+                value: vector4;
+                yourself.
+    }.
+
+    const inline method rotationQuaternion => QuaternionF32
+        := QuaternionF32 xyzw: value normalized.
+
+    const inline method scale => Float32x3
+        := value xyz.
+
+    const inline method translation => Float32x3
+        := value xyz.
+}.
+
+class AnimationCurve superclass: Stdn SharedObject; definition: {
+    public field startTime type: Float32.
+    public field endTime type: Float32.
+
+    virtual method computeCurveStateAtTime: (time: Float32) ::=> AnimationCurveState
+        := AnimationCurveState().
+}.
+
+compileTime constant AnimationCurvePtr := AnimationCurve sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

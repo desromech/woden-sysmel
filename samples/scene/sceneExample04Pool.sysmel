@@ -102,7 +102,6 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
         let renderable := WaterRenderableMesh sharedNew.
         renderable _
-            engine: engine;
             mesh: meshBuilder _ renderable.
         renderable _ mesh _ withoutDepthWrite.
 

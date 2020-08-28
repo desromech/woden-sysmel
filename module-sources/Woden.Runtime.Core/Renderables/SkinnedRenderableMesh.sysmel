@@ -1,0 +1,33 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am a renderable that has skeleton based deformation.
+ *#
+class SkinnedRenderableMesh superclass: MeshWithExtraDeformationRenderable; definition: {
+    public field skeleton type: SkeletonPtr.
+    public field skeletonPose type: SkeletonPosePtr.
+
+    override method getSkeletonPose => SkeletonPosePtr
+        := skeletonPose.
+
+    method createRestPose => Void := {
+        skeleton ifNil: {return: void}.
+
+        skeletonPose := SkeletonPose for: skeleton.
+        skeletonPose _
+            resetToRestPose
+    }.
+
+    override method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8 := {
+        skeletonPose isNil || skeletonPose _ skinningMatrices isEmpty ifTrue: {return: false}.
+        skeletonPose _ validateSkinningMatrices.
+
+        context uploadAndActivateSkinningState: skeletonPose _ skinningMatrices asArraySlice on: deformationStateCache
+    }.
+}.
+
+compileTime constant SkinnedRenderableMeshPtr := SkinnedRenderableMesh sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

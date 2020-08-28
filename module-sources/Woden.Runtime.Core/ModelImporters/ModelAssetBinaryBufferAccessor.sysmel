@@ -37,6 +37,31 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     method asCPUBufferPointer => UInt8 pointer
         := bufferView _ asCPUBufferPointer + offset.
 
+    method decodeAsVectorOfFloat32 => Stdn Collections Vector(Float32) := {
+        let result mutable type: Stdn Collections Vector(Float32).
+        bufferView ifNil: {return: result asMoveReference}.
+
+        let bufferPointer := self asCPUBufferPointer.
+
+        format selectCase: #{
+        PixelFormat R32_Float : {
+            let stride := bufferView _ stride max: 4.
+            result resizeTo: count.
+
+            let sourcePointer mutable := bufferPointer.
+            let destPointer := result data.
+            0 until: count do: {:i :: Void |
+                let castedElement := sourcePointer reinterpretCastTo: Float32 pointer.
+                destPointer[i] := castedElement _.
+                sourcePointer := sourcePointer + stride
+            }
+        }.
+        _ : {}
+        }.
+
+        result asMoveReference
+    }.
+
     method decodeAsVectorOfFloat32x2 => Stdn Collections Vector(Float32x2) := {
         let result mutable type: Stdn Collections Vector(Float32x2).
         bufferView ifNil: {return: result asMoveReference}.
@@ -45,13 +70,13 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32_Float : {
-            let stride := bufferView _ stride max: 12.
+            let stride := bufferView _ stride max: 8.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
             let destPointer := result data.
             0 until: count do: {:i :: Void |
-                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                let castedElement := sourcePointer reinterpretCastTo: Float32 pointer.
                 destPointer[i] := Float32x2(castedElement[0], castedElement[1]).
                 sourcePointer := sourcePointer + stride
             }
@@ -76,7 +101,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
             let sourcePointer mutable := bufferPointer.
             let destPointer := result data.
             0 until: count do: {:i :: Void |
-                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                let castedElement := sourcePointer reinterpretCastTo: Float32 pointer.
                 destPointer[i] := Float32x3(castedElement[0], castedElement[1], castedElement[2]).
                 sourcePointer := sourcePointer + stride
             }
@@ -95,13 +120,13 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32B32A32_Float : {
-            let stride := bufferView _ stride max: 12.
+            let stride := bufferView _ stride max: 16.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
             let destPointer := result data.
             0 until: count do: {:i :: Void |
-                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                let castedElement := sourcePointer reinterpretCastTo: Float32 pointer.
                 destPointer[i] := Float32x4(castedElement[0], castedElement[1], castedElement[2], castedElement[3]).
                 sourcePointer := sourcePointer + stride
             }
@@ -120,13 +145,13 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32B32A32_Float : {
-            let stride := bufferView _ stride max: 12.
+            let stride := bufferView _ stride max: 64.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
             let destPointer := result data.
             0 until: count do: {:i :: Void |
-                let castedElement := sourcePointer + i*stride reinterpretCastTo: Float32 pointer.
+                let castedElement := sourcePointer reinterpretCastTo: Float32 pointer.
                 let firstColumn := Float32x4(castedElement[0], castedElement[1], castedElement[2], castedElement[3]).
                 let secondColumn := Float32x4(castedElement[4], castedElement[5], castedElement[6], castedElement[7]).
                 let thirdColumn := Float32x4(castedElement[8], castedElement[9], castedElement[10], castedElement[11]).

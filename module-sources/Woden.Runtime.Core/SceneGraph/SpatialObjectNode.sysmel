@@ -20,6 +20,12 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
             ifNil: {BoxF32 empty}
             ifNotNil: { renderable _ localBoundingBox }.
 
+    override const method getSkeletonPose => SkeletonPosePtr := {
+        renderable ifNil: {return: SkeletonPosePtr nil}.
+
+        renderable _ getSkeletonPose
+    }.
+
     const inline method renderable => RenderablePtr const ref
         := renderable.
 

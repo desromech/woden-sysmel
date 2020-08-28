@@ -1,0 +1,89 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math.
+
+#**
+ * I am a specific pose of a skeleton in a skinned mesh. I am typically
+ * converted into a list of matrices that is uploaded onto the GPU.
+ *#
+class SkeletonPose superclass: Stdn SharedObject; definition: {
+    public field skeleton type: SkeletonPtr.
+    public field bonePoses type: Stdn Collections Vector(BonePose).
+    public field skinningMatrices type: Stdn Collections Vector(Float32x4x4).
+    field skinningMatricesValidated type: Boolean8.
+
+    meta definition: {
+        method for: (skeleton: SkeletonPtr const ref) ::=> SkeletonPose sharedPointer := {
+            let result := SkeletonPose sharedNew.
+            result _ initializeWithSkeleton: skeleton.
+            result
+        }.
+    }.
+
+    method initializeWithSkeleton: (theSkeleton: SkeletonPtr const ref) ::=> Void := {
+        skeleton := theSkeleton.
+
+        let boneCount := skeleton _ bones size.
+        bonePoses resizeTo: boneCount.
+        skinningMatrices resizeTo: boneCount.
+    }.
+
+    method resetToRestPose => Void := {
+        Stdn assert: bonePoses size = skeleton _ bones size.
+        let poseData := bonePoses data.
+        skeleton _ bones doWithIndex: {:each :index :: Void |
+            poseData[index] := each restPose
+        }
+    }.
+
+    method validateSkinningMatrices => Void := {
+        skinningMatricesValidated ifTrue: {return: void}.
+
+        Stdn assert: bonePoses size = skeleton _ bones size.
+        let boneData := skeleton _ bones data.
+        let poseData := bonePoses data.
+        let skinningData := skinningMatrices data.
+        let boneCount := bonePoses size.
+        0 until: boneCount do: {:i :: Void |
+            let bone ref := boneData[i].
+            let bonePose ref := poseData[i].
+
+            bonePose computePoseMatrix.
+            bone parentIndex >= 0 && (bone parentIndex castTo: UIntPointer) < boneCount ifTrue: {
+                bonePose matrix: (poseData[bone parentIndex] matrix * bonePose matrix)
+            }.
+
+            skinningData[i] := bonePose matrix * bone inverseBindMatrix.
+        }.
+
+        skinningMatricesValidated := true.
+    }.
+
+    inline method setJoint: (jointIndex: UIntPointer) scale: (scale: Float32x3) ::=> Void := {
+        jointIndex >= bonePoses size ifTrue: {return: void}.
+
+        bonePoses[jointIndex] scale: scale.
+        skinningMatricesValidated := false.
+    }.
+
+    inline method setJoint: (jointIndex: UIntPointer) rotation: (rotation: QuaternionF32) ::=> Void := {
+        jointIndex >= bonePoses size ifTrue: {return: void}.
+
+        bonePoses[jointIndex] rotation: rotation.
+        skinningMatricesValidated := false.
+    }.
+
+    inline method setJoint: (jointIndex: UIntPointer) translation: (translation: Float32x3) ::=> Void := {
+        jointIndex >= bonePoses size ifTrue: {return: void}.
+
+        bonePoses[jointIndex] translation: translation.
+        skinningMatricesValidated := false.
+    }.
+}.
+
+compileTime constant SkeletonPosePtr := SkeletonPose sharedPointer.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -245,7 +245,99 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    compileTime constant VertexDataWithPendingTangeSpaceFrames := Stdn Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Stdn Collections Vector(ModelAssetMeshPrimitivePtr)).
+    compileTime constant VertexDataWithPendingAttributes := Stdn Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Stdn Collections Vector(ModelAssetMeshPrimitivePtr)).
+
+    method generateNormals: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)
+        into: (encodedNormals: Stdn Collections Vector(GpuStructures CompactFloat32x3) ref) withBufferView: (normalsBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+
+        let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
+        Stdn assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Normal) isNil.
+        positionsAccessors isNil || positionsAccessors _ count = 0 ifTrue: {
+            return: void
+        }.
+
+        ## Create linear buffers that are more convenient to process.
+        let vertexCount := positionsAccessors _ count.
+        let positions mutable := positionsAccessors _ decodeAsVectorOfFloat32x3.
+
+        positions ifEmpty: {
+            return: void
+        }.
+
+        let normals mutable := Stdn Collections Vector(Float32x3)().
+        normals resizeTo: vertexCount.
+
+        ## Process all of the triangles.
+        primitives do: {:each :: Void |
+            each _ trianglesDo: {:i1 :i2 :i3 :: Void |
+                let p1 := positions[i1].
+                let p2 := positions[i2].
+                let p3 := positions[i3].
+
+                let u := p2 - p1.
+                let v := p3 - p1.
+                let n := (u cross: v).
+
+                normals[i1] := normals[i1] + n.
+                normals[i2] := normals[i2] + n.
+                normals[i3] := normals[i3] + n.
+            }
+        }.
+
+        let firstNormalIndex := encodedNormals size.
+        encodedNormals reserve: vertexCount.
+        0 until: vertexCount do: {:i :: Void |
+            let normal := normals[i] normalized.
+            let compactNormal mutable := GpuStructures CompactFloat32x3().
+            compactNormal set: normal.
+
+            encodedNormals add: compactNormal
+        }.
+
+        let normalsAccessors := self newBufferAccessor.
+        normalsAccessors _
+            bufferView: normalsBufferView;
+            offset: firstNormalIndex * 12;
+            count: vertexCount;
+            format: PixelFormat R32G32B32_Float.
+        attributes _ attributes add: (ModelAssetMeshPrimitiveAttribute()
+            accessor: normalsAccessors;
+            location: VertexAttributeLocation Normal;
+            yourself
+        ).
+    }.
+
+    method generateMissingNormals: (vertexDataWithSubmeshes: VertexDataWithPendingAttributes ref) ::=> Void := {
+        let normals mutable := Stdn Collections Vector(GpuStructures CompactFloat32x3)().
+        let normalsBufferView mutable := self newBufferView.
+
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+            self generateNormals: attributes primitives: primitives into: normals withBufferView: normalsBufferView
+        }.
+
+        normals ifEmpty: {return: void}.
+
+        let normalBuffer mutable := self newBuffer.
+        normalBuffer _ dataSize: normals size * GpuStructures CompactFloat32x3 instanceSize.
+        normalBuffer _ data reset: (Stdn malloc(normalBuffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+        Stdn memcpy(normalBuffer _ data getPointer, normals data, normalBuffer _ dataSize).
+        normalsBufferView _ buffer: normalBuffer.
+    }.
+
+    method generateNormals => Void := {
+        let vertexDataToGenerateNormals mutable := VertexDataWithPendingAttributes().
+        meshes do: {:each :: Void |
+            each _ primitives do: {:eachPrimitive :: Void |
+                eachPrimitive _ attributes _ hasNormal not ifTrue: {
+                    let primitiveList ref := vertexDataToGenerateNormals at: eachPrimitive _ attributes ifAbsentPut: { :: (Stdn Collections Vector(ModelAssetMeshPrimitivePtr)) | Stdn Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+                    primitiveList add: eachPrimitive
+                }.
+            }.
+        }.
+
+        vertexDataToGenerateNormals ifEmpty: {return: void}.
+        self generateMissingNormals: vertexDataToGenerateNormals
+    }.
 
     method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)
         into: (encodedTangent4: Stdn Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
@@ -256,12 +348,8 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         Stdn assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
         positionsAccessors isNil || normalsAccessors isNil || texcoordAccessors isNil ||
         positionsAccessors _ count = 0 ||
-        positionsAccessors _ count ~= normalsAccessors _ count || normalsAccessors _ count ~= texcoordAccessors _ count ||
-
-        ## FIXME: relax this restrictions on the format.
-        positionsAccessors _ format ~= PixelFormat R32G32B32_Float || normalsAccessors _ format ~= PixelFormat R32G32B32_Float ||
-        texcoordAccessors _ format ~= PixelFormat R32G32_Float
-        ifTrue: {
+        positionsAccessors _ count ~= normalsAccessors _ count || normalsAccessors _ count ~= texcoordAccessors _ count
+          ifTrue: {
             return: void
         }.
 
@@ -283,42 +371,39 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         ## Process all of the triangles.
         ## FIXME: Use Mikktspace here.
         primitives do: {:each :: Void |
-            let indicesAccessor := each _ indices.
-            each _ primitiveTopology = PrimitiveTopology Triangles && indicesAccessor isNotNil ifTrue: {
-                indicesAccessor _ trianglesDo: {:i1 :i2 :i3 :: Void |
-                    let p1 := positions[i1].
-                    let p2 := positions[i2].
-                    let p3 := positions[i3].
+            each _ trianglesDo: {:i1 :i2 :i3 :: Void |
+                let p1 := positions[i1].
+                let p2 := positions[i2].
+                let p3 := positions[i3].
 
-                    let tc1 := texcoords[i1].
-                    let tc2 := texcoords[i2].
-                    let tc3 := texcoords[i3].
+                let tc1 := texcoords[i1].
+                let tc2 := texcoords[i2].
+                let tc3 := texcoords[i3].
 
-                    let u := p2 - p1.
-                    let v := p3 - p1.
+                let u := p2 - p1.
+                let v := p3 - p1.
 
-                    let du1 := tc2 x - tc1 x.
-                    let dv1 := tc2 y - tc1 y.
+                let du1 := tc2 x - tc1 x.
+                let dv1 := tc2 y - tc1 y.
 
-                    let du2 := tc3 x - tc1 x.
-                    let dv2 := tc3 y - tc1 y.
+                let du2 := tc3 x - tc1 x.
+                let dv2 := tc3 y - tc1 y.
 
-                    let det := (du1*dv2) - (du2*dv1).
-                    (det closeTo: 0.0) ifFalse: {
-                        let den := 1.0 / det.
+                let det := (du1*dv2) - (du2*dv1).
+                (det closeTo: 0.0) ifFalse: {
+                    let den := 1.0 / det.
 
-                        let tangent := (u * (den*dv2))  - (v * (den*dv1)).
-                        let bitangent := (v * (den*du1)) - (u * (den*du2)).
+                    let tangent := (u * (den*dv2))  - (v * (den*dv1)).
+                    let bitangent := (v * (den*du1)) - (u * (den*du2)).
 
-                        tangents[i1] := tangents[i1] + tangent.
-                        tangents[i2] := tangents[i2] + tangent.
-                        tangents[i3] := tangents[i3] + tangent.
+                    tangents[i1] := tangents[i1] + tangent.
+                    tangents[i2] := tangents[i2] + tangent.
+                    tangents[i3] := tangents[i3] + tangent.
 
-                        bitangents[i1] := bitangents[i1] + bitangent.
-                        bitangents[i2] := bitangents[i2] + bitangent.
-                        bitangents[i3] := bitangents[i3] + bitangent.
-                    }.
-                }
+                    bitangents[i1] := bitangents[i1] + bitangent.
+                    bitangents[i2] := bitangents[i2] + bitangent.
+                    bitangents[i3] := bitangents[i3] + bitangent.
+                }.
             }
         }.
 
@@ -354,7 +439,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         ).
     }.
 
-    method generateMissingVertexTangentSpaceFrames: (vertexDataWithSubmeshes: VertexDataWithPendingTangeSpaceFrames ref) ::=> Void := {
+    method generateMissingVertexTangentSpaceFrames: (vertexDataWithSubmeshes: VertexDataWithPendingAttributes ref) ::=> Void := {
         let tangent4 mutable := Stdn Collections Vector(Float32x4)().
         let tangent4BufferView mutable := self newBufferView.
 
@@ -371,8 +456,8 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         tangent4BufferView _ buffer: tangent4Buffer.
     }.
 
-    method cleanupMeshes => Void := {
-        let vertexDataToGenerateTangentSpace mutable := VertexDataWithPendingTangeSpaceFrames().
+    method generateTangentSpaceFrames => Void := {
+        let vertexDataToGenerateTangentSpace mutable := VertexDataWithPendingAttributes().
         meshes do: {:each :: Void |
             each _ primitives do: {:eachPrimitive :: Void |
                 eachPrimitive _ material isNotNil && eachPrimitive _ material _ normalTexture isNotNil && eachPrimitive _ attributes _ hasTangent4 not ifTrue: {
@@ -384,6 +469,18 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
 
         vertexDataToGenerateTangentSpace ifEmpty: {return: void}.
         self generateMissingVertexTangentSpaceFrames: vertexDataToGenerateTangentSpace
+    }.
+
+    method cleanupMeshes => Void := {
+        self
+            generateNormals;
+            generateTangentSpaceFrames.
+    }.
+
+    method cleanupSkeletons => Void := {
+        skeletons do: {:each :: Void |
+            each _ cleanupSkeleton.
+        }
     }.
 }.
 

@@ -4,13 +4,17 @@ namespace Shaders definition: {
 function decodeNormalTexel(texel: Float32x4) => Float32x3
     := texel rgb*2.0f - 1.0f.
 
-class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSignature; definition: {
+template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor0: _LiteralBoolean, hasTangent4: _LiteralBoolean)
+    :=  class superclass: ForwardSceneRenderingShaderSignature; definition: {
     macro method materialState := ``(`,self materialStateBinding _ state _).
     macro method albedoTexture := ``(`,self materialStateBinding _ texture0).
     macro method normalTexture := ``(`,self materialStateBinding _ texture1).
     macro method emissionTexture := ``(`,self materialStateBinding _ texture2).
     macro method occlusionTexture := ``(`,self materialStateBinding _ texture3).
     macro method roughnessMetallicTexture := ``(`,self materialStateBinding _ texture4).
+    macro method skinMatrices := ``(`,self renderableStateBinding _ skinDeformationState _ skinMatrices ).
+
+    compileTime constant VertexInput := GenericVertexInputTemplate(hasSkinning, hasColor0, hasTangent4).
 
     class FragmentOutput definition: {
         public field color0 type: Float32x4; location: 0.
@@ -21,8 +25,25 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         public field texcoord type: Float32x2; location: 1.
         public field color type: Float32x4; location: 2.
         public field normal type: Float32x3; location: 3.
-        public field tangent type: Float32x3; location: 4.
-        public field bitangent type: Float32x3; location: 5.
+        compileTime if: hasTangent4 then: {
+            public field tangent type: Float32x3; location: 4.
+            public field bitangent type: Float32x3; location: 5.
+        }.
+    }.
+
+    compileTime if: hasSkinning then: {
+        method skinPosition: (position: Float32x4) joints: (joints: UInt32x4) weights: (weights: Float32x4) ::=> Float32x4
+            := self skinMatrices[joints x] * position * weights x +
+            self skinMatrices[joints y] * position * weights y +
+            self skinMatrices[joints z] * position * weights z +
+            self skinMatrices[joints w] * position * weights w.
+
+        method skinVector: (vector: Float32x3) joints: (joints: UInt32x4) weights: (weights: Float32x4) ::=> Float32x3
+            := (self skinPosition: Float32x4(vector, 0) joints: joints weights: weights) xyz
+
+    } else: {
+        macro method skinPosition: position joints: joints weights: weights := position.
+        macro method skinVector: vector joints: joints weights: weights := vector.
     }.
 
     method transformNormal: (vector: Float32x3) ::=> Float32x3 := {
@@ -31,43 +52,33 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         (worldNormal * self cameraState inverseViewMatrix) xyz
     }.
 
-    function vertex vertexShader(in: GenericVertexInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
+    function vertex vertexShader(in: VertexInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
         let input := in receive.
 
-        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
+        let modelPosition := self skinPosition: Float32x4(input position, 1) joints: input joints weights: input weights.
+        let worldPosition := self objectState matrix * modelPosition.
         let viewPosition := self cameraState viewMatrix * worldPosition.
         let screenPosition := self cameraState projectionMatrix * viewPosition.
 
-        let normal := self transformNormal: input normal.
+        let normal := self transformNormal: (self skinVector: input normal joints: input joints weights: input weights).
 
-        out send: (VertexIO()
-            position: viewPosition xyz;
-            texcoord: input texcoord;
-            color: self materialState albedo;
-            normal: normal;
-            yourself).
-
-        stageOut send: (GPU VertexStageOutput()
-            screenPosition: screenPosition;
-            yourself
-        ).
-    }.
-
-    function vertexColor vertexShader(in: GenericVertexColorInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
-        let input := in receive.
-
-        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
-        let viewPosition := self cameraState viewMatrix * worldPosition.
-        let screenPosition := self cameraState projectionMatrix * viewPosition.
-
-        let normal := self transformNormal: input normal.
-
-        out send: (VertexIO()
+        let vertexOut mutable := VertexIO()
             position: viewPosition xyz;
             texcoord: input texcoord;
             color: self materialState albedo * input color;
             normal: normal;
-            yourself).
+            yourself.
+
+        compileTime if: hasTangent4 then: {
+            let tangent := self transformNormal: (self skinVector: input tangent4 xyz joints: input joints weights: input weights).
+            let bitangent := (normal cross: tangent) * input tangent4 w.
+
+            vertexOut
+                tangent: tangent;
+                bitangent: bitangent.
+        }.
+
+        out send: vertexOut.
 
         stageOut send: (GPU VertexStageOutput()
             screenPosition: screenPosition;
@@ -75,59 +86,7 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         ).
     }.
 
-    function vertexTangent vertexShader(in: GenericVertexTangentInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
-        let input := in receive.
-
-        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
-        let viewPosition := self cameraState viewMatrix * worldPosition.
-        let screenPosition := self cameraState projectionMatrix * viewPosition.
-
-        let normal := self transformNormal: input normal.
-        let tangent := self transformNormal: input tangent4 xyz.
-        let bitangent := (normal cross: tangent) * input tangent4 w.
-
-        out send: (VertexIO()
-            position: viewPosition xyz;
-            texcoord: input texcoord;
-            color: self materialState albedo;
-            normal: normal;
-            tangent: tangent;
-            bitangent: bitangent;
-            yourself).
-
-        stageOut send: (GPU VertexStageOutput()
-            screenPosition: screenPosition;
-            yourself
-        ).
-    }.
-
-    function vertexColorTangent vertexShader(in: GenericVertexColorTangentInput inputChannel, out: VertexIO outputChannel, stageOut: GPU VertexStageOutput outputChannel) => Void := {
-        let input := in receive.
-
-        let worldPosition := self objectState matrix * Float32x4(input position, 1.0f).
-        let viewPosition := self cameraState viewMatrix * worldPosition.
-        let screenPosition := self cameraState projectionMatrix * viewPosition.
-
-        let normal := self transformNormal: input normal.
-        let tangent := self transformNormal: input tangent4 xyz.
-        let bitangent := (normal cross: tangent) * input tangent4 w.
-
-        out send: (VertexIO()
-            position: viewPosition xyz;
-            texcoord: input texcoord;
-            color: self materialState albedo * input color;
-            normal: normal;
-            tangent: tangent;
-            bitangent: bitangent;
-            yourself).
-
-        stageOut send: (GPU VertexStageOutput()
-            screenPosition: screenPosition;
-            yourself
-        ).
-    }.
-
-    function flatNormalFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
+    function fragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
         let input := in receive.
         let stageInput := stageIn receive.
 
@@ -139,57 +98,18 @@ class MetallicRoughnessMaterialShaders superclass: ForwardSceneRenderingShaderSi
         let P := input position.
         let V := P negated normalized.
 
-        let N mutable := input normal normalized.
-        stageInput isFrontFacing ifFalse: {
-            N := N negated.
+        let SN mutable := input normal normalized.
+        let N mutable := SN.
+        compileTime if: hasTangent4 then: {
+            let t := input tangent normalized.
+            let b := input bitangent normalized.
+            let n := SN.
+
+            let tangentNormal := decodeNormalTexel(self normalSampler sample: self normalTexture at: input texcoord).
+            let TBN := Float32x3x3(t, b, n).
+            N := (TBN*tangentNormal) normalized.
         }.
 
-        let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
-
-        let roughnessMetallicSample := self albedoSampler sample: self roughnessMetallicTexture at: input texcoord.
-        let occlusion := (self albedoSampler sample: self occlusionTexture at: input texcoord) r.
-        let roughness := self materialState roughnessFactor * roughnessMetallicSample g.
-        let metallic := self materialState metallicFactor * roughnessMetallicSample b.
-
-        let lightingResult := self computeForwardLightingWith: (MetallicRoughnessLightingParameters()
-            P: P;
-            V: P negated normalized;
-            N: N;
-            surfaceNormal: N;
-            fragCoord: stageInput fragCoord;
-            emission: emission rgb;
-            albedo: albedo rgb;
-            occlusion: occlusion;
-            metallic: metallic;
-            roughness: roughness;
-            opacityFactor: albedo a;
-            yourself).
-
-        out send: (FragmentOutput()
-            color0: lightingResult;
-            yourself)
-    }.
-
-    function normalMappedFragment fragmentShader(in: VertexIO inputChannel, stageIn: GPU FragmentStageInput inputChannel, out: FragmentOutput outputChannel) => Void := {
-        let input := in receive.
-        let stageInput := stageIn receive.
-
-        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
-        albedo a < self materialState alphaCutoff ifTrue: {
-            GPU discardFragment
-        }.
-
-        let P := input position.
-        let V := P negated normalized.
-
-        let t := input tangent normalized.
-        let b := input bitangent normalized.
-        let n := input normal normalized.
-
-        let tangentNormal := decodeNormalTexel(self normalSampler sample: self normalTexture at: input texcoord).
-        let TBN := Float32x3x3(t, b, n).
-        let N mutable := (TBN*tangentNormal) normalized.
-        let SN mutable := n normalized.
         stageInput isFrontFacing ifFalse: {
             N := N negated.
             SN := SN negated.

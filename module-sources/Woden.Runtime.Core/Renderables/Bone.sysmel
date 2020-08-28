@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Graphics Core.
+
+#**
+ * I am a bone in a skeleton
+ *#
+class Bone definition: {
+    public field parentIndex type: IntPointer.
+    public field inverseBindMatrix type: Float32x4x4.
+    public field restPose type: BonePose.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

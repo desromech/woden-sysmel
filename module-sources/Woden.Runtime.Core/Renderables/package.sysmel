@@ -7,11 +7,17 @@ loadFileOnce: "NullRenderable.sysmel".
 loadFileOnce: "GenericMeshRenderable.sysmel".
 loadFileOnce: "GenericSubmesh.sysmel".
 
+loadFileOnce: "Bone.sysmel".
+loadFileOnce: "BonePose.sysmel".
+loadFileOnce: "Skeleton.sysmel".
+loadFileOnce: "SkeletonPose.sysmel".
+
 loadFileOnce: "MutableRenderable.sysmel".
 loadFileOnce: "CompositeRenderable.sysmel".
 loadFileOnce: "DeformationStateCache.sysmel".
 loadFileOnce: "DeformableRenderable.sysmel".
 loadFileOnce: "MeshWithExtraDeformationRenderable.sysmel".
+loadFileOnce: "SkinnedRenderableMesh.sysmel".
 loadFileOnce: "SurfaceDeformationRenderableMesh.sysmel".
 loadFileOnce: "WaterRenderableMesh.sysmel".
 loadFileOnce: "TerrainRenderableMesh.sysmel".

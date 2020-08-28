@@ -30,6 +30,8 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
     protected field materialBlendingEquation type: BlendingEquation.
     protected field materialBlendingEquationValid type: Boolean8.
 
+    protected field hasSkinningDeformationState type: Boolean8.
+
     virtual method reset => Void := {
         activeMaterial reset.
         self resetMaterialAttributes.
@@ -41,6 +43,14 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
 
     virtual method uploadAndActivateDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8
         := false.
+
+    virtual method uploadAndActivateWaterDeformationState: (state: Woden Shaders WaterDeformationState const ref) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8
+        := self uploadAndActivateDeformationState: state address size: Woden Shaders WaterDeformationState instanceSize on: deformationStateCache.
+
+    virtual method uploadAndActivateSkinningState: (state: Float32x4x4 const arraySlice) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
+        hasSkinningDeformationState := true.
+        self uploadAndActivateDeformationState: state elements size: state size * Float32x4x4 instanceSize on: deformationStateCache.
+    }.
 
     protected field vertexAttributeMask type: UInt32.
 
@@ -57,6 +67,12 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
 
     const method hasTangent4VertexAttribute => Boolean8
         := vertexAttributeMask anyMask: VertexAttributeLocation Tangent4 asAttributeBitMask.
+
+    const method hasSkinningVertexAttributes => Boolean8
+        := vertexAttributeMask allMask: VertexAttributeLocation Joints0 asAttributeBitMask | VertexAttributeLocation Weights0 asAttributeBitMask.
+
+    const method hasSkinningParameters => Boolean8
+        := hasSkinningDeformationState && self hasSkinningVertexAttributes.
 
     virtual method activateMaterial: (material: MaterialPtr const ref) ::=> Boolean8 := {
         activeMaterial = material ifTrue: {
@@ -103,6 +119,7 @@ class SceneRenderingContext superclass: Stdn Object; definition: {
         self
             objectDepthWriteMask: OverrideableBoolean Default;
             objectDepthTestingEnabled: OverrideableBoolean Default.
+        hasSkinningDeformationState := false.
     }.
 
     method objectDepthWriteMask: (depthWriteMask: OverrideableBoolean) ::=> Void := {

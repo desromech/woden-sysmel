@@ -1,13 +1,66 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
+useNamespace: Woden Runtime.
+
 #**
  * I am an animation sampler
  *#
 class ModelAssetAnimationSampler definition: {
+    public field index type: UIntPointer.
     public field inputAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field outputAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field interpolationMethod type: ModelAssetAnimationInterpolationMethod.
+
+    method asAnimationCurve => AnimationCurvePtr := {
+        Stdn assert: inputAccessor _ format componentCount = 1.
+
+        let startTime := inputAccessor _ minValue x castTo: Float32.
+        let endTime := inputAccessor _ maxValue x castTo: Float32.
+
+        outputAccessor _ format componentCount selectCase: #{
+        1 : {
+            let result := InterpolatedAnimationCurveFloat32 sharedNew.
+            result _
+                startTime: startTime;
+                endTime: endTime;
+                interpolationMethod: interpolationMethod;
+                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32.
+            result upCastFor: AnimationCurve
+        }.
+        2 : {
+            let result := InterpolatedAnimationCurveFloat32x2 sharedNew.
+            result _
+                startTime: startTime;
+                endTime: endTime;
+                interpolationMethod: interpolationMethod;
+                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x2.
+            result upCastFor: AnimationCurve
+        }.
+        3 : {
+            let result := InterpolatedAnimationCurveFloat32x3 sharedNew.
+            result _
+                startTime: startTime;
+                endTime: endTime;
+                interpolationMethod: interpolationMethod;
+                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x3.
+            result upCastFor: AnimationCurve
+        }.
+        4 : {
+            let result := InterpolatedAnimationCurveFloat32x4 sharedNew.
+            result _
+                startTime: startTime;
+                endTime: endTime;
+                interpolationMethod: interpolationMethod;
+                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x4.
+            result upCastFor: AnimationCurve
+        }.
+        }.
+    }.
 }.
 
 compileTime constant ModelAssetAnimationSamplerPtr := ModelAssetAnimationSampler sharedPointer.

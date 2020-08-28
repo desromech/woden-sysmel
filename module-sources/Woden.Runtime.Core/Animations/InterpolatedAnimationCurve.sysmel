@@ -1,0 +1,54 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class InterpolatedAnimationCurve superclass: AnimationCurve; definition: {
+    public field interpolationMethod type: AnimationInterpolationMethod.
+    public field timeSamples type: Stdn Collections Vector(Float32).
+
+    const inline method findKeyFrameForTime: (time: Float32) ::=> UIntPointer := {
+        ## FIXME: Use a binary search here.
+        let bestFound mutable := timeSamples size.
+        timeSamples doWithIndex: {:each :index :: Void |
+            each <= time ifTrue: {
+                bestFound := index
+            }
+        }.
+
+        bestFound
+    }.
+}.
+
+template InterpolatedAnimationCurveTemplate(VT: Type)
+    := class superclass: InterpolatedAnimationCurve; definition: {
+    compileTime constant VectorType := VT.
+
+    public field valueSamples type: Stdn Collections Vector(VectorType).
+
+    override method computeCurveStateAtTime: (time: Float32) ::=> AnimationCurveState := {
+        time <= startTime ifTrue: {return: (AnimationCurveState value: valueSamples first)}.
+        time >= endTime ifTrue: {return: (AnimationCurveState value: valueSamples last)}.
+
+        let keyFrame := self findKeyFrameForTime: time.
+
+        interpolationMethod selectCase: #{
+        AnimationInterpolationMethod Step : {AnimationCurveState value: valueSamples[keyFrame]}.
+        AnimationInterpolationMethod Linear : {
+            let startTime := timeSamples[keyFrame].
+            let endTime := timeSamples[keyFrame + 1].
+            let alpha := (time - startTime) / (endTime - startTime).
+            AnimationCurveState value: (valueSamples[keyFrame] interpolateTo: valueSamples[keyFrame + 1] at: alpha)
+        }.
+
+        ## TODO: Implement this one properly
+        AnimationInterpolationMethod CubicSpline : {AnimationCurveState value: valueSamples[keyFrame]}.
+        }
+    }.
+}.
+
+compileTime constant InterpolatedAnimationCurveFloat32 := InterpolatedAnimationCurveTemplate(Float32).
+compileTime constant InterpolatedAnimationCurveFloat32x2 := InterpolatedAnimationCurveTemplate(Float32x2).
+compileTime constant InterpolatedAnimationCurveFloat32x3 := InterpolatedAnimationCurveTemplate(Float32x3).
+compileTime constant InterpolatedAnimationCurveFloat32x4 := InterpolatedAnimationCurveTemplate(Float32x4).
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

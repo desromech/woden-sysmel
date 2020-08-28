@@ -5,6 +5,13 @@ Compiler importModulesNamed: #(
 
 useNamespace: Woden Runtime.
 
+class TurnTableAnimation superclass: Animation; definition: {
+    override method update: (deltaTime: Float32) withState: (state: AnimationState ref) ::=> Boolean8 := {
+        state target _ rotateRadiansOnY: deltaTime * 0.2f.
+        true
+    }.
+}.
+
 Woden Application sampleSceneMainWith: {:model :: Void |
     let scene := model newScene.
     scene _
@@ -40,7 +47,12 @@ Woden Application sampleSceneMainWith: {:model :: Void |
                 scaleBy: 0.015f;
                 rotateDegreesOnY: 90;
                 translateByY: foxNode _ boundingBox min y negated.
+
             scene _ add: foxNode.
+
+            model animationScheduler _ activateAnimationState: (TurnTableAnimation sharedNew _ newStateForTargetSceneNode: foxNode).
+
+            model animationScheduler _ activateAnimationState: (modelAsset _ animations first _ asAnimation _ newStateForTargetSceneNode: foxNode looped: true).
         }.
     }.
 

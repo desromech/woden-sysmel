@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class AnimationScheduler superclass: Stdn SharedObject; definition: {
+    field activeAnimations type: Stdn Collections Vector(AnimationStatePtr).
+
+    method activateAnimationState: (animationState: AnimationStatePtr const ref) ::=> Void := {
+        activeAnimations add: animationState
+    }.
+
+    method update: (deltaTime: Float32) ::=> Void := {
+        let oldActiveAnimation mutable type: Stdn Collections Vector(AnimationStatePtr).
+        oldActiveAnimation swapWith: activeAnimations.
+
+        activeAnimations reserve: oldActiveAnimation size.
+        oldActiveAnimation do: {:each :: Void |
+            (each _ update: deltaTime) ifTrue: {
+                activeAnimations add: each.
+            }
+        }.
+    }.
+}.
+
+compileTime constant AnimationSchedulerPtr := AnimationScheduler sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

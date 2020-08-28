@@ -1,0 +1,36 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class AnimationState superclass: Stdn SharedObject; definition: {
+    field animation type: AnimationPtr.
+    field target type: AnimationTargetPtr.
+
+    const inline method animation => AnimationPtr const ref
+        := animation.
+
+    const inline method target => AnimationTargetPtr const ref
+        := target.
+
+    public field currentTime type: Float32.
+    public field isLooped type: Boolean8.
+
+    virtual method initializeWithAnimation: (theAnimation: AnimationPtr) target: (theTarget: AnimationTargetPtr const ref)::=> Void := {
+        animation := theAnimation.
+        target := theTarget.
+    }.
+
+    #**
+     * Ticks some amount of time in the animation.
+     *#
+    virtual method update: (deltaTime: Float32) ::=> Boolean8 := {
+        animation ifNil: {return: false}.
+
+        currentTime := currentTime + deltaTime.
+        animation _ update: deltaTime withState: self
+    }
+}.
+
+compileTime constant AnimationStatePtr := AnimationState sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

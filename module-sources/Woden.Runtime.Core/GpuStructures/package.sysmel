@@ -12,3 +12,4 @@ loadFileOnce: "LightSourceData.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialStateData.sysmel".
 
 loadFileOnce: "WaterDeformationState.sysmel".
+loadFileOnce: "SkinDeformationState.sysmel".

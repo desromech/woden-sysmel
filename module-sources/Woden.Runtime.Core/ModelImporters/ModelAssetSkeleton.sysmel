@@ -11,6 +11,74 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     public field inverseBindMatricesAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field joints type: Stdn Collections Vector(ModelAssetNodePtr).
     public field rootJoint type: ModelAssetNodePtr.
+
+    method cleanupSkeleton => Void := {
+        joints do: {:each :: Void |
+            each _
+                isJoint: true;
+                hasValidJointIndex: false.
+        }.
+
+        let nextJointIndex mutable type: UIntPointer.
+        rootJoint ifNotNil: {
+            nextJointIndex := self cleanUpJoint: rootJoint parentIndex: -1 joinIndex: nextJointIndex.
+        }.
+
+        joints do: {:each :: Void |
+            nextJointIndex := self cleanUpJoint: each parentIndex: -1 joinIndex: nextJointIndex.
+        }.
+        Stdn assert: nextJointIndex = joints size.
+    }.
+
+    method cleanUpJoint: (joint: ModelAssetNodePtr const ref) parentIndex: (parentIndex: IntPointer) joinIndex: (nextJointIndex: UIntPointer) ::=> UIntPointer := {
+        joint _ hasValidJointIndex ifTrue: {return: nextJointIndex}.
+
+        let childrenParentIndex mutable := parentIndex.
+        let result mutable := nextJointIndex.
+
+        joint _ isJoint ifTrue: {
+            joint _
+                jointIndex: nextJointIndex;
+                parentJointIndex: parentIndex;
+                hasValidJointIndex: true.
+            childrenParentIndex := nextJointIndex castTo: IntPointer.
+            result := nextJointIndex + 1u
+        }.
+
+        joint _ children do: {:child :: Void |
+            result := self cleanUpJoint: child parentIndex: childrenParentIndex joinIndex: result
+        }.
+
+        result
+    }.
+
+    field skeleton type: SkeletonPtr.
+
+    method asSkeleton => SkeletonPtr := {
+        skeleton ifNotNil: {return: skeleton}.
+
+        let boneCount := joints size.
+        let inverseBindMatrices := inverseBindMatricesAccessor _ decodeAsVectorOfFloat32x4x4.
+        Stdn assert: inverseBindMatrices size = boneCount.
+
+        skeleton := Skeleton sharedNew.
+        skeleton _ bones resizeTo: boneCount.
+        joints doWithIndex: {:joint :index :: Void |
+            let jointSortedIndex := joint _ jointIndex.
+            Stdn assert: jointSortedIndex < boneCount && joint _ hasValidJointIndex.
+
+            skeleton _ bones[jointSortedIndex]
+                parentIndex: joint _ parentJointIndex;
+                inverseBindMatrix: inverseBindMatrices[index];
+                restPose: (BonePose()
+                    scale: joint _ scale;
+                    rotation: joint _ rotationQuaternion;
+                    translation: joint _ translation;
+                    yourself)
+        }.
+
+        skeleton
+    }.
 }.
 
 compileTime constant ModelAssetSkeletonPtr := ModelAssetSkeleton sharedPointer.

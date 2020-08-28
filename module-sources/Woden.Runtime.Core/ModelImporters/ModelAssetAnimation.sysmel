@@ -9,6 +9,30 @@ useNamespace: Woden Runtime.
 class ModelAssetAnimation superclass: ModelAssetElement; definition: {
     public field channels type: Stdn Collections Vector(ModelAssetAnimationChannelPtr).
     public field samplers type: Stdn Collections Vector(ModelAssetAnimationSamplerPtr).
+
+    field convertedAnimation type: Animation sharedPointer.
+
+    method asAnimation => Animation sharedPointer := {
+        convertedAnimation ifNotNil: {return: convertedAnimation}.
+
+        let multiChannelAnimation := MultiChannelAnimation sharedNew.
+        multiChannelAnimation _ duration: 0.
+
+        multiChannelAnimation _ curves reserve: samplers size.
+        samplers do: {:each :: Void |
+            let curve := each _ asAnimationCurve.
+            multiChannelAnimation _ curves add: curve.
+            multiChannelAnimation _ duration: (multiChannelAnimation _ duration max: curve _ endTime)
+        }.
+
+        multiChannelAnimation _ channels reserve: channels size.
+        channels do: {:each :: Void |
+            multiChannelAnimation _ channels add: each _ asAnimationChannel
+        }.
+
+        convertedAnimation := multiChannelAnimation upCastFor: Animation.
+        convertedAnimation
+    }.
 }.
 
 compileTime constant ModelAssetAnimationPtr := ModelAssetAnimation sharedPointer.

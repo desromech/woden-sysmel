@@ -5,7 +5,6 @@ namespace Runtime definition: {
  * I am a renderable with additional deformation state.
  *#
 class DeformableRenderable superclass: MutableRenderable; definition: {
-    public field engine type: EnginePtr.
     public field deformationStateCache type: DeformationStateCache.
 
     virtual method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8

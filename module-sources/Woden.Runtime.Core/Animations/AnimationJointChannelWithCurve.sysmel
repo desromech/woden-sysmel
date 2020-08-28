@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+class AnimationJointChannelWithCurve superclass: AnimationChannelWithCurve; definition: {
+    public field jointIndex type: UIntPointer.
+
+    override method applyChannelState: (state: MultiChannelAnimationState ref) atTime: (time: Float32) ::=> Void := {
+        let curveState ref := state curveStates[curveIndex].
+
+        targetProperty selectCase: #{
+        AnimationChannelTargetProperty Rotation : { state target _ setJoint: jointIndex rotationQuaternion: curveState rotationQuaternion }.
+        AnimationChannelTargetProperty Scale : { state target _ setJoint: jointIndex scale: curveState scale }.
+        AnimationChannelTargetProperty Translation : { state target _ setJoint: jointIndex translation: curveState translation }.
+        }.
+    }.
+}.
+
+compileTime constant AnimationJointChannelWithCurvePtr := AnimationJointChannelWithCurve sharedPointer.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

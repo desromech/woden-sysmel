@@ -4,6 +4,7 @@ Compiler importModulesNamed: #(
 ); loadPackages: #(
     CoreResources
     GpuStructures
+    Animations
     Materials
     ModelImporters
     SpatialObject

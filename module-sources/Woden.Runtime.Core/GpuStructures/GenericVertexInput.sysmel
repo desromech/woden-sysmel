@@ -12,37 +12,42 @@ enum VertexAttributeLocation valueType: UInt32; values: #{
     Weights0: 7.
 }.
 
-struct GenericVertexInput definition: {
-	<gpu>
-    public field position type: Float32x3; location: VertexAttributeLocation Position value.
-    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
-    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
-}.
-
-struct GenericVertexColorInput definition: {
-	<gpu>
-    public field position type: Float32x3; location: VertexAttributeLocation Position value.
-    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
-    public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
-    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
-}.
-
-struct GenericVertexTangentInput definition: {
-	<gpu>
-    public field position type: Float32x3; location: VertexAttributeLocation Position value.
-    public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
-    public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
-    public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
-}.
-
-struct GenericVertexColorTangentInput definition: {
-	<gpu>
+template GenericVertexInputTemplate(hasSkinning: _LiteralBoolean, hasColor0: _LiteralBoolean, hasTangent4: _LiteralBoolean)
+    := struct definition: {
+    <gpu>
 	public field position type: Float32x3; location: VertexAttributeLocation Position value.
     public field texcoord type: Float32x2; location: VertexAttributeLocation Texcoord0 value.
-    public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
     public field normal type: Float32x3; location: VertexAttributeLocation Normal value.
-    public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
+
+    compileTime if: hasSkinning then: {
+        public field joints type: UInt32x4; location: VertexAttributeLocation Joints0 value.
+        public field weights type: Float32x4; location: VertexAttributeLocation Weights0 value.
+    } else: {
+        macro method joints := `'(UInt32x4 zeros).
+        macro method weights := `'(Float32x4 zeros).
+    }.
+
+    compileTime if: hasColor0 then: {
+        public field color type: Float32x4; location: VertexAttributeLocation Color0 value.
+    } else: {
+        macro method color := `'(Float32x4 ones).
+    }.
+
+    compileTime if: hasTangent4 then: {
+        public field tangent4 type: Float32x4; location: VertexAttributeLocation Tangent4 value.
+    } else: {
+        macro method tangent4 := `'(Float32x4 zeros).
+    }.
 }.
+
+compileTime constant GenericVertexInput := GenericVertexInputTemplate(false, false, false).
+compileTime constant GenericVertexTangentInput := GenericVertexInputTemplate(false, false, true).
+compileTime constant GenericVertexColorInput := GenericVertexInputTemplate(false, true, false).
+compileTime constant GenericVertexColorTangentInput := GenericVertexInputTemplate(false, true, true).
+compileTime constant GenericSkinnedVertexInput := GenericVertexInputTemplate(true, false, false).
+compileTime constant GenericSkinnedVertexTangentInput := GenericVertexInputTemplate(true, false, true).
+compileTime constant GenericSkinnedVertexColorInput := GenericVertexInputTemplate(true, true, false).
+compileTime constant GenericSkinnedVertexColorTangentInput := GenericVertexInputTemplate(true, true, true).
 
 }. ## End of namespace Shaders
 }. ## End of namespace Woden
