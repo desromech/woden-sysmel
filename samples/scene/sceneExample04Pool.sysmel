@@ -3,6 +3,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.Headfull"
 ).
 
+Compiler addResourcesDirectory: "../resources/SampleTextures".
 useNamespace: Woden Runtime.
 
 function constructPoolScene(scene: ScenePtr const ref) => Void := {
@@ -12,12 +13,12 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
     {
         let material := MetallicRoughnessMaterial for: engine.
         material _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/demos/tile-albedo" asNativeFileReference);
-            normalTexture: (engine _ resourceCache _ loadTextureFrom: "textures/demos/tile-normal" asNativeFileReference);
+            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/tile-albedo" asNativeFileReference);
+            normalTexture: (engine _ resourceCache _ loadTextureFrom: "textures/tile-normal" asNativeFileReference);
             roughnessFactor: 0.45f.
         let concreteMaterial := MetallicRoughnessMaterial for: engine.
         concreteMaterial _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/demos/esug-floor" asNativeFileReference);
+            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/esug-floor" asNativeFileReference);
             roughnessFactor: 0.70f.
 
         let borderThickness := 0.5f.
@@ -135,7 +136,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
     {
         let material := SkyMaterial for: engine.
         material _
-            texture: (engine _ resourceCache _ loadColorCubeTextureFrom: "textures/demos/skybox" asNativeFileReference).
+            texture: (engine _ resourceCache _ loadColorCubeTextureFrom: "textures/skybox" asNativeFileReference).
 
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _

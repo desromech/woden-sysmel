@@ -2,6 +2,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
+Compiler addResourcesDirectory: "../resources/SampleTextures".
 
 useNamespace: Woden Runtime.
 
@@ -19,8 +20,8 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let material := MetallicRoughnessMaterial for: engine.
         material _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/demos/tile-albedo" asNativeFileReference);
-            normalTexture: (engine _ resourceCache _ loadTextureFrom: "textures/demos/tile-normal" asNativeFileReference);
+            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/tile-albedo" asNativeFileReference);
+            normalTexture: (engine _ resourceCache _ loadTextureFrom: "textures/tile-normal" asNativeFileReference);
             roughnessFactor: 0.45f.
 
         let meshBuilder := model engine _ newGenericMeshBuilder.

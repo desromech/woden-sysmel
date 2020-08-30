@@ -2,7 +2,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
-
+Compiler addResourcesDirectory: "../resources/gltfSampleModels/Fox".
 useNamespace: Woden Runtime.
 
 class TurnTableAnimation superclass: Animation; definition: {
@@ -40,7 +40,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Add the fox sample model
     {
-        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/glTF-Samples/Fox/glTF/Fox" asNativeFileReference.
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/Fox/Fox" asNativeFileReference.
         modelAsset ifNotNil: {
             let foxNode := modelAsset _  createSceneNodeNamed: "fox" asMutableString for: model engine.
             foxNode _

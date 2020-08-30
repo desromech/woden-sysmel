@@ -2,7 +2,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
-
+Compiler addResourcesDirectory: "../resources/gltfSampleModels/Sponza".
 useNamespace: Woden Runtime.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
@@ -23,7 +23,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Load the sponza model
     {
-        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/glTF-Samples/Sponza/glTF/Sponza" asNativeFileReference.
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/Sponza/glTF/Sponza" asNativeFileReference.
         modelAsset ifNotNil: {
             modelAsset _ scenes first _ createSceneNodesFor: model engine in: scene
         }.

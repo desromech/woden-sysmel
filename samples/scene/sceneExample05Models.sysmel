@@ -2,7 +2,8 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
-
+Compiler addResourcesDirectory: "../resources/SampleModels".
+Compiler addResourcesDirectory: "../resources/gltfSampleModels/DamagedHelmet".
 useNamespace: Woden Runtime.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
@@ -79,7 +80,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     ## FIXME: Use the teapot here.
     ## Damaged helmet
     {
-        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/glTF-Samples/DamagedHelmet/DamagedHelmet" asNativeFileReference.
+        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/DamagedHelmet/DamagedHelmet" asNativeFileReference.
         modelAsset ifNotNil: {
             let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
             chairNode _
