@@ -11,6 +11,7 @@ useNamespace: Stdn Graphics GUI.
 class ResourceCache superclass: Stdn SharedObject; definition: {
     private field engine type: EnginePtr.
     private field assetLocations type: Stdn Collections Vector(Stdn FileReference).
+    private field lazyResourceCreationMutex type: Stdn Mutex.
 
     const inline method engine => EnginePtr const ref
         := engine.

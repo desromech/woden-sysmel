@@ -159,12 +159,12 @@ class GLTFModelImporter definition: {
             maxValue: (object getFloat64x4: "max" asMutableString default: 0).
 
         let componentType := (object getUIntPointer: "componentType" asMutableString) castTo: GLTFAccessorComponentType.
-        let type := object getString: "type" asMutableString.
+        let accessorType := object getString: "type" asMutableString.
         let normalized := object getBoolean8: "normalized" asMutableString default: false.
         let columnCount mutable := 1u.
 
         bufferAccessor _ format: (
-            type asArraySlice selectCase: #{
+            accessorType asArraySlice selectCase: #{
             "SCALAR" : {
                 componentType selectCase: #{
                 GLTFAccessorComponentType Byte : (normalized ifTrue: PixelFormat R8_SNorm ifFalse: PixelFormat R8_SInt).

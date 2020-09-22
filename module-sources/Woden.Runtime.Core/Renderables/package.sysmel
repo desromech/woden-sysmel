@@ -21,3 +21,5 @@ loadFileOnce: "SkinnedRenderableMesh.sysmel".
 loadFileOnce: "SurfaceDeformationRenderableMesh.sysmel".
 loadFileOnce: "WaterRenderableMesh.sysmel".
 loadFileOnce: "TerrainRenderableMesh.sysmel".
+
+loadFileOnce: "CommonMeshes.sysmel".

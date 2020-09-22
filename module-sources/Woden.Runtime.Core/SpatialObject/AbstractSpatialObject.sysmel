@@ -28,6 +28,22 @@ class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
         self objectStateChanged.
     }.
 
+    method visible => Boolean8
+        := state visible ~= 0.
+
+    method visible: (aBoolean: Boolean8) ::=> Void := {
+        state visible: aBoolean asBit.
+        self objectStateChanged
+    }.
+    
+    method color => Float32x4
+        := state color.
+
+    method color: (aColor: Float32x4) ::=> Void := {
+        state color: aColor.
+        self objectStateChanged
+    }.
+
     method objectStateChanged => Void := {
 
     }.

@@ -1,0 +1,26 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I am core engine instance. I hold strong references to the core subsystem registries.
+ *#
+class ResourceCache superclass: Stdn SharedObject; definition: {
+    private field unitCubeRenderable type: RenderablePtr.
+
+    inline method unitCubeRenderable => RenderablePtr const ref := {
+        unitCubeRenderable ifNil: {
+            lazyResourceCreationMutex withLock: {
+                unitCubeRenderable ifNil: {
+                    unitCubeRenderable := engine _ newGenericMeshBuilder _
+                        addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
+                        renderable.
+                }.
+            }
+        }.
+
+        unitCubeRenderable
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

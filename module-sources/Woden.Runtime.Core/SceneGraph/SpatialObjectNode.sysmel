@@ -26,6 +26,20 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
         renderable _ getSkeletonPose
     }.
 
+    method visible => Boolean8
+        := objectState _ visible.
+
+    method visible: (aBoolean8: Boolean8) ::=> Void := {
+        objectState _ visible: aBoolean8
+    }.
+
+    method color => Float32x4
+        := objectState _ color.
+
+    method color: (aColor: Float32x4) ::=> Void := {
+        objectState _ color: aColor
+    }.
+
     const inline method renderable => RenderablePtr const ref
         := renderable.
 
