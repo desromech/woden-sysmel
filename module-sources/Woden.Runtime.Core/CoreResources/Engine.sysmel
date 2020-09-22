@@ -36,6 +36,9 @@ class Engine superclass: Stdn SharedObject; definition: {
     const inline method resourceCache => ResourceCachePtr const ref
         := resourceCache.
 
+    const inline method mainLoopFrameCount => UInt32
+        := windowSystem _ mainLoopFrameCount.
+
     const inline method frameBufferingIndex => UInt32
         := frameBufferingIndex.
 
