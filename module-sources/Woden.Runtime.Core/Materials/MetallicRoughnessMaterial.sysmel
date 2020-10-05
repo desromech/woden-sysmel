@@ -77,7 +77,7 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     }.
 
     method validEmissionTexture => TextureWithViewPtr := {
-        emissionTexture ifNil: {return: engine _ resourceCache _ transparentTexture}.
+        emissionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         emissionTexture
     }.
 
