@@ -1,0 +1,34 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class VisualComponent2d superclass: VisualComponent; definition: {
+    public field minZ type: Float32.
+    public field maxZ type: Float32.
+
+    override method setupForLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
+        super setupForLayer: layerDefinition.
+
+        minZ = maxZ && minZ = 0 ifTrue: {
+            minZ := layerDefinition _ defaultMinZ.
+            maxZ := layerDefinition _ defaultMaxZ.
+        }.
+    }.
+
+    override method isVisualComponent2d => Boolean8 := true.
+    
+    virtual method boundingRectangle => RectangleF32
+        := RectangleF32 empty.
+
+    override method boundingBox => BoxF32 := {
+        let rectangle := self boundingRectangle.
+        BoxF32 min: Float32x3(rectangle min, minZ) max: Float32x3(rectangle max, maxZ)
+    }.
+}.
+
+compileTime constant VisualComponent2dPtr := VisualComponent2d sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

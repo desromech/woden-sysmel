@@ -1,0 +1,33 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class SpotLightSourceVisualComponent superclass: PointLightSourceVisualComponent; definition: {
+    public field outerCutOffAngle type: Float32.
+    public field innerCutOffAngle type: Float32.
+    public field exponent type: Float32.
+
+    method initialize => Void := {
+        super initialize.
+    	outerCutOffAngle := 45.
+    	innerCutOffAngle := 40.
+    	exponent := 1.
+    }.
+
+    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
+        let node := super createLightSourceNodeFor: engine.
+        node _
+            makeSpot;
+            spotInnerCutoff: innerCutOffAngle;
+            spotOuterCutoff: outerCutOffAngle;
+            spotExponent: exponent.
+        node
+    }.
+}.
+
+compileTime constant SpotLightSourceVisualComponentPtr := SpotLightSourceVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

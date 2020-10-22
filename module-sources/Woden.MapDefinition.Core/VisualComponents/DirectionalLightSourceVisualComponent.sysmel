@@ -1,0 +1,20 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class DirectionalLightSourceVisualComponent superclass: LightSourceVisualComponent; definition: {
+
+    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
+        let node := super createLightSourceNodeFor: engine.
+        node _
+            makeDirectional.
+        node
+    }.
+}.
+
+compileTime constant DirectionalLightSourceVisualComponentPtr := DirectionalLightSourceVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

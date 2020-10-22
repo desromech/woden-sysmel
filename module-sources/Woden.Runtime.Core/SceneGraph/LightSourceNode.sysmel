@@ -62,6 +62,17 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         renderingSceneObject _ transformChanged.
     }.
 
+    method spotExponent ::=> Float32
+        := spotExponent.
+
+    method spotExponent: (exponent: Float32) ::=> Void := {
+        spotExponent := exponent.
+        objectState _ lightState
+            spotExponent: exponent.
+    }.
+
+    method spotOuterCutoff ::=> Float32
+        := spotOuterCutoff.
 
     method spotOuterCutoff: (cutoffAngle: Float32) ::=> Void := {
         spotOuterCutoff := cutoffAngle.
@@ -69,15 +80,24 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         objectState _ lightState outerCosCutoff: spotOuterCutoff degreesToRadians cos.
     }.
 
+    method spotInnerCutoff ::=> Float32
+        := spotInnerCutoff.
+
     method spotInnerCutoff: (cutoffAngle: Float32) ::=> Void := {
         spotInnerCutoff := cutoffAngle.
         objectState _ lightState innerCosCutoff: spotInnerCutoff degreesToRadians cos.
     }.
 
+    method radius ::=> Float32
+        := objectState _ lightState radius.
+
     method radius: (radius: Float32) ::=> Void := {
         objectState _ lightState radius: radius.
         renderingSceneObject _ radius: radius.
     }.
+
+    method intensity ::=> Float32x3
+        := objectState _ lightState intensity xyz.
 
     method intensity: (intensity: Float32x3) ::=> Void := {
         objectState _ lightState intensity: Float32x4(intensity, 0.0f)

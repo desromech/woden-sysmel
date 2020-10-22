@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+class SectorDefinition superclass: LevelElementDefinition; definition: {
+    public field isSector2D type: Boolean8.
+    public field layers type: Stdn Collections Vector(SectorLayerDefinitionPtr).
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitSectorDefinition: self.
+
+    override method isSector => Boolean8 := true.
+
+    method addLayer: (layer: SectorLayerDefinitionPtr const ref) ::=> Void := {
+        layers add: layer
+    }.
+}.
+
+compileTime constant SectorDefinitionPtr := SectorDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

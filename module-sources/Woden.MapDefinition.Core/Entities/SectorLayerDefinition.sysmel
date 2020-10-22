@@ -1,0 +1,84 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
+    public field entities type: Stdn Collections Vector(EntityDefinitionPtr).
+    public field defaultMinZ type: Float32.
+    public field defaultMaxZ type: Float32.
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitSectorLayerDefinition: self.
+
+    override method isSectorLayer => Boolean8 := true.
+
+    const inline method defaultThickness => Float32
+        := defaultMaxZ - defaultMinZ.
+
+    inline method defaultThickness: (thickness: Float32) ::=> Void := {
+        defaultMinZ := thickness * -0.5f.
+        defaultMaxZ := thickness * 0.5f.
+    }.
+
+    method addEntity: (entity: EntityDefinitionPtr const ref) ::=> Void := {
+        entities add: entity.
+    }.
+
+    method addPlayerStartPoint: (position: Float32x2) ::=> Void
+        := self addPlayerStartPoint: Float32x3(position, 0.0).
+
+    method addPlayerStartPoint: (position: Float32x3) ::=> Void := {
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "PlayerStartPoint";
+            position: position.
+        entities add: definition
+    }.
+
+    method addEnemyAt: (position: Float32x2) ::=> Void
+        := self addEnemyAt: Float32x3(position, 0.0).
+
+    method addEnemyAt: (position: Float32x3) ::=> Void := {
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "Enemy";
+            position: position.
+        entities add: definition
+    }.
+
+    method createWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
+        let boundingRectangle := RectangleF32 min: min max: max.
+        let center := boundingRectangle center.
+
+        let localRectangle := boundingRectangle translatedBy: center negated.
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "Wall";
+            position: Float32x3(center, 0);
+            localBoundingRectangle: localRectangle;
+            addVisualComponent: (VisualComponent rectangle: localRectangle color: color);
+            addCollisionShape: (CollisionShape rectangleWithHalfExtent: localRectangle halfExtent).
+        entities add: definition
+    }.
+
+    method createWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
+        let boundingBox := BoxF32 min: min max: max.
+        let center := boundingBox center.
+
+        let localBox := boundingBox translatedBy: center negated.
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "Wall";
+            position: center;
+            localBoundingBox: localBox;
+            addVisualComponent: (VisualComponent box: localBox color: color);
+            addCollisionShape: (CollisionShape boxWithHalfExtent: localBox halfExtent).
+        entities add: definition
+    }.
+}.
+
+compileTime constant SectorLayerDefinitionPtr := SectorLayerDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

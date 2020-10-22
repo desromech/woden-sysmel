@@ -114,7 +114,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             position: viewPosition xyz;
             surfacePosition: surfacePosition;
             texcoord: input texcoord;
-            color: self materialState albedo;
+            color: self materialState albedo * self objectState color;
             yourself).
 
         stageOut send: (GPU VertexStageOutput()

@@ -1,0 +1,10 @@
+loadFileOnce: "VisualComponent.sysmel".
+loadFileOnce: "VisualComponent2d.sysmel".
+loadFileOnce: "PunctualVisualComponent.sysmel".
+loadFileOnce: "BoxVisualComponent.sysmel".
+loadFileOnce: "RectangleVisualComponent.sysmel".
+
+loadFileOnce: "LightSourceVisualComponent.sysmel".
+loadFileOnce: "DirectionalLightSourceVisualComponent.sysmel".
+loadFileOnce: "PointLightSourceVisualComponent.sysmel".
+loadFileOnce: "SpotLightSourceVisualComponent.sysmel".

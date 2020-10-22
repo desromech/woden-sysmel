@@ -1,0 +1,10 @@
+Compiler importModulesNamed: #(
+    #"Sysmel.Math.Core"
+    #"Sysmel.Serialization.JSON"
+    #"Woden.Runtime.Core"
+); loadPackages: #(
+    Entities
+    PhysicalComponents
+    VisualComponents
+    Serialization
+)

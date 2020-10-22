@@ -1,0 +1,24 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+class LevelElementDefinition superclass: Stdn SharedObject; definition: {
+    public field name type: Stdn String.
+
+    abstract method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void.
+
+    virtual method isLevel => Boolean8 := false.
+    virtual method isSector => Boolean8 := false.
+    virtual method isSectorLayer => Boolean8 := false.
+    virtual method isEntity => Boolean8 := false.
+    virtual method isEntityComponent => Boolean8 := false.
+    virtual method isVisualComponent => Boolean8 := false.
+    virtual method isVisualComponent2d => Boolean8 := false.
+    virtual method isPunctualVisualComponent => Boolean8 := false.
+    virtual method isLightSourceVisualComponent => Boolean8 := false.
+    virtual method isCollisionShape => Boolean8 := false.
+}.
+
+compileTime constant LevelElementDefinitionPtr := LevelElementDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

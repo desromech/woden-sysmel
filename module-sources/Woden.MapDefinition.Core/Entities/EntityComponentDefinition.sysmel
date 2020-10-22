@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+class EntityComponentDefinition superclass: LevelElementDefinition; definition: {
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitEntityComponentDefinition: self.
+
+    override method isEntityComponent => Boolean8 := true.
+}.
+
+compileTime constant EntityComponentDefinitionPtr := EntityComponentDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

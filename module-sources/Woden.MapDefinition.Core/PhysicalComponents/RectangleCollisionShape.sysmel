@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class RectangleCollisionShape superclass: CollisionShape; definition: {
+    public field halfExtent type: Float32x2.
+    public field halfThickness type: Float32.
+
+    override method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void := {
+        halfThickness := layerDefinition _ defaultThickness * 0.5f.
+    }.
+
+    override method boundingBox => BoxF32
+        := BoxF32 center: 0 halfExtent: Float32x3(halfExtent, halfThickness).
+}.
+
+compileTime constant RectangleCollisionShapePtr := RectangleCollisionShape sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

@@ -1,0 +1,37 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class LightSourceVisualComponent superclass: PunctualVisualComponent; definition: {
+    public field color type: Float32x3.
+    public field intensity type: Float32.
+    public field castShadows type: Boolean8.
+
+    method initialize => Void := {
+        super initialize.
+        color := Float32x3 ones.
+        intensity := 1.
+        castShadows := false.
+    }.
+
+    override method isLightSourceVisualComponent => Boolean8 := true.
+
+    virtual method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
+        let node := LightSourceNode sharedNew.
+        node _
+            intensity: color * intensity;
+            castShadows: castShadows.
+        node
+    }.
+
+    override method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr := {
+        (self createLightSourceNodeFor: engine) upCastFor: SceneNode
+    }.
+}.
+
+compileTime constant LightSourceVisualComponentPtr := LightSourceVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

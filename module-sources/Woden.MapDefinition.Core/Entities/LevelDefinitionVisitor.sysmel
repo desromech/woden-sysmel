@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+class LevelDefinitionVisitor definition: {
+    virtual method visitLevelDefinition: (level: LevelDefinition ref) ::=> Void.
+    virtual method visitSectorDefinition: (sector: SectorDefinition ref) ::=> Void.
+    virtual method visitSectorLayerDefinition: (sectorLayer: SectorLayerDefinition ref) ::=> Void.
+    virtual method visitEntityDefinition: (entity: EntityDefinition ref) ::=> Void.
+    virtual method visitEntityComponentDefinition: (entityComponent: EntityComponentDefinition ref) ::=> Void.
+}.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

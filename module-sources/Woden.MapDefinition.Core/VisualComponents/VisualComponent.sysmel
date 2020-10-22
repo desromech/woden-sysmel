@@ -1,0 +1,44 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class VisualComponent superclass: EntityComponentDefinition; definition: {
+    meta definition: {
+        static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer := {
+            let result := RectangleVisualComponent sharedNew.
+            result _
+                rectangle: rectangle;
+                color: color.
+            result upCastFor: VisualComponent
+        }.
+
+        static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer := {
+            let result := BoxVisualComponent sharedNew.
+            result _
+                box: box;
+                color: color.
+            result upCastFor: VisualComponent
+        }.
+    }.
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitEntityComponentDefinition: self.
+
+    override method isVisualComponent => Boolean8 := true.
+
+    virtual method boundingBox => BoxF32
+        := BoxF32 empty.
+
+    virtual method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr
+        := SceneNodePtr nil.
+
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void
+        := {}.
+}.
+
+compileTime constant VisualComponentPtr := VisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

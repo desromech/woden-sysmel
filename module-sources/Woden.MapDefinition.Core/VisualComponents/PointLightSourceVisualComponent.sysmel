@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class PointLightSourceVisualComponent superclass: LightSourceVisualComponent; definition: {
+    public field radius type: Float32.
+
+    method initialize => Void := {
+        super initialize.
+        radius := 10.
+    }.
+
+    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
+        let node := super createLightSourceNodeFor: engine.
+        node _
+            makePoint;
+            radius: radius.
+        node
+    }.
+}.
+
+compileTime constant PointLightSourceVisualComponentPtr := PointLightSourceVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

@@ -1,0 +1,7 @@
+loadFileOnce: "LevelDefinitionVisitor.sysmel".
+loadFileOnce: "LevelElementDefinition.sysmel".
+loadFileOnce: "LevelDefinition.sysmel".
+loadFileOnce: "SectorDefinition.sysmel".
+loadFileOnce: "SectorLayerDefinition.sysmel".
+loadFileOnce: "EntityDefinition.sysmel".
+loadFileOnce: "EntityComponentDefinition.sysmel".

@@ -1,0 +1,3 @@
+loadFileOnce: "CollisionShape.sysmel".
+loadFileOnce: "BoxCollisionShape.sysmel".
+loadFileOnce: "RectangleCollisionShape.sysmel".

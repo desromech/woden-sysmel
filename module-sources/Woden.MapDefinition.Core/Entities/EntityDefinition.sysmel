@@ -1,0 +1,37 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math.
+useNamespace: Stdn Math Geometry.
+
+class EntityDefinition superclass: LevelElementDefinition; definition: {
+    public field className type: Stdn String.
+    public field position type: Float32x3.
+    public field orientation type: QuaternionF32.
+    public field localBoundingBox type: BoxF32.
+    public field components type: Stdn Collections Vector(EntityComponentDefinitionPtr).
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitEntityDefinition: self.
+
+    override method isEntity => Boolean8 := true.
+
+    method localBoundingRectangle: (rectangle: RectangleF32 const ref) ::=> Void := {
+        localBoundingBox := BoxF32 min: Float32x3(rectangle min, 0) max: Float32x3(rectangle max, 0)
+    }.
+
+    method addComponent: (component: EntityComponentDefinitionPtr const ref) ::=> Void := {
+        components add: component
+    }.
+
+    inline method addVisualComponent: (visualComponent: VisualComponent sharedPointer const ref) ::=> Void
+        := self addComponent: (visualComponent upCastFor: EntityComponentDefinition).
+
+    inline method addCollisionShape: (collisionShape: CollisionShape sharedPointer const ref) ::=> Void
+        := self addComponent: (collisionShape upCastFor: EntityComponentDefinition).
+}.
+
+compileTime constant EntityDefinitionPtr := EntityDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

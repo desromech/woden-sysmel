@@ -1,0 +1,34 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+
+class CollisionShape superclass: EntityComponentDefinition; definition: {
+    meta definition: {
+        static method boxWithHalfExtent: (halfExtent: Float32x3) ::=> CollisionShape sharedPointer := {
+            let result := BoxCollisionShape sharedNew.
+            result _ halfExtent: halfExtent.
+            result upCastFor: CollisionShape
+        }.
+
+        static method rectangleWithHalfExtent: (halfExtent: Float32x2) ::=> CollisionShape sharedPointer := {
+            let result := RectangleCollisionShape sharedNew.
+            result _ halfExtent: halfExtent.
+            result upCastFor: CollisionShape
+        }.
+    }.
+
+    override method isCollisionShape => Boolean8 := true.
+
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void
+        := {}.
+
+    virtual method boundingBox => BoxF32
+        := BoxF32 empty.
+}.
+
+compileTime constant CollisionShapePtr := CollisionShape sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

@@ -1,0 +1,43 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+class LevelDefinition superclass: LevelElementDefinition; definition: {
+    public field sectors type: Stdn Collections Vector(SectorDefinitionPtr).
+
+    meta definition: {
+        static method simpleSampleLevel => LevelDefinition sharedPointer := {
+            let mainLayer := SectorLayerDefinition sharedNew.
+            mainLayer _
+                defaultThickness: 2.0f;
+                addPlayerStartPoint: Float32x2 zeros;
+                addEnemyAt: Float32x2(4.0f, 2.0f);
+                addEnemyAt: Float32x2(15.0f, 0.0f);
+                createWallMin: Float32x2(-5.0f, -5.0f) max: Float32x2(20.0f, -4.0f) color: Float32x4(0.2f, 0.2f, 0.2f, 1.0f);
+                createWallMin: Float32x2(3.0f, -1.0f) max: Float32x2(8.0f, 0.0f) color: Float32x4(0.2f, 0.2f, 0.2f, 1.0f).
+
+            let mainSector := SectorDefinition sharedNew.
+            mainSector _
+                isSector2D: true;
+                ##gravity: Float32x3(0, -9.8f, 0);
+                addLayer: mainLayer.
+
+            let level := LevelDefinition sharedNew.
+            level _ addSector: mainSector.
+            level
+        }.
+    }.
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitLevelDefinition: self.
+
+    override method isLevel => Boolean8 := true.
+
+    method addSector: (sector: SectorDefinitionPtr) ::=> Void := {
+        sectors add: sector
+    }.
+}.
+
+compileTime constant LevelDefinitionPtr := LevelDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

@@ -65,7 +65,7 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         let vertexOut mutable := VertexIO()
             position: viewPosition xyz;
             texcoord: input texcoord;
-            color: self materialState albedo * input color;
+            color: self materialState albedo * self objectState color * input color;
             normal: normal;
             yourself.
 
