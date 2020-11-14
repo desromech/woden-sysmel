@@ -47,6 +47,21 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         entities add: definition
     }.
 
+    method addPointLightAt: (position: Float32x2) color: (color: Float32x3)
+        intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void
+        := self addPointLightAt: Float32x3(position, 0.0) color: color
+            intensity: intensity radius: radius castShadows: castShadows.
+
+    method addPointLightAt: (position: Float32x3) color: (color: Float32x3)
+        intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void := {
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "PointLight";
+            addVisualComponent: (VisualComponent pointLightSourceWithColor: color intensity: intensity radius: radius castShadows: castShadows);
+            position: position.
+        entities add: definition
+    }.
+
     method createWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
         let boundingRectangle := RectangleF32 min: min max: max.
         let center := boundingRectangle center.
@@ -74,6 +89,34 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
             localBoundingBox: localBox;
             addVisualComponent: (VisualComponent box: localBox color: color);
             addCollisionShape: (CollisionShape boxWithHalfExtent: localBox halfExtent).
+        entities add: definition
+    }.
+
+    method createNonSolidWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
+        let boundingRectangle := RectangleF32 min: min max: max.
+        let center := boundingRectangle center.
+
+        let localRectangle := boundingRectangle translatedBy: center negated.
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "Wall";
+            position: Float32x3(center, 0);
+            localBoundingRectangle: localRectangle;
+            addVisualComponent: (VisualComponent rectangle: localRectangle color: color).
+        entities add: definition
+    }.
+
+    method createNonSolidWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
+        let boundingBox := BoxF32 min: min max: max.
+        let center := boundingBox center.
+
+        let localBox := boundingBox translatedBy: center negated.
+        let definition := EntityDefinition sharedNew.
+        definition _
+            className: "Wall";
+            position: center;
+            localBoundingBox: localBox;
+            addVisualComponent: (VisualComponent box: localBox color: color).
         entities add: definition
     }.
 }.

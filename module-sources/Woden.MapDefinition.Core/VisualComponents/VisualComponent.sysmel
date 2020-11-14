@@ -21,6 +21,16 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
                 color: color.
             result upCastFor: VisualComponent
         }.
+
+        static method pointLightSourceWithColor: (color: Float32x3) intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> VisualComponent sharedPointer := {
+            let result := PointLightSourceVisualComponent sharedNew.
+            result _
+                color: color;
+                intensity: intensity;
+                radius: radius;
+                castShadows: castShadows.
+            result upCastFor: VisualComponent
+        }.
     }.
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
