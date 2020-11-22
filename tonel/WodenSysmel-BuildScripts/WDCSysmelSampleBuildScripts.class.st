@@ -9,7 +9,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample01Cube [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample01Cube.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample01Cube.sysmel'
 		]
 ]
 
@@ -18,7 +18,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample02TexturedCube [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample02TexturedCube.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample02TexturedCube.sysmel'
 		]
 ]
 
@@ -27,7 +27,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample03Floor [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample03Floor.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample03Floor.sysmel'
 		]
 ]
 
@@ -36,7 +36,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample04Pool [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample04Pool.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample04Pool.sysmel'
 		]
 ]
 
@@ -45,7 +45,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample05Models [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample05Models.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample05Models.sysmel'
 		]
 ]
 
@@ -54,7 +54,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample06Sponza [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample06Sponza.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample06Sponza.sysmel'
 		]
 ]
 
@@ -63,7 +63,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript programWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel'
+			packageScript guiProgramWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel'
 		]
 ]
 
