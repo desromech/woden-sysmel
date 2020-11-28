@@ -251,6 +251,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field cameraPostProcessingStateBuffer type: BufferPtr.
     protected field depthNormalFramebuffer type: FramebufferPtr.
     protected field depthNormalRenderPass type: RenderPassPtr.
+    protected field depthBufferTextureView type: TextureViewPtr.
 
     protected field ssaoTextureExtent type: UInt32x2.
     protected field ssaoTextureView type: TextureViewPtr.
@@ -296,7 +297,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             depth: 1;
             layers: 1;
             miplevels: 1;
-            format: PixelFormat D32_Float;
+            format: PixelFormat R32_Typeless;
             usageModes: TextureUsageMode Sampled | TextureUsageMode DepthAttachment;
             mainUsageMode: TextureUsageMode Sampled;
             heapType: MemoryHeapType DeviceLocal;
@@ -316,13 +317,20 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             sampleCount: 1;
             yourself).
 
-        let depthBufferTextureView := depthBuffer _ getOrCreateFullView.
+        let depthBufferAttachmentViewDescription  mutable := depthBuffer _ getFullViewDescription.
+        depthBufferAttachmentViewDescription format: PixelFormat D32_Float.
+        let depthBufferAttachmentView := depthBuffer _ createView: depthBufferAttachmentViewDescription.
+
+        let depthBufferTextureViewDescription  mutable := depthBuffer _ getFullViewDescription.
+        depthBufferTextureViewDescription format: PixelFormat R32_Float.
+        depthBufferTextureView := depthBuffer _ createView: depthBufferTextureViewDescription.
+
         let normalBufferTextureView := normalBuffer _ getOrCreateFullView.
 
         ## Create the depth normal framebuffer.
         {
             let colorAttachments mutable := TextureViewPtr array(normalBufferTextureView).
-            depthNormalFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+            depthNormalFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
         depthNormalRenderPass ifNil: {
@@ -438,7 +446,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             hdrColorBufferBinding _ bindOn: 1 sampledTextureView: colorBuffer _ getOrCreateFullView.
 
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
-            hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferTextureView.
+            hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
         hdrColorRenderPass ifNil: {
@@ -534,6 +542,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             screenSize: screenSize;
             inverseScreenSize: 1 / screenSize;
+
+            ndcToTextureFetchTransform: (self engine _ renderingDevice _ shouldInvertProjectionY
+                ifTrue: Float32x4(1.0f, 1.0f, 1.0f, 1.0f)
+                ifFalse: Float32x4(1.0f, -1.0f, 1.0f, 1.0f));
 
             currentTime: scene _ currentTime;
             currentFrameDeltaTime: 1.0f/60.0f; ## TODO: Compute this properly

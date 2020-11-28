@@ -55,6 +55,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             let shaderSignatureDescription := ShaderSignatureDescription()
             ## Sampling state.
             addBank: (ShaderSignatureBankDescription()
+                maxBindingPointCountHint: 1;
                 addElementWithType: ShaderBindingType Sampler;
                 addElementWithType: ShaderBindingType Sampler;
                 addElementWithType: ShaderBindingType Sampler;
@@ -233,23 +234,28 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 depth: 1;
                 layers: ShadowMapTextureLayers;
                 miplevels: 1;
-                format: PixelFormat D32_Float;
+                format: PixelFormat R32_Typeless;
                 usageModes: TextureUsageMode Sampled | TextureUsageMode DepthAttachment;
                 mainUsageMode: TextureUsageMode Sampled;
                 heapType: MemoryHeapType DeviceLocal;
                 sampleCount: 1;
                 yourself).
-            shadowMapTextureView := shadowMapTexture _ getOrCreateFullView.
+
+            let shadowMapTextureViewDescription mutable := shadowMapTexture _ getFullViewDescription.
+            shadowMapTextureViewDescription format: PixelFormat R32_Float.
+            shadowMapTextureView := shadowMapTexture _ createView: shadowMapTextureViewDescription.
 
             0 until: ShadowMapTextureLayers do: {:(UInt32)i :: Void |
                 let layerDescription mutable := shadowMapTexture _ getFullViewDescription.
-                layerDescription subresourceRange: (TextureSubResourceRange()
-                    usageModes: TextureUsageMode DepthAttachment;
-                    baseMipLevel: 0;
-                    levelCount: 1;
-                    baseArrayLayer: i;
-                    layerCount: 1;
-                    yourself).
+                layerDescription
+                    format: PixelFormat D32_Float;
+                    subresourceRange: (TextureSubResourceRange()
+                        usageModes: TextureUsageMode DepthAttachment;
+                        baseMipLevel: 0;
+                        levelCount: 1;
+                        baseArrayLayer: i;
+                        layerCount: 1;
+                        yourself).
 
                 let layerView := shadowMapTexture _ createView: layerDescription.
                 shadowMapFramebuffers[i] := device _ createFramebuffer: extent colorViews: TextureViewPtr const arraySlice() depthStencilView: layerView.

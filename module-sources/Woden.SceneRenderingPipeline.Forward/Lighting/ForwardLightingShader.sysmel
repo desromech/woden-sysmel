@@ -70,7 +70,7 @@ struct LightingParameters definition: {
     public field V type: Float32x3.
     public field N type: Float32x3.
     public field surfaceNormal type: Float32x3.
-    public field fragCoord type: Float32x4.
+    public field screenPosition type: Float32x4.
 
     public field emission type: Float32x3.
     public field occlusion type: Float32.
@@ -88,7 +88,7 @@ struct MetallicRoughnessLightingParameters definition: {
     public field V type: Float32x3.
     public field N type: Float32x3.
     public field surfaceNormal type: Float32x3.
-    public field fragCoord type: Float32x4.
+    public field screenPosition type: Float32x4.
 
     public field emission type: Float32x3.
     public field albedo type: Float32x3.
@@ -112,7 +112,7 @@ struct MetallicRoughnessLightingParameters definition: {
             V: V;
             N: N;
             surfaceNormal: surfaceNormal;
-            fragCoord: fragCoord;
+            screenPosition: screenPosition;
             emission: emission;
             Cdiff: Cdiff;
             F0: F0;
@@ -184,7 +184,8 @@ class ForwardSceneRenderingShaderSignature; definition: {
         let result mutable := hemiLightingFactor rgb * (Cdiff + F0).
 
         ## Apply the ambient occlusion.
-        let ssao := (self albedoSampler sample: self lightingStateBinding _ ssaoTexture at: lightingParameters fragCoord xy * self cameraState inverseScreenSize) r.
+        let screenCoordinate := (lightingParameters screenPosition xy / lightingParameters screenPosition w) * 0.5f + 0.5f.
+        let ssao := (self albedoSampler sample: self lightingStateBinding _ ssaoTexture at: screenCoordinate) r.
         let occlusion := lightingParameters occlusion * ssao.
         result := result * occlusion.
 

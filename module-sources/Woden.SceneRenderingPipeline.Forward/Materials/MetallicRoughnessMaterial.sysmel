@@ -25,9 +25,10 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         public field texcoord type: Float32x2; location: 1.
         public field color type: Float32x4; location: 2.
         public field normal type: Float32x3; location: 3.
+        public field screenPosition type: Float32x4; location: 4.
         compileTime if: hasTangent4 then: {
-            public field tangent type: Float32x3; location: 4.
-            public field bitangent type: Float32x3; location: 5.
+            public field tangent type: Float32x3; location: 5.
+            public field bitangent type: Float32x3; location: 6.
         }.
     }.
 
@@ -67,6 +68,7 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
             texcoord: input texcoord;
             color: self materialState albedo * self objectState color * input color;
             normal: normal;
+            screenPosition: screenPosition * self cameraState ndcToTextureFetchTransform;
             yourself.
 
         compileTime if: hasTangent4 then: {
@@ -127,7 +129,7 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
             V: P negated normalized;
             N: N;
             surfaceNormal: SN;
-            fragCoord: stageInput fragCoord;
+            screenPosition: input screenPosition;
             emission: emission rgb;
             albedo: albedo rgb;
             occlusion: occlusion;

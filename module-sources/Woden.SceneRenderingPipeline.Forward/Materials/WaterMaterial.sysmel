@@ -56,6 +56,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
         public field texcoord type: Float32x2; location: 1.
         public field color type: Float32x4; location: 2.
         public field surfacePosition type: Float32x2; location: 3.
+        public field screenPosition type: Float32x4; location: 4.
     }.
 
     method transformNormal: (vector: Float32x3) ::=> Float32x3 := {
@@ -115,6 +116,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             surfacePosition: surfacePosition;
             texcoord: input texcoord;
             color: self materialState albedo * self objectState color;
+            screenPosition: screenPosition * self cameraState ndcToTextureFetchTransform;
             yourself).
 
         stageOut send: (GPU VertexStageOutput()
@@ -151,6 +153,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             V: P negated normalized;
             N: N;
             surfaceNormal: N;
+            screenPosition: input screenPosition;
             emission: emission rgb;
             albedo: albedo rgb;
             occlusion: occlusion;

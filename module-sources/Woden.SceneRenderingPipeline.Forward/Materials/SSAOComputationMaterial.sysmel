@@ -86,7 +86,7 @@ class SSAOComputationMaterialShaders superclass: CompositionMaterialShaders; def
 	}.
 
 	method sampleAmbientOcclusionAt: (position: Float32x3) with: (eyeDepth: Float32) ::=> Float32 :=  {
-	    let projectedPosition := self cameraState projectionMatrix * Float32x4(position, 1.0f).
+	    let projectedPosition := (self cameraState projectionMatrix * Float32x4(position, 1.0f)) * self cameraState ndcToTextureFetchTransform.
 	    let samplePoint := projectedPosition xyz / projectedPosition w.
 		let sampleDepth := (self deferredSampler sample: self depthTexture at: samplePoint xy*0.5f + 0.5f lod: 0.0f) r.
 
@@ -116,7 +116,7 @@ class SSAOComputationMaterialShaders superclass: CompositionMaterialShaders; def
 
 		## Compute the eye position, in view space.
 	    let eyeDepth := (self deferredSampler sample: self depthTexture at: uv lod: 0.0f) r.
-	    let screenPosition := Float32x4(uv*2.0f - 1.0f, eyeDepth, 1.0f).
+	    let screenPosition := Float32x4(uv*2.0f - 1.0f, eyeDepth, 1.0f) * self cameraState ndcToTextureFetchTransform.
 
 	    let eyePosition4 := self cameraState inverseProjectionMatrix * screenPosition.
 	    let eyePosition := eyePosition4 xyz / eyePosition4 w.

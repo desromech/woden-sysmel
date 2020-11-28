@@ -15,6 +15,9 @@ struct CameraStateData definition: {
     public field screenSize type: Float32x2.
     public field inverseScreenSize type: Float32x2.
 
+	## We may need to flip the y coordinate to fetch from a texture.
+	public field ndcToTextureFetchTransform type: Float32x4.
+
 	## The absolute time for this frame.
     public field currentTime type: Float32.
 	## The time since the last frame.
