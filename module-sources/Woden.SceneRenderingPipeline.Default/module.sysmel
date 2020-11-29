@@ -1,4 +1,4 @@
-compileTime if: Compiler compilationTarget isDesktopPC then: {
+compileTime if: Compiler compilationTarget isDesktopPC || Compiler compilationTarget isWindowsFamily then: {
     Compiler importIndirectModulesNamed: #(
         #"Woden.SceneRenderingPipeline.Forward"
     ).

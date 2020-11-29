@@ -112,6 +112,16 @@ class SampleSceneView superclass: SceneView; definition: {
 		}.
 	}.
 
+    override method onGameControllerAxisMotionEvent: (event: GameControllerAxisMotionEvent ref) ::=> Void := {
+		event axis selectCase: #{
+        GameControllerAxis LeftX : {cameraMovementDirection x: event value}.
+        GameControllerAxis LeftY : {cameraMovementDirection z: event value}.
+        GameControllerAxis RightX : {cameraAngularVelocity y: event value negated}.
+        GameControllerAxis RightY : {cameraAngularVelocity x: event value negated}.
+		_ : {}.
+		}.
+	}.
+
     override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
         let camera := self camera.
         camera ifNil: {return: void}.

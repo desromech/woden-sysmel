@@ -21,7 +21,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     override method validatedExtent => UInt32x2 := {
         window ifNotNil: {
             let newExtent := window _ extent.
-            currentSwapChainExtent = newExtent ifFalse: {
+            swapChain isNil || currentSwapChainExtent ~= newExtent ifTrue: {
                 self createSwapChainWithExtent: newExtent
             }.
         }.
@@ -63,12 +63,6 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
         window _ renderingDevice: self engine _ renderingDevice.
 
-        ## Create the window swap chain.
-        self createSwapChainWithExtent: (initialExtent castTo: UInt32x2).
-        swapChain ifNil: {
-            return: false
-        }.
-
         ## Create the event handler.
 	    {
 	        let eventHandler := GenericViewEventHandler sharedNew.
@@ -81,7 +75,10 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
     override method getCurrentBackBuffer => FramebufferPtr := {
         swapChain ifNil: {
-            return: FramebufferPtr nil
+            self validatedExtent.
+            swapChain ifNil: {
+                return: FramebufferPtr nil
+            }
         }.
 
         swapChain _ getCurrentBackBuffer
