@@ -80,6 +80,7 @@ struct LightingParameters definition: {
 
     public field alpha type: Float32.
     public field directAlpha type: Float32.
+    public field directMaskingAlpha type: Float32.
     public field opacityFactor type: Float32.
 }.
 
@@ -105,8 +106,11 @@ struct MetallicRoughnessLightingParameters definition: {
         let F0 := dielectricSpecular interpolateTo: albedo rgb at: metallic.
 
         let alpha := roughness * roughness.
-        let directRoughness := 0.05f interpolateTo: 1.0f at: roughness.
+        let directRoughness := 0.01f interpolateTo: 1.0f at: roughness.
         let directAlpha := directRoughness*directRoughness.
+
+        let directMaskingRoughness := (directRoughness + 1) * 0.5f.
+        let directMaskingAlpha := directMaskingRoughness*directMaskingRoughness.
         LightingParameters()
             P: P;
             V: V;
@@ -119,6 +123,7 @@ struct MetallicRoughnessLightingParameters definition: {
             occlusion: occlusion;
             alpha: alpha;
             directAlpha: directAlpha;
+            directMaskingAlpha: directMaskingAlpha;
             opacityFactor: opacityFactor;
             yourself
     }.
@@ -171,6 +176,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
         let F0 := lightingParameters F0.
         let alpha := lightingParameters alpha.
         let directAlpha := lightingParameters directAlpha.
+        let directMaskingAlpha := lightingParameters directMaskingAlpha.
 
         let diff := Cdiff * Float32 piReciprocal.
         let NdotV := (N dot: V) clampMin: 0.0f max: 1.0f.
@@ -268,7 +274,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
                     let F := fresnelSchlick(F0, VdotH).
                     let D := specularDistribution(directAlpha, NdotH).
-                    let G := cookTorranceMasking(directAlpha, NdotL, NdotV).
+                    let G := cookTorranceMasking(directMaskingAlpha, NdotL, NdotV).
 
                     result := result + lightSource intensity rgb * (diff + F*D*G) * (attenuation * Float32 pi * NdotL).
                 }.
