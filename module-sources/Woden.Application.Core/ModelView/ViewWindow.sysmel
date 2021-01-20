@@ -25,8 +25,11 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
     virtual method extent => UInt32x2
         := UInt32x2(640, 480).
 
-    virtual method validatedExtent => UInt32x2
+    virtual method drawingSurfaceExtent => UInt32x2
         := self extent.
+
+    virtual method validatePresentationSurfaces => Boolean8
+        := true.
 
     virtual method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
         view := theView.
@@ -38,7 +41,8 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
 
     virtual method getDisplayRenderPass => RenderPassPtr
         := RenderPassPtr nil.
-    virtual method swapBuffers => Void := {
+
+    virtual method commitSurfaces => Void := {
 
     }.
 

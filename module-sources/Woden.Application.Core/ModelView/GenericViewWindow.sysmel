@@ -14,19 +14,20 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     protected field swapChain type: SwapChainPtr.
     protected field currentSwapChainExtent type: UInt32x2.
     protected field displayRenderPass type: RenderPassPtr.
+    protected field isOutOfDate type: Boolean8.
 
     override method extent => UInt32x2
         := currentSwapChainExtent.
 
-    override method validatedExtent => UInt32x2 := {
+    override method validatePresentationSurfaces => Boolean8 := {
         window ifNotNil: {
             let newExtent := window _ extent.
-            swapChain isNil || currentSwapChainExtent ~= newExtent ifTrue: {
+            swapChain isNil || currentSwapChainExtent ~= newExtent || isOutOfDate ifTrue: {
                 self createSwapChainWithExtent: newExtent
             }.
         }.
 
-        currentSwapChainExtent
+        swapChain isNotNil
     }.
 
     ## For displaying we only need a swap chain with the color buffer, by default.
@@ -43,6 +44,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         let defaultCommandQueue := device _ getDefaultCommandQueue.
         swapChain := window _ createSwapChain: swapChainCreationInfo for: defaultCommandQueue.
         currentSwapChainExtent := newExtent.
+        isOutOfDate := false.
     }.
 
     override method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
@@ -74,12 +76,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     }.
 
     override method getCurrentBackBuffer => FramebufferPtr := {
-        swapChain ifNil: {
-            self validatedExtent.
-            swapChain ifNil: {
-                return: FramebufferPtr nil
-            }
-        }.
+        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferPtr nil}.
 
         swapChain _ getCurrentBackBuffer
     }.
@@ -112,9 +109,15 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         displayRenderPass
     }.
 
-    override method swapBuffers => Void := {
-        swapChain ifNotNil: {
-            swapChain _ swapBuffers
+    override method commitSurfaces => Void := {
+        swapChain _ swapBuffers selectCase: #{
+        SwapChainPresentationError OutOfDate : {
+            isOutOfDate := true
+        }.
+        SwapChainPresentationError Suboptimal : {
+            isOutOfDate := true
+        }.
+        SwapChainPresentationError Ok : {}.
         }
     }.
 
