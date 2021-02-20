@@ -5,6 +5,15 @@ Class {
 }
 
 { #category : #'native samples' }
+WDCSysmelSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
+	<example>
+	self newNativeBuildEnvironment
+		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
+			packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
+		]
+]
+
+{ #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample01Cube [
 	<example>
 	self newNativeBuildEnvironment
