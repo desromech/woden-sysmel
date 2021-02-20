@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class MetadataEntity superclass: Entity; definition: {
+    override method isAlive => Boolean8
+        := false.
+
+    override method isMetadata => Boolean8
+        := true.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

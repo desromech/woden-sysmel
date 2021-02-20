@@ -1,0 +1,38 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+
+struct CollisionSweepTestResult definition: {
+    compileTime constant ExclusionSet := FixedVector(CollisionObject pointer, 10).
+
+    method initialize => Void := {
+        self reset
+    }.
+
+    method reset => Void := {
+        collisionDistance := Float32 infinity.
+        hasCollision := false.
+        collidingObject := nil
+    }.
+
+    public field collisionTestObject type: CollisionObject pointer.
+    public field collisionGroup type: CollisionGroup.
+    public field collisionGroupFilter type: CollisionGroup.
+
+    public field collisionDistance type: Float32.
+    public field hasCollision type: Boolean8.
+    public field collidingBox type: BoxF32.
+    public field collidingObject type: CollisionObject pointer.
+
+    public field exclusionSet type: ExclusionSet.
+
+    method addExcludedObject: (object: CollisionObject pointer) ::=> Void := {
+        (exclusionSet includes: object) ifFalse: {
+            exclusionSet add: object
+        }
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

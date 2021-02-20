@@ -1,0 +1,9 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class Enemy superclass: Character; definition: {
+    SelfType registerWithClassName: "Enemy".
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

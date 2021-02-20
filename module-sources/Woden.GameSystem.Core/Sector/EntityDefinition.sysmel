@@ -1,0 +1,22 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class EntityDefinition superclass: Stdn SharedObject; definition: {
+    public field className type: Stdn String.
+    public field name type: Stdn String.
+    public field position type: Float32x3.
+    public field localBoundingBox type: BoxF32.
+    public field collisionShape type: CollisionShapePtr.
+    public field visualComponent type: VisualComponentPtr.
+
+    method localBoundingRectangle: (rectangle: RectangleF32 const ref) ::=> Void := {
+        localBoundingBox := BoxF32 min: Float32x3(rectangle min, 0) max: Float32x3(rectangle max, 0)
+    }.
+}.
+
+compileTime constant EntityDefinitionPtr := EntityDefinition sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

@@ -1,0 +1,25 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class AbstractEntityFactory definition: {
+    abstract method className => Char8 const arraySlice.
+    abstract method newInstance => EntityPtr.
+}.
+
+template EntityFactory(T: Type, CN: _LiteralString)
+    := class superclass: AbstractEntityFactory; definition: {
+    compileTime constant EntityType := T.
+
+    override method className => Char8 const arraySlice
+        := CN.
+
+    override method newInstance => EntityPtr
+        := EntityType sharedNew upCastFor: Entity.
+
+    method initialize => Void := {
+        EntityRegistry uniqueInstance registerFactory: self address
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

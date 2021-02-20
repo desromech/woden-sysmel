@@ -1,0 +1,125 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden MapDefinition.
+
+class Character superclass: Entity; definition: {
+    compileTime constant HumanFallTerminalVelocity := 53.0.
+
+    field hitPoints type: Float32.
+    field rigidBody type: RigidBodyPtr.
+    field moveDirection type: Float32x3.
+    field lookDirection type: Float32x3.
+
+    override method initialize => Void := {
+        hitPoints := 100.
+    }.
+
+    override method spawn => Void := {
+        super spawn.
+        self buildVisualComponent.
+        self buildCollisionObject.
+    }.
+
+    override method prePhysicsTick: (delta: Float32) ::=> Void := {
+
+        rigidBody _ engineAcceleration: ((moveDirection closeTo: 0)
+            ifTrue: {Float32x3 zeros}
+            ifFalse: {moveDirection normalized * self internalEngineAcceleration}).
+        super prePhysicsTick: delta.
+    }.
+
+    virtual method buildVisualComponent => Void := {
+        visualComponent := VisualComponent box: (BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4)) color: Float32x4 white.
+    }.
+
+    override method isAlive => Boolean8
+        := hitPoints > 0.
+
+    const virtual method maximumJumpHeight => Float32
+        := 7.0f.
+
+    const virtual method maximumJumpHeightTime => Float32
+        := 0.6f.
+
+    const virtual method jumpVelocity => Float32x3 := {
+        ## Computing the formula for this on paper.
+        ## 1) tmax = v/g 2)/ hmax =v^2/(2g)
+        ## Solved, gives the following:
+        ## Note: The actual jump height is smaller because of the linear damping.
+        Float32x3(0.0f, 2.0f* self maximumJumpHeight / self maximumJumpHeightTime, 0).
+    }.
+
+    const virtual method jumpGravity => Float32x3 := {
+        let t := self maximumJumpHeightTime.
+        Float32x3(0.0f, -2.0f* self maximumJumpHeight / (t*t), 0)
+    }.
+
+    const virtual method terminalVelocity => Float32x3
+        := 10.0f.
+
+    const virtual method terminalVelocityAchivementTime => Float32x3
+        := 0.1f.
+
+    const virtual method fallTerminalVelocity => Float32x3
+        := Float32x3(0, HumanFallTerminalVelocity, 0).
+
+    const virtual method internalEngineAcceleration => Float32x3
+        := self terminalVelocity / self terminalVelocityAchivementTime.
+
+    virtual method buildCollisionObject => Void := {
+        rigidBody := RigidBody sharedNew.
+        rigidBody _
+            ownerEntity: (self asSharedPointer upCastFor: Entity);
+            collisionShape: (CollisionShape boxWithHalfExtent: Float32x3(0.5f, 1.0f, 0.4));
+            coefficientOfRestitution: 0.2f;
+            mass: 70.0f;
+            makeCharacter.
+        collisionObject := rigidBody upCastFor: CollisionObject.
+        self applyMovementParametersToRigidBody
+    }.
+
+    virtual method applyMovementParametersToRigidBody => Void := {
+        let jumpGravity := self jumpGravity.
+        rigidBody _
+            hasCustomGravity: true;
+            gravity: jumpGravity;
+            computeDampingForTerminalVelocity: (self terminalVelocity + self fallTerminalVelocity) withMaximumAcceleration: self internalEngineAcceleration + jumpGravity.
+    }.
+
+    override method receiveDamage: (damage: Float32) by: (damagingEntity: Entity ref) at: (damagePoint: Float32x3) ::=> Void := {
+        hitPoints := hitPoints - damage.
+    }.
+
+    virtual method isOnFloor => Boolean8 := {
+        let physicalSector := self physicalSector.
+        physicalSector ifNil: {return: false}.
+
+        collisionObject ifNil: {return: false}.
+        let boundingBox := collisionObject _ boundingBox.
+
+        let floorSensorHeight := 0.1f.
+        let sensorPosition := boundingBox nearBottomLeft - Float32x3(0, floorSensorHeight, 0).
+        let sensorExtent := Float32x3(boundingBox width, floorSensorHeight, boundingBox depth).
+        physicalSector _
+            isBox: (BoxF32 min: sensorPosition extent: sensorExtent)
+            belongingTo: collisionObject getPointer
+            collidingWithGroup: CollisionGroup AllSolid
+    }.
+
+    virtual method canJump => Boolean8
+        := self isOnFloor.
+
+    virtual method jump => Void := {
+        self isOnFloor ifFalse: {return: void}.
+        self doJump.
+    }.
+
+    virtual method doJump => Void := {
+        collisionObject _ linearVelocity: collisionObject _ linearVelocity + self jumpVelocity.
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

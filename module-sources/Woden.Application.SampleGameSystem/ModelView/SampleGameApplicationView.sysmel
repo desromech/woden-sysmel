@@ -1,0 +1,224 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Woden Application.
+useNamespace: Stdn Graphics GUI.
+useNamespace: Stdn Math LinearAlgebra.
+
+class SampleGameApplicationView superclass: GameApplicationView; definition: {
+    field freeCameraMovementEnabled type: Boolean8.
+    field cameraMovementDirection type: Float32x3.
+    field cameraMovementSpeed type: Float32.
+    field cameraAngle type: Float32x3.
+    field cameraAngularVelocity type: Float32x3.
+
+    override method initialize => Void := {
+        cameraMovementSpeed := 1.0f.
+    }.
+
+    method cameraOrientation => Float32x3x3
+        := (Float32x3x3 yRotation: cameraAngle y) * (Float32x3x3 xRotation: cameraAngle x).
+
+    override method prepareViewCamera => Void := {
+        let camera := self camera.
+        camera ifNotNil: {
+            let player := self player.
+            freeCameraMovementEnabled || player isNil ifTrue: {
+                let transform mutable := camera _ transform.
+                transform orthonormal: self cameraOrientation.
+                camera _ transform: transform.
+            } ifFalse: {
+                camera _ transform: (ReversibleAffineTransform3dF32()
+                    setIdentity;
+                    translation: player _ position + Float32x3(0, 2, 10);
+                    yourself).
+            }.
+        }.
+
+        super prepareViewCamera.
+    }.
+
+    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        let camera := self camera.
+        camera ifNil: {return: void}.
+
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+            let delta := event deltaSeconds castTo: Float32.
+
+            cameraAngularVelocity = 0 ifFalse: {
+                cameraAngle := cameraAngle + (cameraAngularVelocity normalized)*delta / Float32 pi *2.0f.
+            }.
+
+            cameraMovementDirection = 0 ifFalse: {
+                camera _ translateBy: self cameraOrientation * (cameraMovementDirection normalized * cameraMovementSpeed * delta).
+            }.
+        }.
+    }.
+
+    override method onKeyPressedEvent: (event: KeyPressedEvent ref) ::=> Void := {
+		event isRepeat ifTrue: {return: void}.
+        event symbol selectCase: #{
+            KeySymbol F1 : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
+            _ : {}
+        }.
+
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+            event symbol selectCase: #{
+    		KeySymbol W : {cameraMovementDirection z: -1.0f}.
+            KeySymbol S : {cameraMovementDirection z: 1.0f}.
+            KeySymbol A : {cameraMovementDirection x: -1.0f}.
+            KeySymbol D : {cameraMovementDirection x: 1.0f}.
+            KeySymbol Space : {cameraMovementDirection y: 1.0f}.
+            KeySymbol LCtrl : {cameraMovementDirection y: -1.0f}.
+            KeySymbol LShift : {cameraMovementSpeed := 2.0f}.
+
+            KeySymbol Left : {cameraAngularVelocity y: 1.0f}.
+            KeySymbol Right : {cameraAngularVelocity y: -1.0f}.
+            KeySymbol Up : {cameraAngularVelocity x: 1.0f}.
+            KeySymbol Down : {cameraAngularVelocity x: -1.0f}.
+
+    		_ : {}.
+    		}
+        } ifFalse: {
+            event symbol selectCase: #{
+    		KeySymbol A : {player _ onInputAction: "moveLeft" buttonState: true}.
+    		KeySymbol D : {player _ onInputAction: "moveRight" buttonState: true}.
+    		KeySymbol W : {player _ onInputAction: "moveForward" buttonState: true}.
+            KeySymbol S : {player _ onInputAction: "moveBackward" buttonState: true}.
+            KeySymbol Q : {player _ onInputAction: "shoot" buttonState: true}.
+    		KeySymbol Space : {player _ onInputAction: "jump" buttonState: true}.
+    		KeySymbol LShift : {player _ onInputAction: "dash" buttonState: true}.
+            _ : {}.
+            }
+
+        }.
+    }.
+
+    override method onKeyReleasedEvent: (event: KeyReleasedEvent ref) ::=> Void := {
+		event isRepeat ifTrue: {return: void}.
+
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+            event symbol selectCase: #{
+    		KeySymbol W : {cameraMovementDirection z < 0 ifTrue: {cameraMovementDirection z: 0.0f} }.
+            KeySymbol S : {cameraMovementDirection z > 0 ifTrue: {cameraMovementDirection z: 0.0f}}.
+            KeySymbol A : {cameraMovementDirection x < 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+            KeySymbol D : {cameraMovementDirection x > 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+            KeySymbol LCtrl : {cameraMovementDirection y < 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+            KeySymbol Space : {cameraMovementDirection y > 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+            KeySymbol LShift : {cameraMovementSpeed := 1.0f}.
+
+            KeySymbol Left : {cameraAngularVelocity y > 0 ifTrue: {cameraAngularVelocity y: 0.0f} }.
+            KeySymbol Right : {cameraAngularVelocity y < 0 ifTrue: {cameraAngularVelocity y: 0.0f}}.
+            KeySymbol Up : {cameraAngularVelocity x > 0 ifTrue: {cameraAngularVelocity x: 0.0f}}.
+            KeySymbol Down : {cameraAngularVelocity x < 0 ifTrue: {cameraAngularVelocity x: 0.0f}}.
+    		_ : {}.
+    		}
+        } ifFalse: {
+            event symbol selectCase: #{
+            KeySymbol A : {player _ onInputAction: "moveLeft" buttonState: false}.
+    		KeySymbol D : {player _ onInputAction: "moveRight" buttonState: false}.
+    		KeySymbol W : {player _ onInputAction: "moveForward" buttonState: false}.
+            KeySymbol S : {player _ onInputAction: "moveBackward" buttonState: false}.
+            KeySymbol Q : {player _ onInputAction: "shoot" buttonState: false}.
+    		KeySymbol Space : {player _ onInputAction: "jump" buttonState: false}.
+    		KeySymbol LShift : {player _ onInputAction: "dash" buttonState: false}.
+            _ : {}.
+            }
+
+        }.
+    }.
+
+    override method onGameControllerButtonPressedEvent: (event: GameControllerButtonPressedEvent ref) ::=> Void := {
+        let player := self player.
+        event button selectCase: #{
+        GameControllerButton Back : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
+        _ : {}.
+        }.
+
+        freeCameraMovementEnabled || player isNil ifTrue: {
+    		event button selectCase: #{
+            GameControllerButton DPadUp : {cameraMovementDirection z: -1.0f}.
+            GameControllerButton DPadDown : {cameraMovementDirection z: 1.0f}.
+            GameControllerButton DPadLeft : {cameraMovementDirection x: -1.0f}.
+            GameControllerButton DPadRight : {cameraMovementDirection x: 1.0f}.
+            GameControllerButton ButtonDown : {cameraMovementDirection y: 1.0f}.
+            GameControllerButton LeftShoulder : {cameraMovementDirection y: -1.0f}.
+            GameControllerButton RightShoulder : {cameraMovementSpeed := 2.0f}.
+
+    		_ : {}.
+    		}.
+        } ifFalse: {
+            event button selectCase: #{
+    		GameControllerButton DPadLeft : {player _ onInputAction: "moveLeft" buttonState: true}.
+    		GameControllerButton DPadRight : {player _ onInputAction: "moveRight" buttonState: true}.
+    		GameControllerButton DPadUp : {player _ onInputAction: "moveForward" buttonState: true}.
+            GameControllerButton DPadDown : {player _ onInputAction: "moveBackward" buttonState: true}.
+            GameControllerButton ButtonLeft : {player _ onInputAction: "shoot" buttonState: true}.
+    		GameControllerButton ButtonDown : {player _ onInputAction: "jump" buttonState: true}.
+    		GameControllerButton RightShoulder : {player _ onInputAction: "dash" buttonState: true}.
+            _ : {}.
+            }.
+        }
+	}.
+
+	override method onGameControllerButtonReleasedEvent: (event: GameControllerButtonReleasedEvent ref) ::=> Void := {
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+    		event button selectCase: #{
+            GameControllerButton DPadUp : {cameraMovementDirection z < 0 ifTrue: {cameraMovementDirection z: 0.0f} }.
+            GameControllerButton DPadDown : {cameraMovementDirection z > 0 ifTrue: {cameraMovementDirection z: 0.0f}}.
+            GameControllerButton DPadLeft : {cameraMovementDirection x < 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+            GameControllerButton DPadRight : {cameraMovementDirection x > 0 ifTrue: {cameraMovementDirection x: 0.0f}}.
+            GameControllerButton ButtonDown : {cameraMovementDirection y > 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+            GameControllerButton LeftShoulder : {cameraMovementDirection y < 0 ifTrue: {cameraMovementDirection y: 0.0f}}.
+            GameControllerButton RightShoulder : {cameraMovementSpeed := 1.0f}.
+    		_ : {}.
+    		}.
+        } ifFalse: {
+            event button selectCase: #{
+    		GameControllerButton DPadLeft : {player _ onInputAction: "moveLeft" buttonState: false}.
+    		GameControllerButton DPadRight : {player _ onInputAction: "moveRight" buttonState: false}.
+    		GameControllerButton DPadUp : {player _ onInputAction: "moveForward" buttonState: false}.
+            GameControllerButton DPadDown : {player _ onInputAction: "moveBackward" buttonState: false}.
+            GameControllerButton ButtonLeft : {player _ onInputAction: "shoot" buttonState: false}.
+    		GameControllerButton ButtonDown : {player _ onInputAction: "jump" buttonState: false}.
+    		GameControllerButton RightShoulder : {player _ onInputAction: "dash" buttonState: false}.
+            _ : {}.
+            }.
+        }.
+	}.
+
+    override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+            let camera := self camera.
+            camera ifNil: {return: void}.
+
+            event isLeftButtonPressed ifTrue: {
+                cameraAngle := cameraAngle + Float32x3(event delta y negated, event delta x negated, 0.0f)*0.01f.
+            }.
+
+            event isRightButtonPressed ifTrue: {
+                camera _ translateBy: self cameraOrientation * Float32x3(event delta x, event delta y negated , 0.0f) *0.01f.
+            }.
+        }
+    }.
+
+    override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+            let camera := self camera.
+            camera ifNil: {return: void}.
+
+    		camera _ translateBy: self cameraOrientation * Float32x3(0.0f, 0.0f, event scrollDelta y * -0.1f).
+        }
+    }.
+
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

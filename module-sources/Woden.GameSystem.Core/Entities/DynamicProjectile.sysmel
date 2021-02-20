@@ -1,0 +1,74 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden MapDefinition.
+
+class DynamicProjectile superclass: Entity; definition: {
+    public field launchVelocity type: Float32x3.
+    public field coefficientOfRestitution type: Float32.
+    public field mass type: Float32.
+    public field affectedByGravity type: Boolean8.
+    public field shooter type: EntityWeakPtr.
+    public field remainingLifeTime type: Float32.
+    field rigidBody type: RigidBodyPtr.
+
+    override method initialize => Void := {
+        mass := 1.0f.
+        affectedByGravity := true.
+        coefficientOfRestitution := 0.8f.
+        launchVelocity := Float32x3(1, 0, 0).
+    }.
+
+    override method spawn => Void := {
+        super spawn.
+        self buildVisualComponent.
+        self buildCollisionObject.
+    }.
+
+    virtual method buildVisualComponent => Void := {
+        visualComponent := VisualComponent box: (BoxF32 center: 0 halfExtent: self halfExtent) color: Float32x4 white.
+    }.
+
+    virtual method buildCollisionObject => Void := {
+        rigidBody := RigidBody sharedNew.
+        rigidBody _
+            linearVelocity: launchVelocity;
+            ownerEntity: (self asSharedPointer upCastFor: Entity);
+            collisionShape: (CollisionShape boxWithHalfExtent: self halfExtent);
+            coefficientOfRestitution: coefficientOfRestitution;
+            mass: mass;
+            makeProjectile.
+
+        shooter lock ifNotNil: { :s :: Void |
+            rigidBody _ addExcludedCollisionObject: s _ collisionObject
+        }.
+
+        affectedByGravity ifFalse: {
+            rigidBody _
+                hasCustomGravity: true;
+                gravity: 0
+        }.
+
+        collisionObject := rigidBody upCastFor: CollisionObject.
+    }.
+
+    virtual method halfExtent => Float32x3
+        := 0.15f.
+
+    override method needsTicking => Boolean8
+        := true.
+
+    override method isAlive => Boolean8
+        := remainingLifeTime > 0.
+
+    override method postPhysicsTick: (delta: Float32) ::=> Void := {
+        remainingLifeTime <= 0.0 ifTrue: {return: void}.
+
+        super postPhysicsTick: delta.
+        remainingLifeTime := remainingLifeTime - delta
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

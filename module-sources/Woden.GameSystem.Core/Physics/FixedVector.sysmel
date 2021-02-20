@@ -1,0 +1,40 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+template FixedVector(VT: Type, C: _LiteralInteger)
+    := class definition: {
+    compileTime constant ValueType := VT.
+    compileTime constant Capacity := C.
+
+    field storage type: (ValueType array: Capacity).
+    field size type: UIntPointer.
+
+    method add: (anElement: ValueType const ref) ::=> Void := {
+        size < Capacity ifTrue: {
+            storage[size] := anElement.
+            size := size + 1.
+        }
+    }.
+
+    const inline method includes: (anElement: ValueType const ref) ::=> Boolean8 := {
+        0 until: size do: {:i :: Void |
+            storage[i] = anElement ifTrue: {return: true}
+        }.
+
+        false
+    }.
+
+    const inline method size => UIntPointer
+        := size.
+
+    inline method asArraySlice => ValueType arraySlice
+        := storage until: size.
+
+    const inline method asArraySlice => ValueType const arraySlice
+        := storage until: size.
+
+    macro method do: aBlock := ``(`,self asArraySlice do: `,aBlock).
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

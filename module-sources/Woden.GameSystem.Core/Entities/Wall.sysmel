@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden MapDefinition.
+
+class Wall superclass: Entity; definition: {
+    SelfType registerWithClassName: "Wall".
+
+    override method buildCollisionObjectWithShape: (collisionShape: CollisionShapePtr const ref) ::=> Void := {
+        collisionObject := CollisionObject staticRigidBodyFor: collisionShape.
+        collisionObject _ ownerEntity: (self asSharedPointer upCastFor: Entity)
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

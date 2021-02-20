@@ -1,0 +1,23 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden MapDefinition.
+
+class LightSource superclass: Entity; definition: {
+    SelfType registerWithClassName: "LightSource".
+}.
+
+class DirectionalLight superclass: LightSource; definition: {
+    SelfType registerWithClassName: "DirectionalLight".
+}.
+
+class PointLight superclass: LightSource; definition: {
+    SelfType registerWithClassName: "PointLight".
+}.
+
+class SpotLight superclass: PointLight; definition: {
+    SelfType registerWithClassName: "SpotLight".
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

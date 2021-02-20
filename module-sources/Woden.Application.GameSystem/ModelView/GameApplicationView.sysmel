@@ -1,0 +1,21 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Woden Application.
+useNamespace: Stdn Graphics GUI.
+useNamespace: Stdn Math LinearAlgebra.
+
+class GameApplicationView superclass: SceneView; definition: {
+    method gameModel => GameApplicationModelPtr
+        := self model downCastFor: GameApplicationModel.
+
+    method globalGameState => GlobalGameStatePtr
+        := self gameModel _ globalGameState.
+
+    method player => PlayerPtr
+        := self gameModel _ player.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

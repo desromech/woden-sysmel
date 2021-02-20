@@ -1,0 +1,97 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class SamplePlayer superclass: Player; definition: {
+    SelfType registerWithClassName: "SamplePlayer".
+
+    override method onInputAction: (action: Char8 const arraySlice) buttonState: (state: Boolean8) ::=> Void := {
+        action selectCase: #{
+        "moveLeft" : {self moveLeftInput: state}.
+        "moveRight" : {self moveRightInput: state}.
+        "moveForward" : {self moveForwardInput: state}.
+        "moveBackward" : {self moveBackwardInput: state}.
+        "shoot" : {state ifTrue: {self shoot} }.
+        "jump" : {state ifTrue: {self jump} }.
+        "dash" : {state ifTrue: {self dash} }.
+        _ : {}
+        }
+
+    }.
+
+    override method onInputAction: (action: Char8 const arraySlice) axisState: (state: Float32) ::=> Void := {
+
+    }.
+
+    method moveLeftInput: (state: Boolean8) ::=> Void := {
+        state ifTrue: {
+            moveDirection x: -1.0.
+            lookDirection x: -1.0.
+        } ifFalse: {
+            moveDirection x < 0.0 ifTrue: {
+                moveDirection x: 0.0.
+            }.
+        }.
+    }.
+
+    method moveRightInput: (state: Boolean8) ::=> Void := {
+        state ifTrue: {
+            moveDirection x: 1.0.
+            lookDirection x: 1.0.
+        } ifFalse: {
+            moveDirection x > 0.0 ifTrue: {
+                moveDirection x: 0.0.
+            }.
+        }.
+    }.
+
+    method moveForwardInput: (state: Boolean8) ::=> Void := {
+        self isInSector2D ifTrue: {return: void}.
+
+        state ifTrue: {
+            moveDirection z: -1.0.
+            lookDirection z: -1.0.
+        } ifFalse: {
+            moveDirection z < 0.0 ifTrue: {
+                moveDirection z: 0.0.
+            }.
+        }.
+    }.
+
+    method moveBackwardInput: (state: Boolean8) ::=> Void := {
+        self isInSector2D ifTrue: {return: void}.
+
+        state ifTrue: {
+            moveDirection z: 1.0.
+            lookDirection z: 1.0.
+        } ifFalse: {
+            moveDirection x > 0.0 ifTrue: {
+                moveDirection x: 0.0.
+            }.
+        }.
+    }.
+
+    method shoot => Void := {
+        parentSector ifNil: {return: void}.
+
+        let shootDirection mutable := lookDirection.
+        shootDirection = 0 ifTrue: {
+            shootDirection := Float32x3(1, 0, 0)
+        }.
+        let bulletVelocity := shootDirection normalized*10.0f.
+
+        let bullet := Bullet sharedNew.
+        bullet _
+            remainingLifeTime: 1.0f;
+            position: self position;
+            launchVelocity: collisionObject _ linearVelocity + bulletVelocity;
+            shooter: (self asWeakPointer upCastFor: Entity).
+        parentSector _ spawnEntity: (bullet upCastFor: Entity).
+    }.
+
+    method dash => Void := {
+
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

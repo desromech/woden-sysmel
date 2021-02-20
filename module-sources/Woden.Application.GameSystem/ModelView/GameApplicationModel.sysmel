@@ -1,0 +1,56 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Woden Application.
+useNamespace: Stdn Graphics GUI.
+
+class GameApplicationModel superclass: SceneModel; definition: {
+    field globalGameState type: GlobalGameStatePtr.
+
+    method globalGameState => GlobalGameStatePtr const ref
+        := globalGameState.
+
+    method player => PlayerPtr := {
+        globalGameState ifNil: {return: PlayerPtr nil}.
+        globalGameState _ player
+    }.
+
+    virtual method newGlobalGameState => GlobalGameStatePtr
+        := GlobalGameState sharedNew.
+
+    override method initializeModel => Boolean8 := {
+        super initializeModel ifFalse: {return: false}.
+        self newScene.
+        globalGameState := self newGlobalGameState.
+        globalGameState _
+            initializeWithEngine: self engine;
+            scene: scene;
+            mainCamera: mainCamera.
+        true.
+    }.
+
+    override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
+        globalGameState ifNotNil: {
+            ## Update the game state in deterministic steps.
+            let deterministicDelta := event deterministicDeltaSeconds castTo: Float32.
+            0 until: event deterministicFrameCount do: {:i :: Void |
+                globalGameState _ update: deterministicDelta.
+            }.
+
+            ## Validate and interpolate the rendering state using the remaining delta.
+            globalGameState _ validateRenderingState: (event deterministicRemainingDeltaSeconds castTo: Float32).
+        }.
+
+        super onStartFrameTick: event.
+    }.
+
+    override method createNewView => ViewPtr
+        := GameApplicationView sharedNew upCastFor: View.
+
+}.
+
+compileTime constant GameApplicationModelPtr := GameApplicationModel sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

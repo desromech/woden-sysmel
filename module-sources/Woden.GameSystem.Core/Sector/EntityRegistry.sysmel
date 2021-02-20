@@ -1,0 +1,34 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class EntityRegistry definition: {
+    meta definition: {
+        let singleton mutable type: EntityRegistry uniquePointer.
+        let singletonOnceCreation mutable type: Stdn OnceFlag.
+
+        method uniqueInstance => EntityRegistry ref := {
+            singletonOnceCreation do: {
+                singleton reset: EntityRegistry nativeNew.
+            }.
+
+            singleton _
+        }.
+    }.
+
+    field factories type: Stdn Collections Dictionary(Stdn String, AbstractEntityFactory pointer).
+
+    method registerFactory: (factory: AbstractEntityFactory pointer) ::=> Void := {
+        factories at: factory _ className asMutableString put: factory.
+    }.
+
+    method createEntityWithClassName: (className: Stdn String const ref) ::=> EntityPtr := {
+        let factory := factories at: className ifAbsent: {
+            return: EntityPtr nil
+        }.
+
+        factory _ newInstance
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

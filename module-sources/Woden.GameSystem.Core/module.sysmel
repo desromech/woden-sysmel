@@ -1,0 +1,11 @@
+Compiler
+	importModulesNamed: #(
+        #"Woden.Runtime.Core"
+		#"Woden.MapDefinition.Core"
+    );
+	loadPackages: #(
+		#"Physics"
+		#"Sector"
+		#"Entities"
+		#"GameState"
+	)

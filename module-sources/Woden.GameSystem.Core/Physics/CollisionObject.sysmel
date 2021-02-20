@@ -1,0 +1,183 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden MapDefinition.
+
+useNamespace: Stdn Math.
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+class CollisionObject superclass: Stdn SharedObject; definition: {
+    meta definition: {
+        method staticRigidBodyFor: (collisionShape: CollisionShapePtr const ref) ::=> CollisionObject sharedPointer := {
+            let body := RigidBody sharedNew.
+            body _
+                collisionShape: collisionShape;
+                makeStatic.
+            body upCastFor: CollisionObject
+        }.
+
+        method rigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject sharedPointer := {
+            let body := RigidBody sharedNew.
+            body _
+                collisionShape: collisionShape;
+                mass: mass;
+                computeInertiaTensor.
+            body upCastFor: CollisionObject
+        }.
+
+        method nonRotationalRigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject sharedPointer := {
+            let body := RigidBody sharedNew.
+            body _
+                collisionShape: collisionShape;
+                mass: mass.
+            body upCastFor: CollisionObject
+        }.
+    }.
+
+    field physicalSector type: PhysicalSector weakPointer.
+    field position type: Float32x3.
+    public field linearVelocity type: Float32x3.
+
+    field orientation type: QuaternionF32.
+    public field angularVelocity type: Float32x3.
+
+    public field collisionShape type: CollisionShapePtr.
+
+    field transform type: ReversibleAffineTransform3dF32.
+    field transformChanged type: Boolean8.
+    field boundingBoxChanged type: Boolean8.
+    field boundingBox type: BoxF32.
+
+    public field collisionGroup type: CollisionGroup.
+    public field collisionGroupFilter type: CollisionGroup.
+    public field collisionObjectExclusionSet type: FixedVector(CollisionObject pointer, 10).
+
+    method addExcludedCollisionObject: (excluded: CollisionObjectPtr const ref) ::=> Void := {
+        excluded ifNotNil: {:p :: Void |
+            collisionObjectExclusionSet add: p
+        }
+    }.
+
+    const inline method position => Float32x3
+        := position.
+
+    inline method position: (newPosition: Float32x3) ::=> Void := {
+        position = newPosition ifFalse: {
+            position := newPosition.
+            self transformChanged.
+        }.
+    }.
+
+    field ownerEntity type: Entity weakPointer.
+
+    inline method ownerEntity => Entity sharedPointer
+        := ownerEntity lock.
+
+    inline method ownerEntity: (anEntity: Entity sharedPointer const ref) ::=> Void := {
+        ownerEntity := anEntity
+    }.
+
+    inline method translateBy: (delta: Float32x3) ::=> Void := {
+        self position: self position + delta
+    }.
+
+    const inline method orientation => QuaternionF32
+        := orientation.
+
+    inline method orientation: (newOrientation: QuaternionF32) ::=> Void := {
+        orientation := newOrientation.
+        self transformChanged.
+    }.
+
+    method transformChanged => Void := {
+        transformChanged := true.
+        boundingBoxChanged := true.
+    }.
+
+    method transform => ReversibleAffineTransform3dF32 := {
+        transformChanged ifTrue: {
+            transform := ReversibleAffineTransform3dF32()
+                orthonormal: orientation asMatrix3x3 translation: position;
+                yourself.
+            transformChanged := false
+        }.
+
+        transform
+    }.
+
+    method boundingBox => BoxF32 := {
+        boundingBoxChanged ifTrue: {
+            boundingBox := collisionShape _ boundingBox transformedWith: self transform.
+            boundingBoxChanged := false.
+        }.
+
+        boundingBox
+    }.
+
+    override method initialize => Void := {
+        orientation := QuaternionF32 identity.
+        transformChanged := true.
+        boundingBoxChanged := true.
+    }.
+
+    method makeStatic => Void := {
+        collisionGroup := CollisionGroup Static.
+        collisionGroupFilter := CollisionGroup DynamicSolid.
+    }.
+
+    method makeKinematic => Void := {
+        collisionGroup := CollisionGroup Kinematic.
+        collisionGroupFilter := CollisionGroup DynamicSolid.
+    }.
+
+    method makeProjectile => Void := {
+        collisionGroup := CollisionGroup Projectile.
+        collisionGroupFilter := CollisionGroup AllSolid.
+    }.
+
+    method makeVehicle => Void := {
+        collisionGroup := CollisionGroup Vehicle.
+        collisionGroupFilter := CollisionGroup AllSolid.
+    }.
+
+    method makeCharacter => Void := {
+        collisionGroup := CollisionGroup Character.
+        collisionGroupFilter := CollisionGroup AllSolid.
+    }.
+
+    method makeSensor => Void := {
+        collisionGroup := CollisionGroup Sensor.
+        collisionGroupFilter := CollisionGroup None.
+    }.
+
+    method physicalSector => PhysicalSector sharedPointer
+        := physicalSector lock.
+
+    method removeFromPhysicalSector => Void := {
+        let sector := self physicalSector.
+        sector ifNotNil:{
+            sector _ removeCollisionObject: self asSharedPointer
+        }
+    }.
+
+    virtual method addedToPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
+        physicalSector := sector asWeakPointer
+    }.
+
+    virtual method removedFromPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
+        physicalSector reset
+    }.
+
+    virtual method isRigidBody => Boolean8
+        := false.
+
+    virtual method simulateImpulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {}.
+    virtual method simulateMovementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {}.
+}.
+
+compileTime constant CollisionObjectPtr := CollisionObject sharedPointer.
+compileTime constant CollisionObjects := Stdn Collections Vector(CollisionObjectPtr).
+
+}. ## namespace GameSystem
+}. ## namespace Woden

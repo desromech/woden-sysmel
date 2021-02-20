@@ -1,0 +1,12 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class PhysicalSector3D superclass: PhysicalSector; definition: {
+}.
+
+compileTime constant PhysicalSector3DPtr := PhysicalSector2D sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

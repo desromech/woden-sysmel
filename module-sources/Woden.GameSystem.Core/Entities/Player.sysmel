@@ -1,0 +1,19 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class Player superclass: Character; definition: {
+    SelfType registerWithClassName: "Player".
+
+    virtual method onInputAction: (action: Char8 const arraySlice) buttonState: (state: Boolean8) ::=> Void := {}.
+    virtual method onInputAction: (action: Char8 const arraySlice) axisState: (state: Float32) ::=> Void := {}.
+    virtual method onInputAction: (action: Char8 const arraySlice) triggerState: (state: Float32) ::=> Void := {}.
+}.
+
+compileTime constant PlayerPtr := Player sharedPointer.
+
+class PlayerStartPoint superclass: MetadataEntity; definition: {
+    SelfType registerWithClassName: "PlayerStartPoint".
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

@@ -1,0 +1,19 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Woden Application.
+
+class SampleGameApplicationModel superclass: GameApplicationModel; definition: {
+    override method newGlobalGameState => GlobalGameStatePtr
+        := SampleGlobalGameState sharedNew upCastFor: GlobalGameState.
+
+    override method createNewView => ViewPtr
+        := SampleGameApplicationView sharedNew upCastFor: View.
+
+}.
+
+compileTime constant SampleGameApplicationModelPtr := SampleGameApplicationModel sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

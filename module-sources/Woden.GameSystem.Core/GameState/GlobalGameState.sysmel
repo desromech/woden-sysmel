@@ -1,0 +1,70 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Woden Runtime.
+useNamespace: Woden MapDefinition.
+
+class GlobalGameState superclass: Stdn SharedObject; definition: {
+    field engine type: EnginePtr.
+    field animationScheduler type: AnimationSchedulerPtr.
+    field activeSector type: SectorPtr.
+    field player type: PlayerPtr.
+    public field scene type: ScenePtr.
+    public field mainCamera type: CameraPtr.
+
+    method player => PlayerPtr const ref
+        := player.
+
+    method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
+        engine := anEngine.
+        animationScheduler := AnimationScheduler sharedNew.
+    }.
+
+    method update: (delta: Float32) ::=> Void := {
+        animationScheduler _ update: delta.
+        activeSector ifNotNil: {
+            activeSector _ update: delta
+        }.
+    }.
+
+    method validateRenderingState: (renderingDelta: Float32) ::=> Void := {
+        activeSector ifNotNil: {
+            activeSector _ validateRenderingState: renderingDelta
+        }.
+    }.
+
+    method loadSectorFromDefinition: (sectorDefinition: SectorDefinitionPtr const ref) ::=> Void := {
+        let sector := Sector for: engine.
+        sector _ loadFromDefinition: sectorDefinition.
+        self activateSector: sector
+    }.
+
+    method activateSector: (sector: SectorPtr const ref) ::=> Void := {
+        activeSector ifNotNil: {activeSector _ deactivateAndRemoveFromScene}.
+        activeSector := sector.
+        activeSector _ activateAndAddToScene: scene.
+    }.
+
+    virtual method startNewGame => Void := {
+        player := self spawnPlayer.
+    }.
+
+    method spawnPlayer => PlayerPtr := {
+        activeSector ifNil: {return: PlayerPtr nil}.
+
+        let startPosition := activeSector _ findPositionUsingMetadataEntityClassNamed: "PlayerStartPoint" default: Float32x3 zeros.
+        let newPlayer := self newPlayerEntity.
+        newPlayer _ position: startPosition.
+        activeSector _ spawnEntity: (newPlayer upCastFor: Entity).
+        newPlayer
+    }.
+
+    virtual method newPlayerEntity => PlayerPtr
+        := Player sharedNew.
+}.
+
+compileTime constant GlobalGameStatePtr := GlobalGameState sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

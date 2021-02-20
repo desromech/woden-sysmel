@@ -1,0 +1,8 @@
+Compiler
+	importModulesNamed: #(
+        #"Woden.GameSystem.Core"
+        #"Woden.Application.Core"
+    );
+    loadPackages: #(
+        ModelView
+    ).

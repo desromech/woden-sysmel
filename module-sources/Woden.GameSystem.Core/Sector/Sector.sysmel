@@ -1,0 +1,179 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Woden MapDefinition.
+
+class Sector superclass: Stdn SharedObject; definition: {
+    field engine type: EnginePtr.
+    field scene type: ScenePtr.
+
+    field isSector2D type: Boolean8.
+    field physicalSector type: PhysicalSectorPtr.
+    field metadataEntities type: Entities.
+    field physicalEntities type: Entities.
+    field aliveEntities type: Entities.
+    field tickingEntities type: Entities.
+
+    meta definition: {
+        method for: (engine: EnginePtr const ref) ::=> SectorPtr := {
+            let result := Sector sharedNew.
+            result _ initializeWithEngine: engine.
+            result
+        }
+    }.
+
+    inline method physicalSector => PhysicalSectorPtr const ref
+        := physicalSector.
+
+    inline method engine => EnginePtr const ref
+        := engine.
+
+    const inline method isSector2D => Boolean8
+        := isSector2D.
+
+    method loadFromDefinition: (definition: SectorDefinitionPtr const ref) ::=> Void := {
+        isSector2D := definition _ isSector2D.
+        physicalSector := isSector2D
+            ifTrue: { PhysicalSector2D sharedNew upCastFor: PhysicalSector }
+            ifFalse: { PhysicalSector3D sharedNew upCastFor: PhysicalSector }.
+        physicalSector _
+            gravity: Float32x3(0, -9.8f, 0).
+
+        definition _ layers do: {:eachLayer :: Void |
+            eachLayer _ entities do: {:eachEntity :: Void |
+                self loadEntityDefinition: eachEntity fromLayer: eachLayer
+            }.
+        }
+    }.
+
+    method loadEntityDefinition: (definition: EntityDefinitionPtr const ref) fromLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
+        let entity := EntityRegistry uniqueInstance createEntityWithClassName: definition _ className.
+        entity ifNil: {return: void}.
+        entity _
+            parentSector: self address;
+            loadFromDefinition: definition fromLayer: layerDefinition.
+        self spawnEntity: entity.
+    }.
+
+    method spawnEntity: (entity: EntityPtr const ref) ::=> Void := {
+        entity _
+            parentSector: self address;
+            spawn.
+        entity _ isMetadata ifTrue: {
+            metadataEntities add: entity.
+        }.
+
+        entity _ isAlive ifFalse: {return: void}.
+
+        aliveEntities add: entity.
+        entity _ collisionObject ifNotNil: {
+            physicalEntities add: entity.
+            physicalSector _ addCollisionObject: entity _ collisionObject.
+        }.
+
+        entity _ needsTicking ifTrue: {
+            tickingEntities add: entity
+        }.
+
+        scene ifNotNil: {
+            entity _ addToScene: scene
+        }.
+    }.
+
+    method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+        engine := anEngine.
+    }.
+
+    method deactivateAndRemoveFromScene ::=> Void := {
+        aliveEntities do: {:each :: Void |
+            each _ removeFromScene
+        }.
+
+        scene reset.
+    }.
+
+    method activateAndAddToScene: (newScene: ScenePtr) ::=> Void := {
+        scene == newScene ifTrue: {return: void}.
+        scene := newScene.
+
+        aliveEntities do: {:each :: Void |
+            each _ addToScene: scene
+        }.
+    }.
+
+    method update: (delta: Float32) ::=> Void := {
+        ## Physics
+        {
+            physicalEntities do: {:each :: Void |
+                each _ prePhysicsTick: delta
+            }.
+
+            physicalSector _ update: delta.
+
+            physicalEntities do: {:each :: Void |
+                each _ postPhysicsTick: delta
+            }.
+        }.
+
+        ## Non phyical related ticking.
+        {
+            tickingEntities do: {:each :: Void |
+                each _ needsTicking ifTrue: {
+                    each _ tick: delta.
+                }.
+            }.
+
+            tickingEntities removeAllSuchThat: {:each | each _ isAlive not || each _ needsTicking not}.
+        }.
+
+        {
+            aliveEntities removeAllSuchThat: {:each |
+                let shouldRemove := each _ isAlive not.
+                shouldRemove ifTrue: {
+                    each _ destroyed
+                }.
+                shouldRemove
+            }.
+            physicalEntities removeAllSuchThat: {:each | each _ isAlive not}.
+        }.
+    }.
+
+    method validateRenderingState: (renderingDelta: Float32) ::=> Void := {
+        aliveEntities do: {:each :: Void |
+            each _ isAlive ifTrue: {
+                each _ validateRenderingState: renderingDelta.
+            }
+        }.
+    }.
+
+    method findMetadataEntityWithClassName: (className: Char8 const arraySlice) ::=> EntityPtr := {
+        metadataEntities do: {:each :: Void |
+            each _ className asArraySlice = className ifTrue: {return: each}
+        }.
+        EntityPtr nil
+    }.
+
+    method findPositionUsingMetadataEntityClassNamed: (className: Char8 const arraySlice) default: (defaultPosition: Float32x3) ::=> Float32x3 := {
+        let metadataEntity := self findMetadataEntityWithClassName: "PlayerStartPoint".
+        metadataEntity
+            ifNil: {defaultPosition}
+            ifNotNil: {metadataEntity _ position}
+    }.
+
+    method spawnPlayer => PlayerPtr := {
+        let startPointEntity := self findMetadataEntityWithClassName: "PlayerStartPoint".
+        startPointEntity ifNil: {return: PlayerPtr nil}.
+
+        let startPosition := startPointEntity _ position.
+        let player := Player sharedNew.
+        player _ position: startPosition.
+        self spawnEntity: (player upCastFor: Entity).
+        player
+    }.
+}.
+
+compileTime constant SectorPtr := Sector sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

@@ -1,0 +1,26 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class Bullet superclass: DynamicProjectile; definition: {
+    public field damage type: Float32.
+
+    override method initialize => Void := {
+        mass := 0.01f.
+        affectedByGravity := false.
+        damage := 10.0f.
+    }.
+
+    override method onPhysicsCollisionHit: (collidingObject: CollisionObject ref) at: (collisionPoint: Float32x3) ::=> Void := {
+        collidingObject ownerEntity ifNotNil: {:collidingEntity :: Void |
+            collidingEntity _ receiveDamage: damage by: self at: collisionPoint
+        }.
+
+        remainingLifeTime := 0
+    }.
+
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

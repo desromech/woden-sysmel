@@ -1,0 +1,44 @@
+Compiler importModulesNamed: #(
+    #"Woden.Application.SampleGameSystem"
+).
+
+useNamespace: Woden GameSystem.
+useNamespace: Woden MapDefinition.
+
+Stdn MainEntryPoint: {:args :: Int32 |
+    ## Create the scene model and initialize with the C arguments.
+    let gameModel mutable := SampleGameApplicationModel sharedNew.
+    (gameModel _ initializeWithCArguments: args) ifFalse: {
+        return: 1
+    }.
+
+    ## Setup the camera
+    {
+        let camera := gameModel _ mainCamera.
+        camera _ translateByZ: 10.0.
+    }.
+
+    let levelDefinition mutable := LevelDefinition simpleSampleLevel.
+    args size >= 2 ifTrue: {
+        let loadedLevel := LevelDefinition loadFromFile: args second asMutableString asNativeFileReference.
+        loadedLevel isNotNil && loadedLevel _ sectors isNotEmpty ifTrue: {
+            levelDefinition := loadedLevel
+        }
+    }.
+
+    ## Test sector definition
+    {
+
+        gameModel _ globalGameState _
+            loadSectorFromDefinition: levelDefinition _ sectors first;
+            startNewGame
+    }.
+
+    ## Open the main view.
+    (gameModel _ openMainView) ifFalse: {
+        return: 1
+    }.
+
+    ## Enter the main loop.
+    gameModel _ runMainLoopAndShutdown.
+}.

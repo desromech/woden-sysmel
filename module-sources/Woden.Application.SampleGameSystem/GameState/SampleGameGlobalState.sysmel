@@ -1,0 +1,12 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class SampleGlobalGameState superclass: GlobalGameState; definition: {
+    override method newPlayerEntity => PlayerPtr
+        := SamplePlayer sharedNew upCastFor: Player.
+}.
+
+compileTime constant SampleGlobalGameStatePtr := SampleGlobalGameState sharedPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

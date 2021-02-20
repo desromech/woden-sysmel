@@ -1,0 +1,8 @@
+Compiler importModulesNamed: #(
+    #"Woden.Application.GameSystem"
+    #"Woden.Application.Headfull"
+); loadPackages: #(
+    Entities
+    GameState
+    ModelView
+)
