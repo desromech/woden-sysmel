@@ -50,6 +50,11 @@ class Renderable superclass: Stdn SharedObject; definition: {
 
     virtual method getSkeletonPose => SkeletonPosePtr
         := SkeletonPosePtr nil.
+
+    virtual method copy => Renderable sharedPointer
+        := RenderablePtr nil.
+
+    virtual method setMaterial: (material: MaterialPtr const ref) ::=> Void := {}.
 }.
 
 compileTime constant RenderablePtr := Renderable sharedPointer.

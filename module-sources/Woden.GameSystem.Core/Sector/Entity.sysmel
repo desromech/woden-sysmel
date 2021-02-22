@@ -49,7 +49,7 @@ class Entity superclass: Stdn SharedObject; definition: {
         className := definition _ className asArraySlice.
         name := definition _ name.
         self
-            position: definition _ position;
+            position: (definition _ positionForLayer: layerDefinition);
             orientation: definition _ orientation.
         localBoundingBox := definition _ localBoundingBox.
         localBoundingBox depth = 0 ifTrue: {

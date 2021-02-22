@@ -7,6 +7,8 @@ class LevelDefinitionVisitor definition: {
     virtual method visitSectorLayerDefinition: (sectorLayer: SectorLayerDefinition ref) ::=> Void := {}.
     virtual method visitEntityDefinition: (entity: EntityDefinition ref) ::=> Void := {}.
     virtual method visitEntityComponentDefinition: (entityComponent: EntityComponentDefinition ref) ::=> Void := {}.
+
+    virtual method visitMetallicRougnessMaterialDefinition: (material: MetallicRoughnessMaterialDefinition ref) ::=> Void := {}.
 }.
 
 }. ## namespace MapDefinition

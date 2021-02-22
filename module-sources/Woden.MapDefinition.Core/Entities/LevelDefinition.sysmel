@@ -10,7 +10,7 @@ class LevelDefinition superclass: LevelElementDefinition; definition: {
             backgroundLayer _
                 defaultMinZ: -3.0f;
                 defaultMaxZ: -2.0f;
-                createNonSolidWallMin: Float32x2(-5.0f, -5.0f) max: Float32x2(20.0f, 8.0f) color: Float32x4(0.1f, 0.1f, 0.1f, 1.0f).
+                createNonSolidWallMin: Float32x2(-5.0f, -5.0f) max: Float32x2(20.0f, 8.0f).
 
             let mainLayer := SectorLayerDefinition sharedNew.
             mainLayer _
@@ -19,8 +19,8 @@ class LevelDefinition superclass: LevelElementDefinition; definition: {
                 addEnemyAt: Float32x2(4.0f, 2.0f);
                 addEnemyAt: Float32x2(15.0f, 0.0f);
                 addPointLightAt: Float32x2(8.0f, 4.0f) color: Float32x3 ones intensity: 50.0 radius: 50 castShadows: false;
-                createWallMin: Float32x2(-5.0f, -5.0f) max: Float32x2(20.0f, -4.0f) color: Float32x4(0.2f, 0.2f, 0.2f, 1.0f);
-                createWallMin: Float32x2(3.0f, -1.0f) max: Float32x2(8.0f, 0.0f) color: Float32x4(0.2f, 0.2f, 0.2f, 1.0f).
+                createWallMin: Float32x2(-5.0f, -5.0f) max: Float32x2(20.0f, -4.0f);
+                createWallMin: Float32x2(3.0f, -1.0f) max: Float32x2(8.0f, 0.0f).
 
             let mainSector := SectorDefinition sharedNew.
             mainSector _

@@ -13,8 +13,14 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
 
     override method isSectorLayer => Boolean8 := true.
 
+    const inline method defaultZ => Float32
+        := defaultMinZ + self defaultHalfThickness.
+
     const inline method defaultThickness => Float32
         := defaultMaxZ - defaultMinZ.
+
+    const inline method defaultHalfThickness => Float32
+        := self defaultThickness * 0.5f.
 
     inline method defaultThickness: (thickness: Float32) ::=> Void := {
         defaultMinZ := thickness * -0.5f.
@@ -62,7 +68,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         entities add: definition
     }.
 
-    method createWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
+    method createWallMin: (min: Float32x2) max: (max: Float32x2) ::=> Void := {
         let boundingRectangle := RectangleF32 min: min max: max.
         let center := boundingRectangle center.
 
@@ -72,12 +78,12 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
             className: "Wall";
             position: Float32x3(center, 0);
             localBoundingRectangle: localRectangle;
-            addVisualComponent: (VisualComponent rectangle: localRectangle color: color);
+            addVisualComponent: (VisualComponent rectangle: localRectangle);
             addCollisionShape: (CollisionShape rectangleWithHalfExtent: localRectangle halfExtent).
         entities add: definition
     }.
 
-    method createWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
+    method createWallMin: (min: Float32x3) max: (max: Float32x3) ::=> Void := {
         let boundingBox := BoxF32 min: min max: max.
         let center := boundingBox center.
 
@@ -87,12 +93,12 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
             className: "Wall";
             position: center;
             localBoundingBox: localBox;
-            addVisualComponent: (VisualComponent box: localBox color: color);
+            addVisualComponent: (VisualComponent box: localBox);
             addCollisionShape: (CollisionShape boxWithHalfExtent: localBox halfExtent).
         entities add: definition
     }.
 
-    method createNonSolidWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
+    method createNonSolidWallMin: (min: Float32x2) max: (max: Float32x2) ::=> Void := {
         let boundingRectangle := RectangleF32 min: min max: max.
         let center := boundingRectangle center.
 
@@ -102,11 +108,11 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
             className: "Wall";
             position: Float32x3(center, 0);
             localBoundingRectangle: localRectangle;
-            addVisualComponent: (VisualComponent rectangle: localRectangle color: color).
+            addVisualComponent: (VisualComponent rectangle: localRectangle).
         entities add: definition
     }.
 
-    method createNonSolidWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
+    method createNonSolidWallMin: (min: Float32x3) max: (max: Float32x3) ::=> Void := {
         let boundingBox := BoxF32 min: min max: max.
         let center := boundingBox center.
 
@@ -116,7 +122,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
             className: "Wall";
             position: center;
             localBoundingBox: localBox;
-            addVisualComponent: (VisualComponent box: localBox color: color).
+            addVisualComponent: (VisualComponent box: localBox).
         entities add: definition
     }.
 }.

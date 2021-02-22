@@ -18,6 +18,17 @@ class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
         }
     }.
 
+    override method copy => Renderable sharedPointer := {
+        let result := GenericMeshRenderable sharedNew.
+        result _ := self.
+        result upCastFor: Renderable
+    }.
+
+    override method setMaterial: (material: MaterialPtr const ref) ::=> Void := {
+        submeshes do: {:each :: Void |
+            each material: material.
+        }.
+    }.
 }.
 
 compileTime constant GenericMeshRenderablePtr := GenericMeshRenderable sharedPointer.

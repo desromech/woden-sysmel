@@ -43,7 +43,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         light _
             makePoint;
             radius: 4.0;
-    		intensity: Float32x3(1.0f, 1.0f, 0.3f)* 0.8f;
+    		intensity: Float32x3(1.0f, 1.0f, 0.3f) * 4.0f;
     		translateByX: -1.5f y: 1.5f z: 1.6f.
         scene _ add: (light upCastFor: SceneNode).
     }.

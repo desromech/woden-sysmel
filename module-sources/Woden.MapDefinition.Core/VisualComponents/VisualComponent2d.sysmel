@@ -11,14 +11,12 @@ class VisualComponent2d superclass: VisualComponent; definition: {
     override method setupForLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
         super setupForLayer: layerDefinition.
 
-        minZ = maxZ && minZ = 0 ifTrue: {
-            minZ := layerDefinition _ defaultMinZ.
-            maxZ := layerDefinition _ defaultMaxZ.
-        }.
+        maxZ := layerDefinition _ defaultHalfThickness.
+        minZ := maxZ negated.
     }.
 
     override method isVisualComponent2d => Boolean8 := true.
-    
+
     virtual method boundingRectangle => RectangleF32
         := RectangleF32 empty.
 

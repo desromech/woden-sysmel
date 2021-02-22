@@ -38,11 +38,29 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     inline method albedoColor: (color: Float32x4) ::=> Void
         := state albedo: color.
 
+    const inline method baseColor => Float32x4
+        := state albedo.
+
+    inline method baseColor: (color: Float32x4) ::=> Void
+        := state albedo: color.
+
+    inline method baseColorTexture: (texture: TextureWithViewPtr const ref) ::=> Void
+        := self albedoTexture: texture.
+
+    inline method baseColorTexture => TextureWithViewPtr const ref
+        := self albedoTexture.
+
     const inline method emissionColor => Float32x4
         := state emission.
 
-    inline method emissionColor: (color: Float32x4) ::=> Void
-        := state emission: color.
+    inline method emissionColor: (color: Float32x3) ::=> Void
+        := state emission: Float32x4(color, 0.0f).
+
+    const inline method occlusionFactor => Float32
+        := 1.0f.
+
+    inline method occlusionFactor: (factor: Float32) ::=> Void
+        := void.
 
     const inline method roughnessFactor => Float32
         := state roughnessFactor.

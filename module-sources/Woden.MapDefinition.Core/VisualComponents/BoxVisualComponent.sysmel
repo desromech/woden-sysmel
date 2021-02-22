@@ -6,17 +6,22 @@ useNamespace: Woden Runtime.
 
 class BoxVisualComponent superclass: VisualComponent2d; definition: {
     public field box type: BoxF32.
-    public field color type: Float32x4.
+    public field material type: MaterialDefinitionPtr.
 
     override method boundingBox => BoxF32
         := box.
 
     override method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr := {
         let cube := SpatialObjectNode sharedNew.
+        let renderable mutable := engine _ resourceCache _ unitCubeRenderable _ copy.
+        material ifNotNil: {
+            renderable := renderable _ copy.
+            renderable _ setMaterial: (material _ getOrCreateMaterialFor: engine)
+        }.
+
         cube _
-            color: color;
-            transform: box reversibleTransformToConvertUnitBoxToMe;
-            renderable: engine _ resourceCache _ unitCubeRenderable.
+            transform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
+            renderable: renderable.
 
         let normalNode := SpatialObjectNode sharedNew.
         normalNode _ addChild: (cube upCastFor: SceneNode).

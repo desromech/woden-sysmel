@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Woden Runtime.
+
+class MaterialDefinition superclass: LevelElementDefinition; definition: {
+    override method isMaterialDefinition => Boolean8 := true.
+
+    virtual method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr
+        := engine _ resourceCache _ defaultMaterial.
+}.
+
+compileTime constant MaterialDefinitionPtr := MaterialDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

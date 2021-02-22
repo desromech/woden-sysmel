@@ -10,6 +10,13 @@ class EntityDefinition superclass: LevelElementDefinition; definition: {
     public field orientation type: QuaternionF32.
     public field localBoundingBox type: BoxF32.
     public field components type: Stdn Collections Vector(EntityComponentDefinitionPtr).
+    public field is2DEntity type: Boolean8.
+
+    method positionForLayer: (layer: SectorLayerDefinition sharedPointer const ref) ::=> Float32x3 := {
+        is2DEntity
+            ifTrue: {Float32x3(position xy, layer _ defaultZ)}
+            ifFalse: {position}
+    }.
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
         := visitor visitEntityDefinition: self.

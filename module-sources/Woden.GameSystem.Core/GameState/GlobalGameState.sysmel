@@ -50,7 +50,7 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
         player := self spawnPlayer.
     }.
 
-    method spawnPlayer => PlayerPtr := {
+    virtual method spawnPlayer => PlayerPtr := {
         activeSector ifNil: {return: PlayerPtr nil}.
 
         let startPosition := activeSector _ findPositionUsingMetadataEntityClassNamed: "PlayerStartPoint" default: Float32x3 zeros.

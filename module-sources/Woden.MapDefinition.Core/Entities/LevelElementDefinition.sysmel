@@ -16,6 +16,11 @@ class LevelElementDefinition superclass: Stdn SharedObject; definition: {
     virtual method isPunctualVisualComponent => Boolean8 := false.
     virtual method isLightSourceVisualComponent => Boolean8 := false.
     virtual method isCollisionShape => Boolean8 := false.
+
+    virtual method isTextureDefinition => Boolean8 := false.
+
+    virtual method isMaterialDefinition => Boolean8 := false.
+    virtual method isMetallicRoughnessMaterialDefinition => Boolean8 := false.
 }.
 
 compileTime constant LevelElementDefinitionPtr := LevelElementDefinition sharedPointer.

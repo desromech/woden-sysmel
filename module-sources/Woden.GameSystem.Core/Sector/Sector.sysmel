@@ -155,21 +155,10 @@ class Sector superclass: Stdn SharedObject; definition: {
     }.
 
     method findPositionUsingMetadataEntityClassNamed: (className: Char8 const arraySlice) default: (defaultPosition: Float32x3) ::=> Float32x3 := {
-        let metadataEntity := self findMetadataEntityWithClassName: "PlayerStartPoint".
+        let metadataEntity := self findMetadataEntityWithClassName: className.
         metadataEntity
             ifNil: {defaultPosition}
             ifNotNil: {metadataEntity _ position}
-    }.
-
-    method spawnPlayer => PlayerPtr := {
-        let startPointEntity := self findMetadataEntityWithClassName: "PlayerStartPoint".
-        startPointEntity ifNil: {return: PlayerPtr nil}.
-
-        let startPosition := startPointEntity _ position.
-        let player := Player sharedNew.
-        player _ position: startPosition.
-        self spawnEntity: (player upCastFor: Entity).
-        player
     }.
 }.
 

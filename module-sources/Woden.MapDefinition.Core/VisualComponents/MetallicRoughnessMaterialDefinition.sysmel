@@ -1,0 +1,71 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Woden Runtime.
+
+class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; definition: {
+    public field baseColor type: Float32x4.
+    public field emissionColor type: Float32x3.
+    public field occlusionFactor type: Float32.
+    public field roughnessFactor type: Float32.
+    public field metallicFactor type: Float32.
+
+    public field baseColorTexture type: TextureDefinitionPtr.
+    public field emissionTexture type: TextureDefinitionPtr.
+    public field normalTexture type: TextureDefinitionPtr.
+    public field occlusionMetallicRougnessTexture type: TextureDefinitionPtr.
+
+    meta definition: {
+        static method baseColor: (baseColor: Float32x4) ::=> MaterialDefinitionPtr := {
+            let material := MetallicRoughnessMaterialDefinition sharedNew.
+            material _ baseColor: baseColor.
+            material upCastFor: MaterialDefinition
+        }.
+    }.
+
+    override method initialize => Void := {
+        baseColor := Float32x4(0.8f, 0.8f, 0.8f, 1.0f).
+        emissionColor := Float32x3 zeros.
+        occlusionFactor := 1.0f.
+        roughnessFactor := 0.55f.
+        metallicFactor := 0.0f.
+    }.
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitMetallicRougnessMaterialDefinition: self.
+
+    override method isMetallicRoughnessMaterialDefinition => Boolean8
+        := true.
+
+    field runtimeMaterial type: MaterialPtr.
+
+    override method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr := {
+        runtimeMaterial ifNil: {
+            let mat := MetallicRoughnessMaterial for: engine.
+            mat _
+                baseColor: baseColor;
+                emissionColor: emissionColor;
+                occlusionFactor: occlusionFactor;
+                roughnessFactor: roughnessFactor;
+                metallicFactor: metallicFactor.
+            baseColorTexture ifNotNil: { mat _ baseColorTexture: (baseColorTexture _ getOrCreateTextureWithViewFor: engine) }.
+            emissionTexture ifNotNil: { mat _ emissionTexture: (emissionTexture _ getOrCreateTextureWithViewFor: engine) }.
+            normalTexture ifNotNil: { mat _ normalTexture: (normalTexture _ getOrCreateTextureWithViewFor: engine) }.
+            occlusionMetallicRougnessTexture ifNotNil: {
+                let textureWithView := occlusionMetallicRougnessTexture _ getOrCreateTextureWithViewFor: engine.
+                mat _
+                    occlusionTexture: textureWithView;
+                    metallicRoughnessTexture: textureWithView
+            }.
+
+            runtimeMaterial := mat upCastFor: Material
+        }.
+
+        runtimeMaterial
+    }.
+}.
+
+compileTime constant MetallicRoughnessMaterialDefinitionPtr := MetallicRoughnessMaterialDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden
