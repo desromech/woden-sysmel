@@ -138,8 +138,8 @@ SectorDefinition extend: {
 SectorLayerDefinition extend: {
     override method loadFromJson: (jsonObject: JSON Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromJson: jsonObject context: context.
-        defaultMinZ := jsonObject getFloat32: "defaultMinZ" asMutableString default: defaultMinZ.
-        defaultMaxZ := jsonObject getFloat32: "defaultMaxZ" asMutableString default: defaultMaxZ.
+        layerMinZ := jsonObject getFloat32: "layerMinZ" asMutableString default: layerMinZ.
+        layerMaxZ := jsonObject getFloat32: "layerMaxZ" asMutableString default: layerMaxZ.
 
         jsonObject at: "children" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
             (value get: JSON ListPtr) _ do: {:each :: Void |

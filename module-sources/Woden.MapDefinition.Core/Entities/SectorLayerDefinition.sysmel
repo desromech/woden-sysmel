@@ -5,8 +5,8 @@ useNamespace: Stdn Math Geometry.
 
 class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     public field entities type: Stdn Collections Vector(EntityDefinitionPtr).
-    public field defaultMinZ type: Float32.
-    public field defaultMaxZ type: Float32.
+    public field layerMinZ type: Float32.
+    public field layerMaxZ type: Float32.
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
         := visitor visitSectorLayerDefinition: self.
@@ -14,17 +14,17 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     override method isSectorLayer => Boolean8 := true.
 
     const inline method defaultZ => Float32
-        := defaultMinZ + self defaultHalfThickness.
+        := layerMinZ + self defaultHalfThickness.
 
     const inline method defaultThickness => Float32
-        := defaultMaxZ - defaultMinZ.
+        := layerMaxZ - layerMinZ.
 
     const inline method defaultHalfThickness => Float32
         := self defaultThickness * 0.5f.
 
     inline method defaultThickness: (thickness: Float32) ::=> Void := {
-        defaultMinZ := thickness * -0.5f.
-        defaultMaxZ := thickness * 0.5f.
+        layerMinZ := thickness * -0.5f.
+        layerMaxZ := thickness * 0.5f.
     }.
 
     method addEntity: (entity: EntityDefinitionPtr const ref) ::=> Void := {

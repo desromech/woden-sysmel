@@ -53,8 +53,8 @@ class Entity superclass: Stdn SharedObject; definition: {
             orientation: definition _ orientation.
         localBoundingBox := definition _ localBoundingBox.
         localBoundingBox depth = 0 ifTrue: {
-            localBoundingBox min z: layerDefinition _ defaultMinZ.
-            localBoundingBox max z: layerDefinition _ defaultMaxZ.
+            localBoundingBox min z: layerDefinition _ layerMinZ.
+            localBoundingBox max z: layerDefinition _ layerMaxZ.
         }.
 
         definition _ components do: {:each :: Void |
