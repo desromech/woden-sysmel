@@ -1,0 +1,13 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+#**
+ * I am an a scene model presentation mode that uses two different views.
+ *#
+class SingleViewSceneModelPresentationMode superclass: SceneModelPresentationMode; definition: {
+    override method openApplicationForModel: (model: SceneModel ref) ::=> Boolean8
+        := model openView: model createNewView.
+}.
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

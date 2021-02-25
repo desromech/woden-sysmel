@@ -47,6 +47,8 @@ class SampleSceneView superclass: SceneView; definition: {
 		event isRepeat ifTrue: {return: void}.
 
 		event symbol selectCase: #{
+        KeySymbol Escape : {self close}.
+
 		KeySymbol W : {cameraMovementDirection z: -1.0f}.
         KeySymbol S : {cameraMovementDirection z: 1.0f}.
         KeySymbol A : {cameraMovementDirection x: -1.0f}.

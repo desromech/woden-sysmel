@@ -14,11 +14,11 @@ class Model superclass: RenderingProcess; definition: {
     const inline method engine => EnginePtr const ref
         := engine.
 
-    virtual method initializeEngine => Boolean8 := {
+    virtual method initializeEngineWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
         engine ifNotNil: {return: true}.
 
         let newEngine := Engine sharedNew.
-        newEngine _ initializeEngine ifFalse: {
+        (newEngine _ initializeEngineWithCommandLine: arguments) ifFalse: {
             return: false.
         }.
 
@@ -30,20 +30,23 @@ class Model superclass: RenderingProcess; definition: {
         true.
     }.
 
-    virtual method parseCArguments: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    virtual method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
         true
     }.
 
-    virtual method initializeWithCArguments: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
-        (self parseCArguments: arguments) &&
-        self initializeEngine &&
+    virtual method initializeWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        (self parseCommandLine: arguments) &&
+        (self initializeEngineWithCommandLine: arguments) &&
         self initializeModel
     }.
 
     virtual method createNewView => ViewPtr
         := View sharedNew.
 
-    virtual method openMainView => Boolean8 := {
+    virtual method createNewSecondaryView => ViewPtr
+        := View sharedNew.
+
+    virtual method openApplication => Boolean8 := {
         self openView: self createNewView
     }.
 

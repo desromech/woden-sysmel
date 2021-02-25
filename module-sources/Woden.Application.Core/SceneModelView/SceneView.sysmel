@@ -18,10 +18,14 @@ class SceneView superclass: View; definition: {
         := model getPointer castTo: SceneModel pointer.
 
     method scene => ScenePtr
-        := self sceneModel _ scene.
+        := isSecondaryView
+            ifTrue: {self sceneModel _ secondaryScene}
+            ifFalse: {self sceneModel _ scene}.
 
     method camera => CameraPtr
-        := self sceneModel _ mainCamera.
+        := isSecondaryView
+            ifTrue: {self sceneModel _ secondarySceneMainCamera}
+            ifFalse: {self sceneModel _ mainCamera}.
 
     protected field sceneRenderingPipelineViewport type: SceneRenderingPipelineViewportPtr.
 

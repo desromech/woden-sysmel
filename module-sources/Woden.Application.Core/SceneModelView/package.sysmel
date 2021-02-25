@@ -1,2 +1,7 @@
 loadFileOnce: "SceneModel.sysmel".
 loadFileOnce: "SceneView.sysmel".
+
+loadFileOnce: "SceneModelPresentationMode.sysmel".
+loadFileOnce: "SingleViewSceneModelPresentationMode.sysmel".
+loadFileOnce: "DoubleViewSceneModelPresentationMode.sysmel".
+loadFileOnce: "VRSceneModelPresentationMode.sysmel".

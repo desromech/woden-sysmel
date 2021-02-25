@@ -12,6 +12,7 @@ useNamespace: Stdn Graphics GUI.
 class View superclass: EventHandler; definition: {
     protected field model type: ModelPtr.
     protected field viewWindow type: ViewWindowPtr.
+    protected field isSecondaryView type: Boolean8.
 
     const inline method model => ModelPtr const ref
         := model.
@@ -74,6 +75,13 @@ class View superclass: EventHandler; definition: {
 
     virtual method commitSurfaces => Void := {
 
+    }.
+
+    const inline method isSecondaryView => Boolean8
+        := isSecondaryView.
+
+    method makeSecondary => Void := {
+        isSecondaryView := true.
     }.
 }.
 

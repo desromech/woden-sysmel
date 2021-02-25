@@ -8,7 +8,7 @@ macro method sampleSceneMainWith: modelInitializationBlock := {
 
         ## Create the scene model and initialize with the C arguments.
         let `,sceneModel mutable := Woden Application SampleSceneModel sharedNew.
-        (`,sceneModel _ initializeWithCArguments: args) ifFalse: {
+        (`,sceneModel _ initializeWithCommandLine: args) ifFalse: {
             return: 1
         }.
 
@@ -16,7 +16,7 @@ macro method sampleSceneMainWith: modelInitializationBlock := {
         `,modelInitializationBlock __macroInlineBlock: `,sceneModel _.
 
         ## Open the main view.
-        (`,sceneModel _ openMainView) ifFalse: {
+        (`,sceneModel _ openApplication) ifFalse: {
             return: 1
         }.
 

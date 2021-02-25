@@ -11,12 +11,33 @@ class SceneModel superclass: Model; definition: {
     protected field scene type: ScenePtr.
     protected field mainCamera type: CameraPtr.
     protected field sceneRenderingPipeline type: SceneRenderingPipelinePtr.
+    protected field presentationMode type: SceneModelPresentationModePtr.
 
     const inline method scene => ScenePtr const ref
         := scene.
 
     const inline method mainCamera => CameraPtr const ref
         := mainCamera.
+
+    virtual method secondaryScene => ScenePtr
+        := ScenePtr nil.
+
+    virtual method secondarySceneMainCamera => CameraPtr
+        := CameraPtr nil.
+
+    override method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+
+        arguments do: {:arg :: Void |
+            (arg until: Stdn cstrlen(arg)) selectCase: #{
+            "-single-view" : {self useSingleViewPresentationMode}.
+            "-double-view" : {self useDoubleViewPresentationMode}.
+            "-vr" : {self useVRPresentationMode}.
+            _ : {}
+            }.
+        }.
+
+        super parseCommandLine: arguments
+    }.
 
     override method initializeModel => Boolean8 := {
         super initializeModel ifFalse: {return: false}.
@@ -27,6 +48,9 @@ class SceneModel superclass: Model; definition: {
 
     override method createNewView => ViewPtr
         := SceneView sharedNew upCastFor: View.
+
+    override method createNewSecondaryView => ViewPtr
+        := self createNewView.
 
     virtual method newScene => ScenePtr := {
         let newScene := Scene sharedNew.
@@ -46,6 +70,30 @@ class SceneModel superclass: Model; definition: {
     virtual method createSceneRenderingPipeline => SceneRenderingPipelinePtr
         := SceneRenderingPipelineRegistry uniqueInstance createDefaultFor: self engine.
 
+    override method openApplication => Boolean8
+        := self presentationMode _ openApplicationForModel: self.
+
+    method presentationMode => SceneModelPresentationModePtr := {
+        presentationMode ifNil: {self useSingleViewPresentationMode}.
+        presentationMode
+    }.
+
+    method useDefaultViewPresentationMode => Void := {
+        presentationMode := SceneModelPresentationMode default
+    }.
+
+    method useSingleViewPresentationMode => Void := {
+        presentationMode := SingleViewSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+    }.
+
+    method useDoubleViewPresentationMode => Void := {
+        presentationMode := DoubleViewSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+    }.
+
+    method useVRPresentationMode => Void := {
+        presentationMode := VRSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+    }.
+
     method sceneRenderingPipeline => SceneRenderingPipelinePtr const ref := {
         sceneRenderingPipeline ifNil: {
             sceneRenderingPipeline := self createSceneRenderingPipeline.
@@ -60,7 +108,6 @@ class SceneModel superclass: Model; definition: {
 
     override method prepareRendering => Void := {
         super prepareRendering.
-
     }.
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {

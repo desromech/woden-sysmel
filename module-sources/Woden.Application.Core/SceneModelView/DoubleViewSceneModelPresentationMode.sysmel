@@ -1,0 +1,20 @@
+namespace Woden definition: {
+namespace Application definition: {
+
+#**
+ * I am an a scene model presentation mode that uses two different views.
+ *#
+class DoubleViewSceneModelPresentationMode superclass: SceneModelPresentationMode; definition: {
+    override method supportsSecondaryScene => Boolean8 := true.
+
+    override method openApplicationForModel: (model: SceneModel ref) ::=> Boolean8 := {
+        (model openView: model createNewView) ifFalse: {return: false}.
+
+        let secondaryView := model createNewSecondaryView.
+        secondaryView _ makeSecondary.
+        model openView: secondaryView
+    }.
+}.
+
+}. ## End of namespace Application
+}. ## End of namespace Woden

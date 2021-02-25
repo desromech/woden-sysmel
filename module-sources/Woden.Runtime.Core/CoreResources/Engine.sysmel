@@ -54,6 +54,13 @@ class Engine superclass: Stdn SharedObject; definition: {
         }.
     }.
 
+    method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        true
+    }.
+
+    method initializeEngineWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8
+        := (self parseCommandLine: arguments) && self initializeEngine.
+
     method initializeEngine => Boolean8 := {
         windowSystem := createDefaultWindowSystem().
         windowSystem ifNil: { return: false }.

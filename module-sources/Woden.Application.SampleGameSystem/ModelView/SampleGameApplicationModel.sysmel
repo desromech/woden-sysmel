@@ -10,7 +10,6 @@ class SampleGameApplicationModel superclass: GameApplicationModel; definition: {
 
     override method createNewView => ViewPtr
         := SampleGameApplicationView sharedNew upCastFor: View.
-
 }.
 
 compileTime constant SampleGameApplicationModelPtr := SampleGameApplicationModel sharedPointer.
