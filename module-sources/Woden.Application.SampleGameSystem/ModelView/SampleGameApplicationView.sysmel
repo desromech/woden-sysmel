@@ -40,6 +40,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     }.
 
     override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
         let camera := self camera.
         camera ifNil: {return: void}.
 
@@ -58,6 +59,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     }.
 
     override method onKeyPressedEvent: (event: KeyPressedEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
 		event isRepeat ifTrue: {return: void}.
         event symbol selectCase: #{
             KeySymbol F1 : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
@@ -98,6 +100,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     }.
 
     override method onKeyReleasedEvent: (event: KeyReleasedEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
 		event isRepeat ifTrue: {return: void}.
 
         let player := self player.
@@ -133,6 +136,8 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     }.
 
     override method onGameControllerButtonPressedEvent: (event: GameControllerButtonPressedEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
+
         let player := self player.
         event button selectCase: #{
         GameControllerButton Back : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
@@ -166,6 +171,8 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 	}.
 
 	override method onGameControllerButtonReleasedEvent: (event: GameControllerButtonReleasedEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
+
         let player := self player.
         freeCameraMovementEnabled || player isNil ifTrue: {
     		event button selectCase: #{
@@ -193,6 +200,8 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 	}.
 
     override method onMouseMoveEvent: (event: MouseMoveEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
+
         let player := self player.
         freeCameraMovementEnabled || player isNil ifTrue: {
             let camera := self camera.
@@ -209,6 +218,8 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     }.
 
     override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
+        
         let player := self player.
         freeCameraMovementEnabled || player isNil ifTrue: {
             let camera := self camera.

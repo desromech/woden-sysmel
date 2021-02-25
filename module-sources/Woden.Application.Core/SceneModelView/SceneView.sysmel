@@ -71,6 +71,7 @@ class SceneView superclass: View; definition: {
             currentBackbuffer := viewWindow _ getCurrentBackBuffer.
             self prepareViewCamera.
             sceneRenderingPipelineViewport _
+                scene: self scene;
                 camera: self camera;
                 setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport _ scene2DBuilder);
                 prepareRendering.

@@ -61,9 +61,6 @@ class SceneModel superclass: Model; definition: {
         newScene _ add: (mainCamera upCastFor: SceneNode).
 
         scene := newScene.
-        sceneRenderingPipeline ifNotNil: {
-            sceneRenderingPipeline _ scene: scene
-        }.
         newScene
     }.
 
@@ -74,7 +71,7 @@ class SceneModel superclass: Model; definition: {
         := self presentationMode _ openApplicationForModel: self.
 
     method presentationMode => SceneModelPresentationModePtr := {
-        presentationMode ifNil: {self useSingleViewPresentationMode}.
+        presentationMode ifNil: {self useDefaultViewPresentationMode}.
         presentationMode
     }.
 
@@ -95,11 +92,7 @@ class SceneModel superclass: Model; definition: {
     }.
 
     method sceneRenderingPipeline => SceneRenderingPipelinePtr const ref := {
-        sceneRenderingPipeline ifNil: {
-            sceneRenderingPipeline := self createSceneRenderingPipeline.
-            sceneRenderingPipeline _ scene: scene.
-        }.
-
+        sceneRenderingPipeline ifNil: { sceneRenderingPipeline := self createSceneRenderingPipeline }.
         sceneRenderingPipeline
     }.
 

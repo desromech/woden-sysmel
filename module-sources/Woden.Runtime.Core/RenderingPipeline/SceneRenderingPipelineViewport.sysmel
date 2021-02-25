@@ -8,9 +8,13 @@ useNamespace: Stdn Graphics Core.
  *#
 class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
     protected field camera type: CameraPtr.
+    protected field scene type: ScenePtr.
 
     const inline method camera => CameraPtr const ref
         := camera.
+
+    const inline method scene => ScenePtr const ref
+        := scene.
 
     virtual method extent: (viewportExtent: UInt32x2) ::=> Void := {
 
@@ -20,13 +24,17 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
         camera := theCamera
     }.
 
+    virtual method scene: (theScene: ScenePtr const ref) ::=> Void := {
+        scene := theScene
+    }.
+
     virtual method setCurrentBackBuffer: (backBuffer: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
 
     }.
 
     virtual method getLastFrameVisibleObjectCount => UIntPointer
         := 0.
-        
+
     virtual method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
         := Stdn Graphics Scene2D BuilderPtr nil.
 

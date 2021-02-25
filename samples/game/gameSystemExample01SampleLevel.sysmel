@@ -8,7 +8,7 @@ useNamespace: Woden MapDefinition.
 Stdn MainEntryPoint: {:args :: Int32 |
     ## Create the scene model and initialize with the C arguments.
     let gameModel mutable := SampleGameApplicationModel sharedNew.
-    (gameModel _ initializeWithCArguments: args) ifFalse: {
+    (gameModel _ initializeWithCommandLine: args) ifFalse: {
         return: 1
     }.
 
@@ -35,7 +35,7 @@ Stdn MainEntryPoint: {:args :: Int32 |
     }.
 
     ## Open the main view.
-    (gameModel _ openMainView) ifFalse: {
+    (gameModel _ openApplication) ifFalse: {
         return: 1
     }.
 
