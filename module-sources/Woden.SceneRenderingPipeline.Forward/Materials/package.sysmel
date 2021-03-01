@@ -6,3 +6,4 @@ loadFileOnce: "UnlitMaterial.sysmel".
 loadFileOnce: "CompositionMaterial.sysmel".
 loadFileOnce: "SSAOComputationMaterial.sysmel".
 loadFileOnce: "ToneMappingMaterial.sysmel".
+loadFileOnce: "StereoscopicCompositionMaterial.sysmel".

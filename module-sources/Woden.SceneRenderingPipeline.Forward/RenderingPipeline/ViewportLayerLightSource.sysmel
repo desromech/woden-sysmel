@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+
+struct ViewportLayerLightSource definition: {
+    public field cameraDistance type: Float32.
+    public field object type: RenderingSceneLightSourcePtr.
+    public field shadowMap type: ShadowMapRenderingPipelineLayer pointer.
+
+    const method < (o: SelfType const ref) ::=> Boolean8
+        := cameraDistance < o cameraDistance.
+}.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

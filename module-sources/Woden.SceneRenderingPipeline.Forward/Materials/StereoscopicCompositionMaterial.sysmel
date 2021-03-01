@@ -1,0 +1,80 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+class StereoscopicCompositionMaterial superclass: CompositionMaterialShaders; definition: {
+    macro method leftEyeTexture := ``(`,self materialStateBinding _ texture0).
+	macro method rightEyeTexture := ``(`,self materialStateBinding _ texture1).
+
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+    function anaglyphRedCyan fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let texcoord := in receive texcoord.
+
+		let leftSample := self deferredSampler sample: self leftEyeTexture at: texcoord.
+		let rightSample := self deferredSampler sample: self rightEyeTexture at: texcoord.
+		let result := Float32x4(leftSample r, rightSample gb, leftSample a).
+
+        out send: (FragmentOutput()
+            color0: result;
+            yourself)
+    }.
+
+	function leftRightSideBySide fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+        let texcoord := in receive texcoord.
+
+		let result := texcoord x < 0.5f ifTrue: {
+			self deferredSampler sample: self leftEyeTexture at: Float32x2(texcoord x*2.0f, texcoord y)
+		} ifFalse: {
+			self deferredSampler sample: self rightEyeTexture at: Float32x2(texcoord x*2.0f - 1.0, texcoord y)
+		}.
+
+        out send: (FragmentOutput()
+            color0: result;
+            yourself)
+    }.
+
+	function topBottomSideBySide fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let texcoord := in receive texcoord.
+
+		let result := texcoord y < 0.5f ifTrue: {
+			self deferredSampler sample: self leftEyeTexture at: Float32x2(texcoord x, texcoord y*2.0f)
+		} ifFalse: {
+			self deferredSampler sample: self rightEyeTexture at: Float32x2(texcoord x, texcoord y*2.0f - 1.0)
+		}.
+
+		out send: (FragmentOutput()
+			color0: result;
+			yourself)
+    }.
+
+	function interleavedEvenOdd fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let texcoord := in receive texcoord.
+
+		let leftSample := self deferredSampler sample: self leftEyeTexture at: texcoord.
+		let rightSample := self deferredSampler sample: self rightEyeTexture at: texcoord.
+
+		let height := (self leftEyeTexture extentOfLod: 0) y castTo: Float32.
+		let scanline := texcoord y * height.
+		let isEven := scanline - (scanline * 0.5f) floor * 2.0f.
+
+		let result := isEven < 1.0f ifTrue: leftSample ifFalse: rightSample.
+		out send: (FragmentOutput()
+			color0: result;
+			yourself)
+    }.
+
+	function leftEyeOnly fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let texcoord := in receive texcoord.
+
+		let result := self deferredSampler sample: self leftEyeTexture at: texcoord.
+
+        out send: (FragmentOutput()
+            color0: result;
+            yourself)
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

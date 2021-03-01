@@ -26,6 +26,12 @@ class View superclass: EventHandler; definition: {
     virtual method depthStencilFormat => PixelFormat
         := PixelFormat Unknown.
 
+    virtual method initialExtent => UInt32x2
+        := UInt32x2(640, 480).
+
+    virtual method isStereoRequested => Boolean8
+        := false.
+
     virtual method initializeWithModel: (theModel: ModelPtr const ref) ::=> Boolean8 := {
         model := theModel.
 
@@ -44,6 +50,9 @@ class View superclass: EventHandler; definition: {
         viewWindow := newViewWindow upCastFor: ViewWindow.
         true
     }.
+
+    method toggleFullscreen => Void
+        := viewWindow _ toggleFullscreen.
 
     method viewWindowDestroyed => Void := {
         viewWindow reset.

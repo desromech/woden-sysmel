@@ -1,4 +1,12 @@
 loadFileOnce: "ForwardSceneRenderingContext.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipeline.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipelineFactory.sysmel".
+
+loadFileOnce: "ViewportLayerLightSource.sysmel".
+loadFileOnce: "ViewportLayerRenderableObject.sysmel".
+loadFileOnce: "RenderingPipelineCameraLayer.sysmel".
+loadFileOnce: "RenderingPipelineCameraEye.sysmel".
+loadFileOnce: "ShadowMapRenderingPipelineLayer.sysmel".
+loadFileOnce: "ForwardSceneRenderingPipelineViewportLayer.sysmel".
+loadFileOnce: "ForwardSceneRenderingPipelineViewportEye.sysmel".
 loadFileOnce: "ForwardSceneRenderingPipelineViewport.sysmel".

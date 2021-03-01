@@ -63,6 +63,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 		event isRepeat ifTrue: {return: void}.
         event symbol selectCase: #{
             KeySymbol F1 : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
+            KeySymbol F11 : {self toggleFullscreen}.
             _ : {}
         }.
 
@@ -219,7 +220,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 
     override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
         self isSecondaryView ifTrue: {return: void}.
-        
+
         let player := self player.
         freeCameraMovementEnabled || player isNil ifTrue: {
             let camera := self camera.

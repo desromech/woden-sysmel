@@ -16,6 +16,9 @@ class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
         engine := anEngine.
     }.
 
+    virtual method defaultStereoPresentationMode => StereoPresentationMode
+        := StereoPresentationMode Monoscopic.
+
     virtual method swapChainColorBufferFormat => PixelFormat
         := PixelFormat B8G8R8A8_UNormSRGB.
 

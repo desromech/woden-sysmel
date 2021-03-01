@@ -23,7 +23,10 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
         := view _ depthStencilFormat.
 
     virtual method extent => UInt32x2
-        := UInt32x2(640, 480).
+        := view _ initialExtent.
+
+    virtual method isStereoRequested => Boolean8
+        := view _ isStereoRequested.
 
     virtual method drawingSurfaceExtent => UInt32x2
         := self extent.
@@ -36,11 +39,17 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
         true
     }.
 
-    virtual method getCurrentBackBuffer => FramebufferPtr
+    virtual method getCurrentBackBufferLeftEye => FramebufferPtr
+        := FramebufferPtr nil.
+
+    virtual method getCurrentBackBufferRightEye => FramebufferPtr
         := FramebufferPtr nil.
 
     virtual method getDisplayRenderPass => RenderPassPtr
         := RenderPassPtr nil.
+
+    virtual method toggleFullscreen => Void
+        := void.
 
     virtual method commitSurfaces => Void := {
 

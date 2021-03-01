@@ -1,0 +1,34 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * I describe a specific way for displaying stereoscopic rendering output.
+ *#
+enum StereoPresentationMode valueType: UInt8; values: #{
+    Monoscopic: 0.
+    MultiLayerSwapChain:.
+    AnaglyphRedCyan:.
+    AnaglyphCyanRed:.
+    LeftRightSideBySide:.
+    RightLeftSideBySide:.
+    TopBottomSideBySide:.
+    BottomTopSideBySide:.
+    InterleavedEvenOdd:.
+    InterleavedOddEven:.
+    VR:.
+}; definition: {
+    method isMonoscopic => Boolean8
+        := self = Monoscopic.
+
+    method isStereoscopic => Boolean8
+        := self ~= Monoscopic.
+
+    method isMultiLayerSwapChain => Boolean8
+        := self = MultiLayerSwapChain.
+
+    method isVR => Boolean8
+        := self = VR.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

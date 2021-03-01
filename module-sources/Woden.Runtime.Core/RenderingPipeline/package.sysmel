@@ -1,3 +1,5 @@
+loadFileOnce: "StereoPresentationMode.sysmel".
+
 loadFileOnce: "SceneRenderPass.sysmel".
 loadFileOnce: "SceneRenderMode.sysmel".
 loadFileOnce: "SceneRenderingContext.sysmel".

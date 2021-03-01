@@ -1,0 +1,99 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+class RenderingPipelineCameraLayer definition: {
+    public field cameraTransform type: ReversibleAffineTransform3dF32.
+    public field cameraState type: Woden Shaders CameraStateData.
+    public field frustum type: FrustumF32.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+
+    public field renderableSceneObjects type: Stdn Collections Vector(ViewportLayerRenderableObject).
+
+    public field cameraStateBuffers type: FrameBufferedBuffer.
+    public field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
+    public field owner type: RenderingPipelineCameraEye pointer.
+
+    const inline method scene => ScenePtr const ref
+        := owner _ scene.
+
+    const inline method engine => EnginePtr
+        := sceneRenderingPipeline _ engine.
+
+    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
+        owner := theOwner.
+        sceneRenderingPipeline := theSceneRenderingPipeline.
+
+        ## Create the camera state buffer and binding.
+        cameraStateBuffers isCreated ifFalse: {
+            cameraStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders CameraStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
+            cameraStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
+            }.
+        }.
+    }.
+
+    method sortRenderingObjects => Void := {
+        renderableSceneObjects sort
+    }.
+
+    method uploadCameraState => Void := {
+        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+    }.
+
+    method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
+        renderObject spatialObject _ isGPUSpatialObject ifFalse: {return: void}.
+
+        let spatialObject := renderObject spatialObject downCastFor: AbstractGPUSpatialObject.
+        spatialObject _ objectStateBuffers isCreated ifFalse: {
+            spatialObject _ objectStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders ObjectStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
+            spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _ bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+            }.
+        }.
+
+        spatialObject _ objectStateBuffers current _
+            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
+
+        context stateTracker _
+            useGraphicShaderBindings: spatialObject _ objectStateBindings current.
+
+        renderObject renderable _ renderWithContext: context.
+    }.
+
+    virtual method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+        context stateTracker _
+            useGraphicShaderBindings: cameraStateBindings current.
+
+        renderableSceneObjects do: {:each :: Void |
+            context resetObjectAttributes.
+            self renderSceneObject: each object _ with: context
+        }.
+    }.
+}.
+
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

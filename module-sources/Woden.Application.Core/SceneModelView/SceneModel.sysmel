@@ -12,6 +12,7 @@ class SceneModel superclass: Model; definition: {
     protected field mainCamera type: CameraPtr.
     protected field sceneRenderingPipeline type: SceneRenderingPipelinePtr.
     protected field presentationMode type: SceneModelPresentationModePtr.
+    protected field stereoPresentationMode type: StereoPresentationMode.
 
     const inline method scene => ScenePtr const ref
         := scene.
@@ -25,10 +26,20 @@ class SceneModel superclass: Model; definition: {
     virtual method secondarySceneMainCamera => CameraPtr
         := CameraPtr nil.
 
+    method stereoPresentationMode => StereoPresentationMode
+        := stereoPresentationMode.
+
     override method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
 
         arguments do: {:arg :: Void |
             (arg until: Stdn cstrlen(arg)) selectCase: #{
+            "-stereo" : {self useStereoDisplay}.
+            "-stereo-anaglyph-red-cyan" : {self useStereoAnaglyphRedCyanDisplay}.
+            "-stereo-anaglyph-cyan-red" : {self useStereoAnaglyphCyanRedDisplay}.
+            "-stereo-left-right" : {self useStereoLeftRightDisplay}.
+            "-stereo-top-bottom" : {self useStereoTopBottomDisplay}.
+            "-stereo-interleaved-even-odd" : {self useStereoInterleavedEvenOddDisplay}.
+            "-stereo-interleaved-odd-even" : {self useStereoInterleavedOddEvenDisplay}.
             "-single-view" : {self useSingleViewPresentationMode}.
             "-double-view" : {self useDoubleViewPresentationMode}.
             "-vr" : {self useVRPresentationMode}.
@@ -40,6 +51,11 @@ class SceneModel superclass: Model; definition: {
     }.
 
     override method initializeModel => Boolean8 := {
+        ## Ask the scene rendering pipeline about the default stereo presentation mode.
+        stereoPresentationMode isMonoscopic ifTrue: {
+            stereoPresentationMode := self sceneRenderingPipeline _ defaultStereoPresentationMode
+        }.
+
         super initializeModel ifFalse: {return: false}.
 
         scene := Scene sharedNew.
@@ -75,6 +91,42 @@ class SceneModel superclass: Model; definition: {
         presentationMode
     }.
 
+    method useStereoDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode MultiLayerSwapChain
+    }.
+
+    method useStereoAnaglyphRedCyanDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode AnaglyphRedCyan
+    }.
+
+    method useStereoAnaglyphCyanRedDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode AnaglyphCyanRed
+    }.
+
+    method useStereoLeftRightDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode LeftRightSideBySide
+    }.
+
+    method useStereoRightLeftDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode RightLeftSideBySide
+    }.
+
+    method useStereoTopBottomDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode TopBottomSideBySide
+    }.
+
+    method useStereoBottomTopDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode BottomTopSideBySide
+    }.
+
+    method useStereoInterleavedEvenOddDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode InterleavedEvenOdd
+    }.
+
+    method useStereoInterleavedOddEvenDisplay => Void := {
+        stereoPresentationMode := StereoPresentationMode InterleavedOddEven
+    }.
+
     method useDefaultViewPresentationMode => Void := {
         presentationMode := SceneModelPresentationMode default
     }.
@@ -88,6 +140,7 @@ class SceneModel superclass: Model; definition: {
     }.
 
     method useVRPresentationMode => Void := {
+        stereoPresentationMode := StereoPresentationMode VR.
         presentationMode := VRSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
     }.
 

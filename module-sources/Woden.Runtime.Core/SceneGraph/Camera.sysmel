@@ -13,6 +13,8 @@ class Camera superclass: SceneNode; definition: {
     public field nearDistance type: Float32.
     public field farDistance type: Float32.
     public field cascadeSplitDistribution type: Float32.
+    public field stereoIpd type: Float32.
+    public field stereoDisplayDistance type: Float32.
 
     override method initialize => Void := {
         exposure := 1.0f.
@@ -20,6 +22,8 @@ class Camera superclass: SceneNode; definition: {
         nearDistance := 0.1f.
         farDistance := 100.0f.
         cascadeSplitDistribution := 0.5f.
+        stereoIpd := 0.065f.
+        stereoDisplayDistance := 3.0f.
     }.
 
     override method isCamera => Boolean8

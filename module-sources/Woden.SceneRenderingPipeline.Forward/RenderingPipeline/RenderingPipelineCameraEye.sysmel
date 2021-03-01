@@ -1,0 +1,29 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+class RenderingPipelineCameraEye definition: {
+    public field owner type: SceneRenderingPipelineViewport pointer.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+
+    const inline method scene => ScenePtr const ref
+        := owner _ scene.
+
+    const inline method camera => CameraPtr const ref
+        := owner _ camera.
+
+    const inline method engine => EnginePtr
+        := sceneRenderingPipeline _ engine.
+
+    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: SceneRenderingPipelineViewport pointer) ::=> Void := {
+        owner := theOwner.
+        sceneRenderingPipeline := theSceneRenderingPipeline.
+    }.
+}.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

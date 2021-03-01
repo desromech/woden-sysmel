@@ -38,6 +38,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
             colorBufferFormat: self colorBufferFormat;
             depthStencilFormat: self depthStencilFormat;
             extent: newExtent;
+            layerCount: (self isStereoRequested ifTrue: 2u ifFalse: 1u);
             bufferCount: FrameBufferingCount;
             yourself.
 
@@ -75,10 +76,16 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         true
     }.
 
-    override method getCurrentBackBuffer => FramebufferPtr := {
+    override method getCurrentBackBufferLeftEye => FramebufferPtr := {
         swapChain isNil || isOutOfDate ifTrue: {return: FramebufferPtr nil}.
 
-        swapChain _ getCurrentBackBuffer
+        swapChain _ getCurrentBackBufferForLayer: 0u
+    }.
+
+    override method getCurrentBackBufferRightEye => FramebufferPtr := {
+        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferPtr nil}.
+
+        swapChain _ getCurrentBackBufferForLayer: 1u
     }.
 
     override method colorBufferFormat => PixelFormat
@@ -108,6 +115,9 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         }.
         displayRenderPass
     }.
+
+    override method toggleFullscreen => Void
+        := window _ toggleFullscreen.
 
     override method commitSurfaces => Void := {
         swapChain _ swapBuffers selectCase: #{

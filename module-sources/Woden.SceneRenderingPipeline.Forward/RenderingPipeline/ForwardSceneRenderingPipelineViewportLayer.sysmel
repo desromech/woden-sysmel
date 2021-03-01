@@ -1,0 +1,117 @@
+namespace Woden definition: {
+namespace ForwardRenderer definition: {
+
+useNamespace: Woden Runtime.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPipelineCameraLayer; definition: {
+    public field lightSources type: Stdn Collections Vector(ViewportLayerLightSource).
+
+    public field lightingStateBuffers type: FrameBufferedBuffer.
+    public field lightingStateBindings type: FrameBufferedShaderResourcesBindings.
+    public field lightingState type: Woden Shaders GlobalLightingStateData.
+
+    const inline method layerLightSourceCount => UIntPointer
+        := lightSources size min: Woden Shaders MaxNumberOfLights .
+
+    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
+        super ensureResourcesAreCreatedFor: theSceneRenderingPipeline owner: theOwner.
+
+        ## Create the lighting state buffer and binding.
+        lightingStateBuffers isCreated ifFalse: {
+            lightingStateBuffers for: self engine createWithDescription: (BufferDescription()
+                size: Woden Shaders GlobalLightingStateData instanceSize;
+                heapType: MemoryHeapType HostToDevice;
+                usageModes: BufferUsageMode Uniform;
+                mainUsageMode: BufferUsageMode Uniform;
+                mappingFlags: BufferMappingFlags DynamicStorage;
+                yourself
+            ) initialData: nil.
+
+            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
+            lightingStateBindings bindings doWithIndex: {:each :index :: Void |
+                each _
+                    bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
+                    bindOn: 1 sampledTextureView: sceneRenderingPipeline _ shadowMapTextureView;
+                    bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
+            }.
+        }.
+    }.
+
+
+    method cameraPostProcessingStateBuffer: (buffer: BufferPtr const ref) ::=> Void := {
+        cameraStateBindings bindings do: {:each :: Void |
+            each _ bindOn: 1 storageBuffer: buffer
+        }.
+    }.
+
+    method sortLights => Void := {
+        lightSources sort
+    }.
+
+    method gatherSceneLightingState => Void := {
+        let scene := self scene.
+        scene ifNil: {return: void}.
+
+        lightingState := Woden Shaders GlobalLightingStateData().
+
+        let shadowMapExtent := sceneRenderingPipeline _ shadowMapTextureExtent castTo: Float32x2.
+        lightingState
+            groundLighting: Float32x4(scene _ groundLighting, 0.0f);
+            skyLighting: Float32x4(scene _ skyLighting, 0.0f);
+            sunDirection: scene _ sunDirection;
+
+            shadowMapExtent: shadowMapExtent;
+            shadowMapInverseExtent: 1.0f/shadowMapExtent.
+
+        ## TODO: Support light probes properly.
+        let blackTexture := self engine _ resourceCache _ blackTextureCube.
+        lightingStateBindings current _
+            bindOn: 5 sampledTextureWithView: blackTexture;
+            bindOn: 6 sampledTextureWithView: blackTexture.
+
+        let lightCount := self layerLightSourceCount.
+        lightingState numberOfLights: (lightCount castTo: Int32).
+        0 until: lightCount do: {:i :: Void |
+            let lightSourceObject ref := lightSources[i] object.
+            let lightSourceObjectState ref := lightSourceObject _ lightSourceObject _.
+            let lightSourceState mutable := lightSourceObjectState lightState.
+
+            lightSourceState shadowMapLayer: -1.
+
+            lightSourceState position w = 0 ifTrue: {
+                lightSourceState
+                    position: Float32x4((lightSourceState position * cameraState inverseViewMatrix) xyz normalized, 0);
+                    spotDirection: Float32x3 zeros.
+            } ifFalse: {
+                lightSourceState
+                    position: cameraState viewMatrix * lightSourceState position;
+                    spotDirection: (Float32x4(lightSourceState spotDirection, 0) * cameraState inverseViewMatrix) xyz.
+            }.
+
+            lightingState lightSources[i] := lightSourceState.
+        }.
+    }.
+
+    method setSSAOTextureView: (textureView: TextureViewPtr const ref) ::=> Void := {
+        lightingStateBindings current _
+            bindOn: 3 sampledTextureView: textureView.
+    }.
+
+    method uploadLightingState => Void := {
+        lightingStateBuffers current _
+            uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
+    }.
+
+    override method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
+        context stateTracker _
+            useGraphicShaderBindings: lightingStateBindings current.
+
+        super renderSceneObjectsWith: context
+    }.
+}.
+
+}. ## End of namespace ForwardRenderer
+}. ## End of namespace Woden

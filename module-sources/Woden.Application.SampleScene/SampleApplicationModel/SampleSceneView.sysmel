@@ -63,6 +63,8 @@ class SampleSceneView superclass: SceneView; definition: {
         KeySymbol Up : {cameraAngularVelocity x: 1.0f}.
         KeySymbol Down : {cameraAngularVelocity x: -1.0f}.
 
+        KeySymbol F11 : { self toggleFullscreen }.
+
 		_ : {}.
 		}
 
@@ -149,7 +151,7 @@ class SampleSceneView superclass: SceneView; definition: {
 
     override method onMouseWheelEvent: (event: MouseWheelEvent ref) ::=> Void := {
         self isSecondaryView ifTrue: {return: void}.
-        
+
         let camera := self camera.
         camera ifNil: {return: void}.
 

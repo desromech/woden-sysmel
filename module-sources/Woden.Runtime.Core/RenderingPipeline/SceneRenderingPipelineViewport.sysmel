@@ -9,12 +9,16 @@ useNamespace: Stdn Graphics Core.
 class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
     protected field camera type: CameraPtr.
     protected field scene type: ScenePtr.
+    protected field stereoPresentationMode type: StereoPresentationMode.
 
     const inline method camera => CameraPtr const ref
         := camera.
 
     const inline method scene => ScenePtr const ref
         := scene.
+
+    const inline method stereoPresentationMode => StereoPresentationMode
+        := stereoPresentationMode.
 
     virtual method extent: (viewportExtent: UInt32x2) ::=> Void := {
 
@@ -28,9 +32,16 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
         scene := theScene
     }.
 
-    virtual method setCurrentBackBuffer: (backBuffer: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
+    virtual method stereoPresentationMode: (thePresentationMode: StereoPresentationMode) ::=> Void := {
+        stereoPresentationMode := thePresentationMode
+    }.
+
+    virtual method setCurrentBackBufferLeftEye: (leftEye: FramebufferPtr const ref) rightEye: (rightEye: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
 
     }.
+
+    method setCurrentBackBuffer: (backBuffer: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void
+        := self setCurrentBackBufferLeftEye: backBuffer rightEye: FramebufferPtr nil renderPass: displayRenderPass.
 
     virtual method getLastFrameVisibleObjectCount => UIntPointer
         := 0.
