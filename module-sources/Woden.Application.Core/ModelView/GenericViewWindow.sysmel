@@ -88,12 +88,6 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         swapChain _ getCurrentBackBufferForLayer: 1u
     }.
 
-    override method colorBufferFormat => PixelFormat
-        := view _ colorBufferFormat.
-
-    override method depthStencilFormat => PixelFormat
-        := view _ depthStencilFormat.
-
     override method getDisplayRenderPass => RenderPassPtr := {
         displayRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
@@ -109,6 +103,10 @@ class GenericViewWindow superclass: ViewWindow; definition: {
                 endAction: RenderPassAttachmentAction Keep;
                 stencilBeginAction: RenderPassAttachmentAction Clear;
                 stencilEndAction: RenderPassAttachmentAction Keep;
+                clearValue: (DepthStencilValue()
+                    depth: self defaultClearDepth;
+                    stencil: self defaultClearStencil;
+                    yourself)
                 yourself.
             displayRenderPass := self engine _ renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment:
                 (depthStencilAttachment format = PixelFormat Unknown ifTrue: nil ifFalse: depthStencilAttachment address).

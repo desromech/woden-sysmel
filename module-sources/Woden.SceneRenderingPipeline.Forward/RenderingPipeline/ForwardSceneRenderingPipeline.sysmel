@@ -45,6 +45,9 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     const inline method shadowMapTextureExtent => UInt32x2
         := UInt32x2(DefaultShadowMapTextureSize, DefaultShadowMapTextureSize).
 
+    override method defaultClearDepth => Float32
+        := 0.0f.
+
     override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
         super initializeForEngine: anEngine.
 

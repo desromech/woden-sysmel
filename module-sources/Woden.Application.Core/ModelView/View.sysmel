@@ -20,6 +20,12 @@ class View superclass: EventHandler; definition: {
     const inline method engine => EnginePtr const ref
         := model _ engine.
 
+    virtual method defaultClearDepth => Float32
+        := 1.0f.
+
+    virtual method defaultClearStencil => UInt8
+        := 0.
+        
     virtual method colorBufferFormat => PixelFormat
         := PixelFormat B8G8R8A8_UNormSRGB.
 

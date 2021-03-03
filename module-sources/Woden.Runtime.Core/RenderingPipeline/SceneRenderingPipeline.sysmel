@@ -16,6 +16,12 @@ class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
         engine := anEngine.
     }.
 
+    virtual method defaultClearDepth => Float32
+        := 1.0.
+
+    virtual method defaultClearStencil => UInt8
+        := 0.
+
     virtual method defaultStereoPresentationMode => StereoPresentationMode
         := StereoPresentationMode Monoscopic.
 
