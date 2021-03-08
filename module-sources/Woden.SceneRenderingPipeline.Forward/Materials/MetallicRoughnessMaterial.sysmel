@@ -1,8 +1,10 @@
 namespace Woden definition: {
 namespace Shaders definition: {
 
-function decodeNormalTexel(texel: Float32x4) => Float32x3
-    := texel rgb*2.0f - 1.0f.
+function decodeNormalTexel(texel: Float32x4) => Float32x3 := {
+    let xy := texel rg*2.0f - 1.0f.
+    Float32x3(xy, (1.0f - xy length2) sqrt)
+}.
 
 template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor0: _LiteralBoolean, hasTangent4: _LiteralBoolean)
     :=  class superclass: ForwardSceneRenderingShaderSignature; definition: {

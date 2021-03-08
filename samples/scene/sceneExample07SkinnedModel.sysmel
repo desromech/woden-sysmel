@@ -2,7 +2,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
-Compiler addResourcesDirectory: "../resources/gltfSampleModels/Fox".
+
 useNamespace: Woden Runtime.
 
 class TurnTableAnimation superclass: Animation; definition: {

@@ -117,6 +117,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     method solveTextureFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
         ## FIXME: Retrieve the list of available extensions during the runtime.
         let extensions mutable := Char8 const arraySlice array(
+            "stx",
             "dds",
             "png",
             "jpg",
@@ -210,11 +211,55 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: checkboardTexture}.
 
-        let textureData := TextureData readFromFileReference: solvedFileReference.
+        let textureData mutable := TextureData readFromFileReference: solvedFileReference.
         textureData ifNil: {return: checkboardTexture}.
+
+        ## Generate the miplevels if required.
+        textureData _ miplevels <= 1 ifTrue: {
+            let withMiplevels := textureData _ generateColorMiplevels.
+            withMiplevels ifNotNil: {textureData := withMiplevels}
+        }.
 
         let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
         texture ifNil: {return: checkboardTexture}.
+
+        texture _ asTextureWithView
+    }.
+
+    method loadNormalTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+        let solvedFileReference := self solveTextureFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+
+        let textureData mutable := TextureData readFromFileReference: solvedFileReference.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
+
+        ## Generate the miplevels if required.
+        textureData _ miplevels <= 1 ifTrue: {
+            let withMiplevels := textureData _ generateNormalMiplevels.
+            withMiplevels ifNotNil: {textureData := withMiplevels}
+        }.
+
+        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
+
+        texture _ asTextureWithView
+    }.
+
+    method loadNonColorTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+        let solvedFileReference := self solveTextureFileReference: fileReference.
+        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+
+        let textureData mutable := TextureData readFromFileReference: solvedFileReference.
+        textureData ifNil: {return: TextureWithViewPtr nil}.
+
+        ## Generate the miplevels if required.
+        textureData _ miplevels <= 1 ifTrue: {
+            let withMiplevels := textureData _ generateMiplevels.
+            withMiplevels ifNotNil: {textureData := withMiplevels}
+        }.
+
+        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
+        texture ifNil: {return: TextureWithViewPtr nil}.
 
         texture _ asTextureWithView
     }.
@@ -227,19 +272,6 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
         let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
-        texture ifNil: {return: TextureWithViewPtr nil}.
-
-        texture _ asTextureWithView
-    }.
-
-    method loadTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
-        let solvedFileReference := self solveTextureFileReference: fileReference.
-        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
-
-        let textureData := TextureData readFromFileReference: solvedFileReference.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
-
-        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
         texture ifNil: {return: TextureWithViewPtr nil}.
 
         texture _ asTextureWithView

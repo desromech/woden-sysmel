@@ -2,7 +2,7 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleScene"
     #"Woden.Application.Headfull"
 ).
-Compiler addResourcesDirectory: "../resources/gltfSampleModels/Sponza".
+
 useNamespace: Woden Runtime.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
