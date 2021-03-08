@@ -22,7 +22,7 @@ class Camera superclass: SceneNode; definition: {
         nearDistance := 0.1f.
         farDistance := 100.0f.
         cascadeSplitDistribution := 0.5f.
-        stereoIpd := 0.065f.
+        stereoIpd := 0.062f.
         stereoDisplayDistance := 3.0f.
     }.
 

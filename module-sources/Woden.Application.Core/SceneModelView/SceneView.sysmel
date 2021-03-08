@@ -60,6 +60,12 @@ class SceneView superclass: View; definition: {
         super newViewWindowInstance
     }.
 
+    override method defaultClearDepth => Float32
+        := self sceneModel _ sceneRenderingPipeline _ defaultClearDepth.
+
+    override method defaultClearStencil => UInt8
+        := self sceneModel _ sceneRenderingPipeline _ defaultClearStencil.
+
     override method colorBufferFormat => PixelFormat
         := self sceneModel _ sceneRenderingPipeline _ swapChainColorBufferFormat.
 

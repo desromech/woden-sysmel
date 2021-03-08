@@ -16,6 +16,12 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
     const inline method view => ViewPtr const ref
         := view.
 
+    virtual method defaultClearDepth => Float32
+        := view _ defaultClearDepth.
+
+    virtual method defaultClearStencil => UInt8
+        := view _ defaultClearStencil.
+
     virtual method colorBufferFormat => PixelFormat
         := view _ colorBufferFormat.
 
