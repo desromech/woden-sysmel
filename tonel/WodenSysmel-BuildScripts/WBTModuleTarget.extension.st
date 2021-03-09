@@ -17,7 +17,7 @@ WBTModuleTarget >> addResource: rawAbsolutePath withRelativePath: rawRelativePat
 	
 	convertedTarget := self buildEnvironment
 		generateTargetFile: targetPath inputFiles: {sourceFileTarget}
-		withCommand: '$(TEXTURE_TOOL) $(FLAGS) -i $(WBT_INPUT_FILES) -o $(WBT_OUTPUT_FILE)' variables: {
+		withCommand: '$(TEXTURE_TOOL) $(WODEN_TEXTURE_TARGET_PROFILE) $(FLAGS) -i $(WBT_INPUT_FILES) -o $(WBT_OUTPUT_FILE)' variables: {
 		#TEXTURE_TOOL . textureTool.
 		#FLAGS . flags
 	}.
