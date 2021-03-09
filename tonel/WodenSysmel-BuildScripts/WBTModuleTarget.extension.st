@@ -9,9 +9,10 @@ WBTModuleTarget >> addResource: rawAbsolutePath withRelativePath: rawRelativePat
 	basename := rawAbsolutePath asFileReference basename.
 	(basename includesSubstring: 'norm' caseSensitive: false) ifTrue: [
 		flags := flags , #('-normal')
-	].
-	(basename includesSubstring: 'rma' caseSensitive: false) ifTrue: [ 
-		flags := flags , #('-non-color')
+	] ifFalse: [
+		(basename includesSubstring: 'rma' caseSensitive: false) ifTrue: [ 
+			flags := flags , #('-non-color')
+		].
 	].
 	
 	convertedTarget := self buildEnvironment
