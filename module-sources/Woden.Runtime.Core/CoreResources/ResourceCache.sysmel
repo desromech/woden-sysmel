@@ -215,7 +215,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         textureData ifNil: {return: checkboardTexture}.
 
         ## Generate the miplevels if required.
-        textureData _ miplevels <= 1 && textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
+        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
             let withMiplevels := textureData _ generateColorMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
@@ -234,7 +234,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
         ## Generate the miplevels if required.
-        textureData _ miplevels <= 1 && textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
+        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
             let withMiplevels := textureData _ generateNormalMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
@@ -253,7 +253,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         textureData ifNil: {return: TextureWithViewPtr nil}.
 
         ## Generate the miplevels if required.
-        textureData _ miplevels <= 1 && textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
+        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling not ifTrue: {
             let withMiplevels := textureData _ generateMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
