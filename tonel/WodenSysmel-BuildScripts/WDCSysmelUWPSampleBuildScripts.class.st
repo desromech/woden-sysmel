@@ -5,6 +5,15 @@ Class {
 }
 
 { #category : #examples }
+WDCSysmelUWPSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
+	<example>
+	self newNativeBuildEnvironment
+		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
+			packageScript guiBundleWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
+		]
+]
+
+{ #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample01Cube [
 	<example>
 	self newNativeBuildEnvironment
@@ -27,7 +36,9 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample03Floor [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/scene/sceneExample03Floor.sysmel'
+			packageScript guiBundleWithSource: 'samples/scene/sceneExample03Floor.sysmel' with: [ :bundle |
+					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+				]
 		]
 ]
 
@@ -36,7 +47,9 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample04Pool [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/scene/sceneExample04Pool.sysmel'
+			packageScript guiBundleWithSource: 'samples/scene/sceneExample04Pool.sysmel' with: [ :bundle |
+					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+				]
 		]
 ]
 
@@ -45,7 +58,11 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample05Models [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/scene/sceneExample05Models.sysmel'
+			packageScript guiBundleWithSource: 'samples/scene/sceneExample05Models.sysmel' with: [ :bundle |
+				bundle
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleModels';
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'DamagedHelmet'
+			]
 		]
 ]
 
@@ -54,7 +71,10 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample06Sponza [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/scene/sceneExample06Sponza.sysmel'
+			packageScript guiBundleWithSource: 'samples/scene/sceneExample06Sponza.sysmel' with: [ :bundle |
+				"Do not convert this with our asset tool. The tool is not yet capable of inferring the adequate target formats."
+				bundle resourcesDirectory: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza' prefix: 'woden-assets'
+			]
 		]
 ]
 
@@ -63,7 +83,10 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel'
+			packageScript guiBundleWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel' with: [ :bundle |
+				bundle
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Fox'
+			]
 		]
 ]
 
