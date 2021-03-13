@@ -281,7 +281,7 @@ class WaveFrontObjModelImporter definition: {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
                     currentMaterial _ normalTexture: (self getOrCreateTextureNamed: textureName).
-                    currentMaterial _ albedoTexture _ setNormalUsage.
+                    currentMaterial _ normalTexture _ setNormalUsage.
                 }.
             }.
             _ : {
