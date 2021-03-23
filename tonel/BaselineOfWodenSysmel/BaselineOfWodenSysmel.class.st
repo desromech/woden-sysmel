@@ -10,7 +10,6 @@ BaselineOfWodenSysmel >> baseline: spec [
     spec for: #'common' do: [
 		spec
 			blessing: #baseline;
-			postLoadDoIt: #postLoadActions;
 			baseline: #'WodenEngine' with: [
 				spec repository: 'github://ronsaldo/woden'
 			];
