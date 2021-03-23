@@ -14,7 +14,7 @@ BaselineOfWodenSysmel >> baseline: spec [
 			baseline: #'WodenEngine' with: [
 				spec repository: 'github://ronsaldo/woden'
 			];
-			package: #'WodenSysmel-BuildScripts-Roassal' with: [
+			package: #'WodenSysmel-BuildScripts' with: [
 				spec requires: #(#'WodenEngine')
 			];
 			group: 'default' with: #(
