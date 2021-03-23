@@ -1,0 +1,7 @@
+Compiler
+    importModulesNamed: #(
+        #"Sysmel.Tools.TextureConverter"
+        );
+    loadPackages: #(
+        Converter
+    )

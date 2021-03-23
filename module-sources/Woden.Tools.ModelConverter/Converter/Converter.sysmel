@@ -1,0 +1,33 @@
+namespace Woden definition: {
+namespace Tools definition: {
+namespace ModelConverter definition: {
+
+useNamespace: Stdn Tools TextureConverter.
+
+#**
+ * I am a texture converter.
+ *#
+class Converter definition: {
+    public field parameters type: Parameters.
+    public field targetProfile type: TextureConversionProfilePtr.
+
+    method validTargetProfile => TextureConversionProfilePtr := {
+        targetProfile ifNil: {
+            targetProfile := TextureConversionProfileRegistry uniqueInstance findNamed: parameters targetProfileName asArraySlice default:
+                (PCTextureConversionProfile sharedNew upCastFor: TextureConversionProfile)
+        }.
+        targetProfile
+    }.
+
+    method convertModelFromFileNamed: (inputFileName: Stdn String const ref) into: (outputFileName: Stdn String const ref) ::=> Boolean8 := {
+        parameters
+            inputFileName: inputFileName;
+            outputFileName: outputFileName.
+        Stdn stdout << "TODO: convert model from " << inputFileName << " into " << outputFileName; nl.
+        true
+    }.
+}.
+
+} ## End of namespace Tools
+} ## End of namespace TextureConverter
+} ## End of namespace Sysmel

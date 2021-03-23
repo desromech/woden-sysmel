@@ -1,0 +1,105 @@
+namespace Woden definition: {
+namespace Tools definition: {
+namespace ModelConverter definition: {
+
+useNamespace: Stdn Tools TextureConverter.
+
+#**
+ * Generic parameters used by the texture conversion tool.
+ *#
+struct Parameters definition: {
+    public field generateMipmaps type: Boolean8.
+    public field targetProfileName type: Stdn String.
+    public field inputFileName type: Stdn String.
+    public field outputFileName type: Stdn String.
+    public field minMipLevelExtent type: UInt32x3.
+    public field maxMipLevelExtent type: UInt32x3.
+
+    method initialize => Void := {
+        generateMipmaps := true.
+        minMipLevelExtent := UInt32x3 ones.
+        maxMipLevelExtent := UInt32x3 infinityOrMaxValue.
+    }.
+
+    method printHelpOnto: (out: Stdn IO TextStreamWriter ref) ::=> Void := {
+        out << "Woden.Tools.ModelConverter <options>"; nl.
+        out << "-h[elp] Print this message"; nl.
+        out << "-i The input file name."; nl.
+        out << "-o The output file name."; nl.
+
+        out << "Texture conversion parameters"; nl.
+
+        out << "-no-mipmap Do not generate mipmaps"; nl.
+        out << "-target-profile The target platform profile to use."; nl.
+        out << "-min-mip-width The minimum width for a mip map."; nl.
+        out << "-min-mip-height The minimum height for a mip map."; nl.
+        out << "-min-mip-depth The minimum depth for a mip map."; nl.
+        out << "-max-mip-width The maximum width for a mip map."; nl.
+        out << "-max-mip-height The maximum height for a mip map."; nl.
+        out << "-max-mip-depth The maximum depth for a mip map."; nl.
+
+        out nl.
+        out << "Target profiles:"; nl.
+        let profiles := TextureConversionProfileRegistry uniqueInstance getProfiles.
+        profiles do: {:each :: Void |
+            out << each _ name << ": " << each _ description; nl
+        }.
+    }.
+
+    method parseFromCommandLine: (args: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        for: (let i mutable type: UIntPointer := 0) while: (i < args size) do: {
+            let arg := args[i] until: Stdn cstrlen(args[i]).
+            arg selectCase: #{
+                "-h" : {
+                    self printHelpOnto: Stdn stdout.
+                    return: false
+                }.
+                "-help" : {
+                    self printHelpOnto: Stdn stdout.
+                    return: false
+                }.
+
+                "-no-mipmap" : {
+                    generateMipmaps := false.
+                }.
+
+                "-target-profile" : {
+                    targetProfileName := args[i := i + 1].
+                }.
+
+                "-min-mip-width" : {
+                    minMipLevelExtent x: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+                "-min-mip-height" : {
+                    minMipLevelExtent y: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+                "-min-mip-depth" : {
+                    minMipLevelExtent z: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+
+                "-max-mip-width" : {
+                    maxMipLevelExtent x: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+                "-max-mip-height" : {
+                    maxMipLevelExtent y: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+                "-max-mip-depth" : {
+                    maxMipLevelExtent z: (LibC atoi(args[i := i + 1]) castTo: UInt32)
+                }.
+                "-i" : {
+                    inputFileName := args[i := i + 1].
+                }.
+
+                "-o" : {
+                    outputFileName := args[i := i + 1].
+                }.
+                _ : {return: false}
+            }.
+        } continueWith: (i := i + 1).
+        true
+    }.
+}.
+
+} ## End of namespace Tools
+} ## End of namespace TextureConverter
+} ## End of namespace Sysmel
