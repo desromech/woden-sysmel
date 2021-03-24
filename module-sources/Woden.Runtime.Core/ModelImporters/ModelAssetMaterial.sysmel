@@ -20,6 +20,9 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
     virtual method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr
         := engine _ resourceCache _ defaultMaterial.
 
+    virtual method isMetallicRoughnessMaterial => Boolean8
+        := false.
+
     method isTranslucent => Boolean8
         := alphaMode = ModelAssetMaterialAlphaMode Blend.
 

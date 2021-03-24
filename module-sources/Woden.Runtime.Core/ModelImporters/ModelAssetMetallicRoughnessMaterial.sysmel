@@ -22,6 +22,10 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
     public field metallicRoughnessTexture type: ModelAssetTexturePtr.
 
     field renderingMaterial type: MaterialPtr.
+
+    override method isMetallicRoughnessMaterial => Boolean8
+        := true.
+
     override method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr := {
         renderingMaterial ifNotNil: {return: renderingMaterial}.
 

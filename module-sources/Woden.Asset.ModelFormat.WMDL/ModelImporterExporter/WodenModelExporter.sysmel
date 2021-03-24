@@ -6,9 +6,495 @@ useNamespace: Stdn Graphics Core.
 useNamespace: Stdn Math.
 
 class WodenModelExporter definition: {
+    field modelAsset type: ModelAssetPtr.
+
+    method encodeBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: buffer _ name;
+            at: "dataSize" asMutableString put: buffer _ dataSize.
+
+        buffer _ data ifNotNil: {:content :: Void |
+            result _ at: "data" asMutableString put: (DOM ByteArray()
+                addAll: (content until: buffer _ dataSize);
+                yourself)
+        }.
+
+        result
+    }.
+
+    method encodeBuffers => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ buffers size.
+        modelAsset _ buffers do: {:each :: Void |
+            result _ add: (self encodeBuffer:  each)
+        }.
+        result
+    }.
+
+    method encodeBufferView: (bufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: bufferView _ name;
+            at: "buffer" asMutableString put: bufferView _ buffer _ index;
+            at: "offset" asMutableString put: bufferView _ offset;
+            at: "size" asMutableString put: bufferView _ size;
+            at: "stride" asMutableString put: bufferView _ stride;
+            at: "usage" asMutableString put: bufferView _ usage value.
+        result
+    }.
+
+    method encodeBufferViews => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ bufferViews size.
+        modelAsset _ bufferViews do: {:each :: Void |
+            result _ add: (self encodeBufferView:  each)
+        }.
+        result
+    }.
+
+    method encodeAccessor: (accessor: ModelAssetBinaryBufferAccessorPtr const ref) ::=> DOM Value := {
+        let minValue := DOM List sharedNew.
+        minValue _
+            reserve: 4;
+            add: accessor _ minValue x;
+            add: accessor _ minValue y;
+            add: accessor _ minValue z;
+            add: accessor _ minValue w.
+
+        let maxValue := DOM List sharedNew.
+        maxValue _
+            reserve: 4;
+            add: accessor _ maxValue x;
+            add: accessor _ maxValue y;
+            add: accessor _ maxValue z;
+            add: accessor _ maxValue w.
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: accessor _ name;
+            at: "bufferView" asMutableString put: accessor _ bufferView _ index;
+            at: "offset" asMutableString put: accessor _ offset;
+            at: "count" asMutableString put: accessor _ count;
+            at: "minValue" asMutableString put: minValue;
+            at: "maxValue" asMutableString put: maxValue;
+            at: "format" asMutableString put: accessor _ format;
+            at: "columnCount" asMutableString put: accessor _ columnCount.
+
+        result
+    }.
+
+    method encodeAccessors => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ bufferAccessors size.
+        modelAsset _ bufferAccessors do: {:each :: Void |
+            result _ add: (self encodeAccessor:  each)
+        }.
+        result
+    }.
+
+    method encodeImage: (image: ModelAssetImagePtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: image _ name;
+            at: "uri" asMutableString put: image _ uri;
+            at: "mimeType" asMutableString put: image _ mimeType;
+            at: "usageMode" asMutableString put: image _ usageMode value.
+        image _ bufferView ifNotNil: {
+            result _ at: "bufferView" asMutableString put: image _ bufferView _ index.
+        }.
+
+        result
+    }.
+
+    method encodeImages => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ images size.
+        modelAsset _ images do: {:each :: Void |
+            result _ add: (self encodeImage:  each)
+        }.
+        result
+    }.
+
+    method encodeSampler: (sampler: ModelAssetSamplerPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: sampler _ name.
+
+        result
+    }.
+
+    method encodeSamplers => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ samplers size.
+        modelAsset _ samplers do: {:each :: Void |
+            result _ add: (self encodeSampler:  each)
+        }.
+        result
+    }.
+
+    method encodeTexture: (texture: ModelAssetTexturePtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: texture _ name.
+
+        texture _ sampler ifNotNil: {
+            result _ at: "sampler" asMutableString put: texture _ sampler _ index.
+        }.
+
+        texture _ image ifNotNil: {
+            result _ at: "image" asMutableString put: texture _ image _ index.
+        }.
+
+        result
+    }.
+
+    method encodeTextures => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ textures size.
+        modelAsset _ textures do: {:each :: Void |
+            result _ add: (self encodeTexture:  each)
+        }.
+        result
+    }.
+
+    method encodeMetallicRoughnessMaterial: (material: ModelAssetMetallicRoughnessMaterialPtr const ref) ::=> DOM Value := {
+        let albedoFactor := DOM List sharedNew.
+        albedoFactor _
+            reserve: 4;
+            add: material _ albedoFactor x;
+            add: material _ albedoFactor y;
+            add: material _ albedoFactor z;
+            add: material _ albedoFactor w.
+
+        let result := DOM Object sharedNew.
+        result _
+            at: "albedoFactor" asMutableString put: albedoFactor;
+            at: "metallicFactor" asMutableString put: material _ metallicFactor;
+            at: "roughnessFactor" asMutableString put: material _ roughnessFactor.
+
+        material _ albedoTexture ifNotNil: {
+            result _ at: "albedoTexture" asMutableString put: material _ albedoTexture _ index.
+        }.
+
+        material _ metallicRoughnessTexture ifNotNil: {
+            result _ at: "metallicRoughnessTexture" asMutableString put: material _ metallicRoughnessTexture _ index.
+        }.
+
+        result
+    }.
+
+    method encodeMaterial: (material: ModelAssetMaterialPtr const ref) ::=> DOM Value := {
+        let emissionFactor := DOM List sharedNew.
+        emissionFactor _
+            reserve: 3;
+            add: material _ emissionFactor x;
+            add: material _ emissionFactor y;
+            add: material _ emissionFactor z.
+
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: material _ name;
+            at: "emissionFactor" asMutableString put: emissionFactor;
+            at: "doubleSided" asMutableString put: material _ doubleSided;
+            at: "alphaCutoff" asMutableString put: material _ alphaCutoff;
+            at: "alphaMode" asMutableString put: material _ alphaMode value.
+
+        material _ occlusionTexture ifNotNil: {
+            result _ at: "occlusionTexture" asMutableString put: material _ occlusionTexture _ index.
+        }.
+
+        material _ emissionTexture ifNotNil: {
+            result _ at: "emissionTexture" asMutableString put: material _ emissionTexture _ index.
+        }.
+
+        material _ normalTexture ifNotNil: {
+            result _ at: "normalTexture" asMutableString put: material _ normalTexture _ index.
+        }.
+
+        material _ isMetallicRoughnessMaterial ifTrue: {
+            result _ at: "metallicRoughness" asMutableString put: (self encodeMetallicRoughnessMaterial: (material downCastFor: ModelAssetMetallicRoughnessMaterial)).
+        }.
+
+        result
+    }.
+
+    method encodeMaterials => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ materials size.
+        modelAsset _ materials do: {:each :: Void |
+            result _ add: (self encodeMaterial:  each)
+        }.
+        result
+    }.
+
+    method encodeMeshPrimitiveAttributes: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) ::=> DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: attributes _ attributes size.
+        attributes _ attributes do: {:each :: Void |
+            let attribute := DOM Object sharedNew.
+            attribute _
+                at: "location" asMutableString put: each location value;
+                at: "accessor" asMutableString put: each accessor _ index.
+
+            result _ add: attribute
+        }.
+
+        result
+    }.
+
+    method encodeMeshPrimitive: (primitive: ModelAssetMeshPrimitivePtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+
+        result _
+            at: "attributes" asMutableString put: (self encodeMeshPrimitiveAttributes: primitive _ attributes);
+            at: "primitiveTopology" asMutableString put: primitive _ primitiveTopology value.
+
+        primitive _ indices ifNotNil: {
+            result _ at: "indices" asMutableString put: primitive _ indices _ index
+        }.
+
+        primitive _ material ifNotNil: {
+            result _ at: "material" asMutableString put: primitive _ material _ index
+        }.
+
+        result
+    }.
+
+    method encodeMeshPrimitives: (mesh: ModelAssetMeshPtr const ref) ::=> DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: mesh _ primitives size.
+        mesh _ primitives do: {:each :: Void |
+            result _ add: (self encodeMeshPrimitive: each)
+        }.
+
+        result
+    }.
+
+    method encodeMesh: (mesh: ModelAssetMeshPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: mesh _ name;
+            at: "primitives" asMutableString put: (self encodeMeshPrimitives: mesh).
+
+        result
+    }.
+
+    method encodeMeshes => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ meshes size.
+        modelAsset _ meshes do: {:each :: Void |
+            result _ add: (self encodeMesh:  each)
+        }.
+        result
+    }.
+
+    method encodeSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) ::=> DOM Value := {
+        let joints := DOM List sharedNew.
+        joints _ reserve: skeleton _ joints size.
+        skeleton _ joints do: {:each :: Void |
+            joints _ add: each _ index
+        }.
+
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: skeleton _ name;
+            at: "inverseBindMatrices" asMutableString put: skeleton _ inverseBindMatricesAccessor _ index;
+            at: "joints" asMutableString put: joints;
+            at: "rootJoint" asMutableString put: skeleton _ rootJoint _ index.
+
+        result
+    }.
+
+    method encodeSkeletons => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ skeletons size.
+        modelAsset _ skeletons do: {:each :: Void |
+            result _ add: (self encodeSkeleton:  each)
+        }.
+        result
+    }.
+
+    method encodeNode: (node: ModelAssetNodePtr const ref) ::=> DOM Value := {
+        let scale := DOM List sharedNew.
+        scale _
+            reserve: 3;
+            add: node _ scale x;
+            add: node _ scale y;
+            add: node _ scale z.
+
+        let translation := DOM List sharedNew.
+        translation _
+            reserve: 3;
+            add: node _ translation x;
+            add: node _ translation y;
+            add: node _ translation z.
+
+        let rotation := DOM List sharedNew.
+        rotation _
+            reserve: 4;
+            add: node _ rotationQuaternion x;
+            add: node _ rotationQuaternion y;
+            add: node _ rotationQuaternion z;
+            add: node _ rotationQuaternion w.
+
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: node _ name;
+            at: "isJoint" asMutableString put: node _ isJoint;
+            at: "hasValidJointIndex" asMutableString put: node _ hasValidJointIndex;
+            at: "jointIndex" asMutableString put: node _ jointIndex;
+            at: "parentJointIndex" asMutableString put: node _ parentJointIndex;
+            at: "scale" asMutableString put: scale;
+            at: "rotation" asMutableString put: rotation;
+            at: "translation" asMutableString put: translation.
+
+        node _ mesh ifNotNil: {
+            result _ at: "mesh" asMutableString put: node _ mesh _ index
+        }.
+        node _ skeleton ifNotNil: {
+            result _ at: "skeleton" asMutableString put: node _ skeleton _ index
+        }.
+
+        node _ children ifNotEmpty: {
+            let children := DOM List sharedNew.
+            children _ reserve: node _ children size.
+            node _ children do: {:each :: Void |
+                children _ add: each _ index
+            }.
+
+            result _ at: "children" asMutableString put: children
+        }.
+
+        result
+    }.
+
+    method encodeNodes => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ nodes size.
+        modelAsset _ nodes do: {:each :: Void |
+            result _ add: (self encodeNode:  each)
+        }.
+        result
+    }.
+
+    method encodeScene: (scene: ModelAssetScenePtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: scene _ name.
+
+        scene _ rootNodes ifNotEmpty: {
+            let rootNodes := DOM List sharedNew.
+            rootNodes _ reserve: scene _ rootNodes size.
+            scene _ rootNodes do: {:each :: Void |
+                rootNodes _ add: each _ index
+            }.
+
+            result _ at: "rootNodes" asMutableString put: rootNodes
+        }.
+
+        result
+    }.
+
+    method encodeScenes => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ nodes size.
+        modelAsset _ scenes do: {:each :: Void |
+            result _ add: (self encodeScene: each)
+        }.
+        result
+    }.
+
+    method encodeAnimationSampler: (sampler: ModelAssetAnimationSamplerPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "inputAccessor" asMutableString put: sampler _ inputAccessor _ index;
+            at: "outputAccessor" asMutableString put: sampler _ outputAccessor _ index;
+            at: "interpolationMethod" asMutableString put: sampler _ interpolationMethod value.
+
+        result
+    }.
+
+    method encodeAnimationSamplers: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: animation _ samplers size.
+        animation _ samplers do: {:each :: Void |
+            result _ add: (self encodeAnimationSampler: each)
+        }.
+
+        result
+    }.
+
+    method encodeAnimationChannel: (channel: ModelAssetAnimationChannelPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "sampler" asMutableString put: channel _ sampler _ index;
+            at: "targetProperty" asMutableString put: channel _ targetProperty value.
+        channel _ targetNode ifNotNil: {:n :: Void |
+            result _ at: "targetNode" asMutableString put: n _ index
+        }.
+
+        result
+    }.
+
+    method encodeAnimationChannels: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: animation _ channels size.
+        animation _ channels do: {:each :: Void |
+            result _ add: (self encodeAnimationChannel: each)
+        }.
+
+        result
+    }.
+
+    method encodeAnimation: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
+        let result := DOM Object sharedNew.
+        result _
+            at: "name" asMutableString put: animation _ name;
+            at: "samplers" asMutableString put: (self encodeAnimationSamplers: animation);
+            at: "channels" asMutableString put: (self encodeAnimationChannels: animation).
+
+        result
+    }.
+
+    method encodeAnimations => DOM Value := {
+        let result := DOM List sharedNew.
+        result _ reserve: modelAsset _ animations size.
+        modelAsset _ animations do: {:each :: Void |
+            result _ add: (self encodeAnimation:  each)
+        }.
+        result
+    }.
+
+    method encodeModelAsset => DOM Value := {
+        let object := DOM Object sharedNew.
+        object _
+            at: "buffers" asMutableString put: self encodeBuffers;
+            at: "bufferViews" asMutableString put: self encodeBufferViews;
+            at: "accessors" asMutableString put: self encodeAccessors;
+            at: "images" asMutableString put: self encodeImages;
+            at: "samplers" asMutableString put: self encodeSamplers;
+            at: "textures" asMutableString put: self encodeTextures;
+            at: "materials" asMutableString put: self encodeMaterials;
+            at: "meshes" asMutableString put: self encodeMeshes;
+            at: "skeletons" asMutableString put: self encodeSkeletons;
+            at: "nodes" asMutableString put: self encodeNodes;
+            at: "scenes" asMutableString put: self encodeScenes;
+            at: "animations" asMutableString put: self encodeAnimations.
+
+        object
+    }.
+
     method export: (theModelAsset: ModelAssetPtr const ref) into: (fileReference: Stdn FileReference const ref) ::=> Boolean8 := {
-        Stdn stdout << "TODO: Export model woden model asset."; nl.
-        false
+        modelAsset := theModelAsset.
+        let result := self encodeModelAsset.
+
+        let out := fileReference binaryWriteStream.
+        out ifNil: {
+            return: false
+        }.
+
+        JSON Writer writeValue: result onStream: out _.
+        true
     }.
 }.
 

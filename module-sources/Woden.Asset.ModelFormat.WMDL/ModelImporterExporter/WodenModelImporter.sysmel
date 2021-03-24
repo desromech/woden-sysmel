@@ -9,151 +9,148 @@ class WodenModelImporter definition: {
     field parentFolder type: Stdn FileReference.
     field modelAsset type: ModelAssetPtr.
 
-    method parseBuffer: (object: JSON Object const ref) ::=> Void := {
+    method parseBuffer: (object: DOM Object const ref) ::=> Void := {
         let buffer := modelAsset _ newBuffer.
         buffer _
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            dataSize: (object getUIntPointer: "byteLength" asMutableString).
+            dataSize: (object getUIntPointer: "dataSize" asMutableString).
 
-        object at: "uri" asMutableString ifPresent: {:(JSON Value const ref)uriValue :: Void |
-            let uri := uriValue get: Stdn String.
-            let uriFileRef := parentFolder / uri asArraySlice.
-            uriFileRef exists ifTrue: {
-                let readStream := uriFileRef binaryUnbufferedReadStream.
-                readStream ifNil: {return: void}.
+        object at: "data" asMutableString ifPresent: {:(DOM Value const ref)dataValue :: Void |
+            let content := DOM valueToByteArray(dataValue).
+            Stdn assert: content size = buffer _ dataSize.
 
-                buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-                readStream _ read: buffer _ data getPointer size: buffer _ dataSize
-            }.
+            buffer _ data reset: (Stdn malloc(content size) reinterpretCastTo: UInt8 pointer).
+            Stdn memcpy(buffer _ data getPointer, content data, content size)
         } ifAbsent: {
-            Stdn stdout << "TODO: Read buffer with embedded data".
-        }.
+            object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
+                let uri := uriValue get: Stdn String.
+                let uriFileRef := parentFolder / uri asArraySlice.
+                uriFileRef exists ifTrue: {
+                    let readStream := uriFileRef binaryUnbufferedReadStream.
+                    readStream ifNil: {return: void}.
 
+                    buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+                    readStream _ read: buffer _ data getPointer size: buffer _ dataSize
+                }.
+            }.
+        }
     }.
 
-    method parseBuffers: (list: JSON List ref) ::=> Void := {
+    method parseBuffers: (list: DOM List ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseBuffer: (each get: JSON ObjectPtr) _
+            self parseBuffer: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseBufferView: (object: JSON Object const ref) ::=> Void := {
+    method parseBufferView: (object: DOM Object const ref) ::=> Void := {
         let bufferView := modelAsset _ newBufferView.
         bufferView _
             name: (object getString: "name" asMutableString default: "" asMutableString);
             buffer: (modelAsset _ buffers[object getUIntPointer: "buffer" asMutableString]);
-            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
-            size: (object getUIntPointer: "byteLength" asMutableString);
-            stride: (object getUIntPointer: "byteStride" asMutableString default: 0);
+            offset: (object getUIntPointer: "offset" asMutableString default: 0);
+            size: (object getUIntPointer: "size" asMutableString);
+            stride: (object getUIntPointer: "stride" asMutableString default: 0);
             usage: ((object getUInt32: "usage" asMutableString default: 0) castTo: BufferUsageMode).
     }.
 
-    method parseBufferViews: (list: JSON List const ref) ::=> Void := {
+    method parseBufferViews: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseBufferView: (each get: JSON ObjectPtr) _
+            self parseBufferView: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseAccessor: (object: JSON Object const ref) ::=> Void := {
+    method parseAccessor: (object: DOM Object const ref) ::=> Void := {
         let bufferAccessor := modelAsset _ newBufferAccessor.
         bufferAccessor _
             name: (object getString: "name" asMutableString default: "" asMutableString);
             bufferView: (modelAsset _ bufferViews[object getUIntPointer: "bufferView" asMutableString]);
-            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
+            offset: (object getUIntPointer: "offset" asMutableString default: 0);
             count: (object getUIntPointer: "count" asMutableString);
-            minValue: (object getFloat64x4: "min" asMutableString default: 0);
-            maxValue: (object getFloat64x4: "max" asMutableString default: 0);
+            minValue: (object getFloat64x4: "minValue" asMutableString default: 0);
+            maxValue: (object getFloat64x4: "maxValue" asMutableString default: 0);
             format: ((object getUInt32: "format" asMutableString default: 0) castTo: PixelFormat);
             columnCount: (object getUInt32: "columnCount" asMutableString default: 0).
     }.
 
-    method parseAccessors: (list: JSON List const ref) ::=> Void := {
+    method parseAccessors: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseAccessor: (each get: JSON ObjectPtr) _
+            self parseAccessor: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseImage: (object: JSON Object const ref) ::=> Void := {
+    method parseImage: (object: DOM Object const ref) ::=> Void := {
         let image := modelAsset _ newImage.
         image _
             name: (object getString: "name" asMutableString default: "" asMutableString);
             uri: (object getString: "uri" asMutableString default: "" asMutableString);
-            mimeType: (object getString: "mimeType" asMutableString default: "" asMutableString).
-        object at: "bufferView" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            image _ bufferView: (modelAsset _ bufferViews[JSON valueToUIntPointer(value)])
+            mimeType: (object getString: "mimeType" asMutableString default: "" asMutableString);
+            usageMode: ((object getUInt32: "usageMode" asMutableString default: 0) castTo: ModelAssetImageUsageMode).
+        object at: "bufferView" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            image _ bufferView: (modelAsset _ bufferViews[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseImages: (list: JSON List const ref) ::=> Void := {
+    method parseImages: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseImage: (each get: JSON ObjectPtr) _
+            self parseImage: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseSampler: (object: JSON Object const ref) ::=> Void := {
+    method parseSampler: (object: DOM Object const ref) ::=> Void := {
         let sampler := modelAsset _ newSampler.
         sampler _
             name: (object getString: "name" asMutableString default: "" asMutableString).
         ##Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
     }.
 
-    method parseSamplers: (list: JSON List const ref) ::=> Void := {
+    method parseSamplers: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseSampler: (each get: JSON ObjectPtr) _
+            self parseSampler: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseTexture: (object: JSON Object const ref) ::=> Void := {
+    method parseTexture: (object: DOM Object const ref) ::=> Void := {
         let texture := modelAsset _ newTexture.
         texture _
             name: (object getString: "name" asMutableString default: "" asMutableString).
 
-        object at: "sampler" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            texture _ sampler: (modelAsset _ samplers[JSON valueToUIntPointer(value)])
+        object at: "sampler" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            texture _ sampler: (modelAsset _ samplers[DOM valueToUIntPointer(value)])
         }.
-        object at: "source" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            texture _ image: (modelAsset _ images[JSON valueToUIntPointer(value)])
+        object at: "image" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            texture _ image: (modelAsset _ images[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseTextures: (list: JSON List const ref) ::=> Void := {
+    method parseTextures: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseTexture: (each get: JSON ObjectPtr) _
+            self parseTexture: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseMaterialTexture: (object: JSON Object const ref) ::=> ModelAssetTexturePtr := {
-        let result mutable := ModelAssetTexturePtr nil.
-        object at: "index" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            result := modelAsset _ textures[JSON valueToUIntPointer(value)]
-        }.
-
-        result
-    }.
-
-    method parsePbrMetallicRoughnessMaterial: (object: JSON Object const ref) ::=> ModelAssetMaterialPtr := {
+    method parseMetallicRoughnessMaterial: (object: DOM Object const ref) ::=> ModelAssetMaterialPtr := {
         let material := modelAsset _ newMetallicRoughnessMaterial.
 
         material _
-            albedoFactor: Stdn Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
+            albedoFactor: (object getFloat32x4: "albedoFactor" asMutableString default: 1.0f);
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
             roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
-        object at: "baseColorTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ albedoTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _)..
+        object at: "albedoTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ albedoTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
             material _ albedoTexture _ setColorUsage
         }.
-        object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ metallicRoughnessTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+        object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ metallicRoughnessTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
             material _ metallicRoughnessTexture _ setLinearUsage
         }.
 
         material upCastFor: ModelAssetMaterial.
     }.
 
-    method parseMaterial: (object: JSON Object const ref) ::=> Void := {
+    method parseMaterial: (object: DOM Object const ref) ::=> Void := {
         let material mutable := ModelAssetMaterialPtr nil.
-        object at: "pbrMetallicRoughness" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material := self parsePbrMetallicRoughnessMaterial: (value get: JSON ObjectPtr) _.
+        object at: "metallicRoughness" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material := self parseMetallicRoughnessMaterial: (value get: DOM ObjectPtr) _.
         }.
 
         material ifNil: {
@@ -162,38 +159,38 @@ class WodenModelImporter definition: {
 
         material _
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            emissionFactor: Stdn Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" asMutableString default: 0, 0)) rgb;
+            emissionFactor: (object getFloat32x3: "emissionFactor" asMutableString default: 0);
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f);
             alphaMode: ((object getUInt32: "alphaMode" asMutableString default: 0) castTo: ModelAssetMaterialAlphaMode).
 
-        object at: "occlusionTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ occlusionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+        object at: "occlusionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ occlusionTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
             material _ occlusionTexture _ setLinearUsage
         }.
 
-        object at: "emissiveTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ emissionTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+        object at: "emissionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ emissionTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
             material _ emissionTexture _ setColorUsage
         }.
 
-        object at: "normalTexture" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            material _ normalTexture: (self parseMaterialTexture: (value get: JSON ObjectPtr) _).
+        object at: "normalTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ normalTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
             material _ normalTexture _ setNormalUsage
         }.
     }.
 
-    method parseMaterials: (list: JSON List const ref) ::=> Void := {
+    method parseMaterials: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseMaterial: (each get: JSON ObjectPtr) _
+            self parseMaterial: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseMeshPrimitiveAttributes: (list: JSON List const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
+    method parseMeshPrimitiveAttributes: (list: DOM List const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
         let attributeList mutable := ModelAssetMeshPrimitiveAttributeList().
 
-        list do: {:(JSON Value const ref)attribute :: Void |
-            let attributeObject ref := (attribute get: JSON ObjectPtr) _.
+        list do: {:(DOM Value const ref)attribute :: Void |
+            let attributeObject ref := (attribute get: DOM ObjectPtr) _.
             let location := (attributeObject getUInt32: "location" asMutableString default: 0) castTo: VertexAttributeLocation.
             let accessor := modelAsset _ bufferAccessors[attributeObject getUInt32: "accessor" asMutableString default: 0].
             attributeList add: (ModelAssetMeshPrimitiveAttribute()
@@ -208,7 +205,7 @@ class WodenModelImporter definition: {
         result
     }.
 
-    method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: JSON Object const ref) ::=> Void := {
+    method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: DOM Object const ref) ::=> Void := {
 
         let primitive := ModelAssetMeshPrimitive sharedNew.
         mesh _ primitives add: primitive.
@@ -217,68 +214,68 @@ class WodenModelImporter definition: {
             attributes: (self parseMeshPrimitiveAttributes: (object getList: "attributes" asMutableString) _ );
             primitiveTopology: ((object getUInt32: "primitiveTopology" asMutableString default: 0) castTo: PrimitiveTopology).
 
-        object at: "indices" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            primitive _ indices: (modelAsset _ bufferAccessors[JSON valueToUIntPointer(value)])
+        object at: "indices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            primitive _ indices: (modelAsset _ bufferAccessors[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "material" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            primitive _ material: (modelAsset _ materials[JSON valueToUIntPointer(value)])
+        object at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            primitive _ material: (modelAsset _ materials[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseMesh: (object: JSON Object const ref) ::=> Void := {
+    method parseMesh: (object: DOM Object const ref) ::=> Void := {
         let mesh := modelAsset _ newMesh.
         mesh _
             name: (object getString: "name" asMutableString default: "" asMutableString).
 
-        object at: "primitives" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            (value get: JSON ListPtr) _ do: {:each :: Void |
-                self parseMesh: mesh primitive: (each get: JSON ObjectPtr) _
+        object at: "primitives" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                self parseMesh: mesh primitive: (each get: DOM ObjectPtr) _
             }.
         }.
     }.
 
-    method parseMeshes: (list: JSON List const ref) ::=> Void := {
+    method parseMeshes: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseMesh: (each get: JSON ObjectPtr) _
+            self parseMesh: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseSkin: (object: JSON Object const ref) ::=> Void := {
+    method parseSkeleton: (object: DOM Object const ref) ::=> Void := {
         let skeleton := modelAsset _ newSkeleton.
         skeleton _
             name: (object getString: "name" asMutableString default: "" asMutableString).
 
-        object at: "inverseBindMatrices" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            skeleton _ inverseBindMatricesAccessor: modelAsset _ bufferAccessors[JSON valueToUIntPointer(value)]
+        object at: "inverseBindMatrices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            skeleton _ inverseBindMatricesAccessor: modelAsset _ bufferAccessors[DOM valueToUIntPointer(value)]
         }.
     }.
 
-    method parseSkins: (list: JSON List const ref) ::=> Void := {
+    method parseSkeletons: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseSkin: (each get: JSON ObjectPtr) _
+            self parseSkeleton: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseSkin: (skeleton: ModelAssetSkeletonPtr const ref) nodes:(object: JSON Object const ref) ::=> Void := {
+    method parseSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) nodes:(object: DOM Object const ref) ::=> Void := {
         let joints := object getList: "joints" asMutableString.
         skeleton _ joints reserve: joints _ size.
-        joints _ do: {:(JSON Value const ref)value :: Void |
-            skeleton _ joints add: modelAsset _ nodes[JSON valueToUIntPointer(value)]
+        joints _ do: {:(DOM Value const ref)value :: Void |
+            skeleton _ joints add: modelAsset _ nodes[DOM valueToUIntPointer(value)]
         }.
 
-        object at: "skeleton" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            skeleton _ rootJoint := modelAsset _ nodes[JSON valueToUIntPointer(value)]
+        object at: "rootJoint" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            skeleton _ rootJoint := modelAsset _ nodes[DOM valueToUIntPointer(value)]
         }.
     }.
 
-    method parseSkinNodes: (list: JSON List const ref) ::=> Void := {
+    method parseSkeletonNodes: (list: DOM List const ref) ::=> Void := {
         list doWithIndex: {:each :index :: Void |
-            self parseSkin: modelAsset _ skeletons[index] nodes: (each get: JSON ObjectPtr) _
+            self parseSkeleton: modelAsset _ skeletons[index] nodes: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseNode: (object: JSON Object const ref) ::=> Void := {
+    method parseNode: (object: DOM Object const ref) ::=> Void := {
         let node := modelAsset _ newNode.
         node _
             name: (object getString: "name" asMutableString default: "" asMutableString);
@@ -287,32 +284,32 @@ class WodenModelImporter definition: {
             jointIndex: (object getUIntPointer: "jointIndex" asMutableString default: 0);
             parentJointIndex: (object getIntPointer: "parentJointIndex" asMutableString default: -1).
 
-        object at: "mesh" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            node _ mesh: (modelAsset _ meshes[JSON valueToUIntPointer(value)])
+        object at: "mesh" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            node _ mesh: (modelAsset _ meshes[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "skin" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            node _ skeleton: (modelAsset _ skeletons[JSON valueToUIntPointer(value)])
+        object at: "skeleton" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            node _ skeleton: (modelAsset _ skeletons[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "scale" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let scale := JSON valueToFloat32x3(value, 1).
+        object at: "scale" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let scale := DOM valueToFloat32x3(value, 1).
             node _ scale: scale.
             node _ transform scaleBy: scale.
         }.
-        object at: "rotation" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let rotation := QuaternionF32 xyzw: JSON valueToFloat32x4(value, Float32x4(0, 0, 0, 1)).
+        object at: "rotation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let rotation := QuaternionF32 xyzw: DOM valueToFloat32x4(value, Float32x4(0, 0, 0, 1)).
             node _ rotationQuaternion: rotation.
             node _ transform applyOrthonormalMatrix: rotation asFloat32x3x3.
         }.
-        object at: "translation" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let translation := JSON valueToFloat32x3(value, 0).
+        object at: "translation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let translation := DOM valueToFloat32x3(value, 0).
             node _ translation: translation.
             node _ transform translateBy: translation.
         }.
 
-        object at: "matrix" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let matrix := JSON valueToFloat32x4x4(value, Float32x4x4 identity).
+        object at: "matrix" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let matrix := DOM valueToFloat32x4x4(value, Float32x4x4 identity).
             Stdn stdout << "TODO: parse node matrix "; nl.
             Stdn stdout << matrix firstRow; nl.
             Stdn stdout << matrix secondRow; nl.
@@ -322,9 +319,9 @@ class WodenModelImporter definition: {
 
     }.
 
-    method parseNode: (node: ModelAssetNodePtr const ref) children: (object: JSON Object const ref) ::=> Void := {
-        object at: "children" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let children ref := (value get: JSON ListPtr) _.
+    method parseNode: (node: ModelAssetNodePtr const ref) children: (object: DOM Object const ref) ::=> Void := {
+        object at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let children ref := (value get: DOM ListPtr) _.
             node _ children reserve: children size.
             0 until: children size do: {:i :: Void |
                 node _ children add: (modelAsset _ nodes[children getUIntPointer: i])
@@ -332,23 +329,23 @@ class WodenModelImporter definition: {
         }
     }.
 
-    method parseNodes: (list: JSON List const ref) ::=> Void := {
+    method parseNodes: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseNode: (each get: JSON ObjectPtr) _
+            self parseNode: (each get: DOM ObjectPtr) _
         }.
 
         list doWithIndex: {:each :index :: Void |
-            self parseNode: modelAsset _ nodes[index] children: (each get: JSON ObjectPtr) _
+            self parseNode: modelAsset _ nodes[index] children: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseScene: (object: JSON Object const ref) ::=> Void := {
+    method parseScene: (object: DOM Object const ref) ::=> Void := {
         let scene := modelAsset _ newScene.
         scene _
             name: (object getString: "name" asMutableString default: "" asMutableString).
 
-        object at: "nodes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            let nodeList ref := (value get: JSON ListPtr) _.
+        object at: "rootNodes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let nodeList ref := (value get: DOM ListPtr) _.
             scene _ rootNodes reserve: nodeList size.
             0 until: nodeList size do: {:i :: Void |
                 scene _ rootNodes add: (modelAsset _ nodes[nodeList getUIntPointer: i])
@@ -356,50 +353,36 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseScenes: (list: JSON List const ref) ::=> Void := {
+    method parseScenes: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseScene: (each get: JSON ObjectPtr) _
+            self parseScene: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: JSON Object const ref) ::=> Void := {
+    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: DOM Object const ref) ::=> Void := {
         let sampler := ModelAssetAnimationSampler sharedNew.
         sampler _
             index: animation _ samplers size;
-            inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "input" asMutableString]);
-            outputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "output" asMutableString]).
-
-        let interpolationMethod := object getString: "interpolation" asMutableString default: "LINEAR" asMutableString.
-        sampler _ interpolationMethod: (interpolationMethod asArraySlice selectCase: #{
-            "LINEAR" : ModelAssetAnimationInterpolationMethod Linear.
-            "STEP" : ModelAssetAnimationInterpolationMethod Step.
-            "CUBICSPLINE" : ModelAssetAnimationInterpolationMethod CubicSpline.
-            _ : ModelAssetAnimationInterpolationMethod Linear.
-        }).
+            inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "inputAccessor" asMutableString]);
+            outputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "outputAccessor" asMutableString]);
+            interpolationMethod: ((object getUInt32: "interpolationMethod" asMutableString) castTo: ModelAssetAnimationInterpolationMethod).
         animation _ samplers add: sampler.
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) channel: (object: JSON Object const ref) ::=> Void := {
+    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) channel: (object: DOM Object const ref) ::=> Void := {
         let channel := ModelAssetAnimationChannel sharedNew.
-        channel _ sampler: (animation _ samplers[object getUIntPointer: "sampler" asMutableString]).
+        channel _
+            sampler: (animation _ samplers[object getUIntPointer: "sampler" asMutableString]);
+            targetProperty: ((object getUInt32: "targetProperty" asMutableString) castTo: ModelAssetAnimationTargetProperty).
 
-        let target := object getObject: "target" asMutableString.
-        let path := target _ getString: "path" asMutableString.
-        channel _ targetProperty: (path asArraySlice selectCase: #{
-            "translation" : ModelAssetAnimationTargetProperty Translation.
-            "rotation" : ModelAssetAnimationTargetProperty Rotation.
-            "scale" : ModelAssetAnimationTargetProperty Scale.
-            "weights" : ModelAssetAnimationTargetProperty Weights.
-        }).
-
-        target _ at: "node" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            channel _ targetNode: modelAsset _ nodes[JSON valueToUIntPointer(value)]
+        object at: "targetNode" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            channel _ targetNode: modelAsset _ nodes[DOM valueToUIntPointer(value)]
         }.
 
         animation _ channels add: channel.
     }.
 
-    method parseAnimation: (object: JSON Object const ref) ::=> Void := {
+    method parseAnimation: (object: DOM Object const ref) ::=> Void := {
         let animation := modelAsset _ newAnimation.
         animation _
             name: (object getString: "name" asMutableString default: "" asMutableString).
@@ -407,63 +390,63 @@ class WodenModelImporter definition: {
         let samplers := object getList: "samplers" asMutableString.
         animation _ samplers reserve: samplers _ size.
         samplers _ do: {:each :: Void |
-            self parseAnimation: animation sampler: (each get: JSON ObjectPtr) _
+            self parseAnimation: animation sampler: (each get: DOM ObjectPtr) _
         }.
 
         let channels := object getList: "channels" asMutableString.
         animation _ channels reserve: channels _ size.
         channels _ do: {:each :: Void |
-            self parseAnimation: animation channel: (each get: JSON ObjectPtr) _
+            self parseAnimation: animation channel: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseAnimations: (list: JSON List const ref) ::=> Void := {
+    method parseAnimations: (list: DOM List const ref) ::=> Void := {
         list do: {:each :: Void |
-            self parseAnimation: (each get: JSON ObjectPtr) _
+            self parseAnimation: (each get: DOM ObjectPtr) _
         }.
     }.
 
-    method parseTopLevel: (object: JSON Object const ref) ::=> ModelAssetPtr := {
+    method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetPtr := {
         modelAsset := ModelAsset sharedNew.
         modelAsset _ parentFolder: parentFolder.
-        object at: "buffers" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseBuffers: (value get: JSON ListPtr) _
+        object at: "buffers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseBuffers: (value get: DOM ListPtr) _
         }.
-        object at: "bufferViews" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseBufferViews: (value get: JSON ListPtr) _
+        object at: "bufferViews" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseBufferViews: (value get: DOM ListPtr) _
         }.
-        object at: "accessors" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseAccessors: (value get: JSON ListPtr) _
+        object at: "accessors" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseAccessors: (value get: DOM ListPtr) _
         }.
-        object at: "images" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseImages: (value get: JSON ListPtr) _
+        object at: "images" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseImages: (value get: DOM ListPtr) _
         }.
-        object at: "samplers" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseSamplers: (value get: JSON ListPtr) _
+        object at: "samplers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSamplers: (value get: DOM ListPtr) _
         }.
-        object at: "textures" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseTextures: (value get: JSON ListPtr) _
+        object at: "textures" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseTextures: (value get: DOM ListPtr) _
         }.
-        object at: "materials" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseMaterials: (value get: JSON ListPtr) _
+        object at: "materials" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseMaterials: (value get: DOM ListPtr) _
         }.
-        object at: "meshes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseMeshes: (value get: JSON ListPtr) _
+        object at: "meshes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseMeshes: (value get: DOM ListPtr) _
         }.
-        object at: "skins" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseSkins: (value get: JSON ListPtr) _
+        object at: "skeletons" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSkeletons: (value get: DOM ListPtr) _
         }.
-        object at: "nodes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseNodes: (value get: JSON ListPtr) _
+        object at: "nodes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseNodes: (value get: DOM ListPtr) _
         }.
-        object at: "skins" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseSkinNodes: (value get: JSON ListPtr) _
+        object at: "skeletons" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSkeletonNodes: (value get: DOM ListPtr) _
         }.
-        object at: "scenes" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseScenes: (value get: JSON ListPtr) _
+        object at: "scenes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseScenes: (value get: DOM ListPtr) _
         }.
-        object at: "animations" asMutableString ifPresent: {:(JSON Value const ref)value :: Void |
-            self parseAnimations: (value get: JSON ListPtr) _
+        object at: "animations" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseAnimations: (value get: DOM ListPtr) _
         }.
 
         modelAsset
@@ -476,7 +459,7 @@ class WodenModelImporter definition: {
         jsonReadStream ifNil: {return: ModelAssetPtr nil}.
 
         let jsonValue := JSON ValueParser parseStream: jsonReadStream getPointer.
-        self parseTopLevel: (jsonValue get: JSON ObjectPtr) _.
+        self parseTopLevel: (jsonValue get: DOM ObjectPtr) _.
     }.
 }.
 
