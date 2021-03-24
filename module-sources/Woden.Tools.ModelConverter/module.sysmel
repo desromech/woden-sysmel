@@ -1,6 +1,8 @@
 Compiler
     importModulesNamed: #(
         #"Sysmel.Tools.TextureConverter"
+        #"Woden.Runtime.Core"
+        #"Woden.Asset.Default"
         );
     loadPackages: #(
         Converter

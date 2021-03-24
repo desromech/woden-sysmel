@@ -480,7 +480,19 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
     method cleanupSkeletons => Void := {
         skeletons do: {:each :: Void |
             each _ cleanupSkeleton.
-        }
+        }.
+
+        nodes do: {:eachNode :: Void |
+            eachNode _ skeleton isNotNil && eachNode _ mesh isNotNil ifTrue: {
+                eachNode _ mesh _ primitives do: {:eachPrimitive :: Void |
+                    eachPrimitive _ attributes _ attributes do: {:eachAttribute :: Void |
+                        eachAttribute location = VertexAttributeLocation Joints0 ifTrue: {
+                            eachNode _ skeleton _ permutateBoneIndicesInVertices: eachAttribute accessor
+                        }
+                    }
+                }
+            }
+        }.
     }.
 }.
 

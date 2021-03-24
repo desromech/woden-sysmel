@@ -7,6 +7,9 @@ class ModelImporterExporter superclass: Stdn Object; definition: {
 
     const virtual method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr
         := ModelAssetPtr nil.
+
+    const virtual method write: (model: ModelAssetPtr const ref) intoFileReference: (fileReference: Stdn FileReference const ref) ::=> Boolean8
+        := false.
 }.
 
 } ## End of namespace Assets

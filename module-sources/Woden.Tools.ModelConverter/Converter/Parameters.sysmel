@@ -2,8 +2,6 @@ namespace Woden definition: {
 namespace Tools definition: {
 namespace ModelConverter definition: {
 
-useNamespace: Stdn Tools TextureConverter.
-
 #**
  * Generic parameters used by the texture conversion tool.
  *#
@@ -40,7 +38,7 @@ struct Parameters definition: {
 
         out nl.
         out << "Target profiles:"; nl.
-        let profiles := TextureConversionProfileRegistry uniqueInstance getProfiles.
+        let profiles := Sysmel Tools TextureConverter TextureConversionProfileRegistry uniqueInstance getProfiles.
         profiles do: {:each :: Void |
             out << each _ name << ": " << each _ description; nl
         }.

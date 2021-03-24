@@ -1,0 +1,16 @@
+namespace Woden definition: {
+namespace Assets definition: {
+
+useNamespace: Stdn Serialization.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math.
+
+class WodenModelExporter definition: {
+    method export: (theModelAsset: ModelAssetPtr const ref) into: (fileReference: Stdn FileReference const ref) ::=> Boolean8 := {
+        Stdn stdout << "TODO: Export model woden model asset."; nl.
+        false
+    }.
+}.
+
+} ## End of namespace Assets
+} ## End of namespace Woden

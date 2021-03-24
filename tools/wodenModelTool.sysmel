@@ -23,5 +23,5 @@ Stdn MainEntryPoint: {:args :: Int32 |
 
     (Converter()
         parameters: parameters;
-        convertTextureFromFileNamed: parameters inputFileName into: parameters outputFileName) not asBit
+        convertModelFromFileNamed: parameters inputFileName into: parameters outputFileName) not asBit
 }.

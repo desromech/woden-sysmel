@@ -1,0 +1,6 @@
+Compiler importModulesNamed: #(
+    #"Woden.Runtime.Core"
+    #"Sysmel.Serialization.JSON"
+); loadPackages: #(
+    ModelImporterExporter
+)

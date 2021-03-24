@@ -37,6 +37,11 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
         }.
         result ifNil: {return: TextureDataPtr nil}.
 
+        ## Do not generate mipmaps if there are already present, or if they cannot be generated.
+        result _ hasGeneratedMipmaps || result _ hasOptimalTargetSpecificTiling ifTrue: {
+            return: result
+        }.
+
         let resultWithMiplevels := usageMode selectCase: #{
         ModelAssetImageUsageMode Color : {result _ generateColorMiplevels}.
         ModelAssetImageUsageMode Linear : {result _ generateMiplevels}.

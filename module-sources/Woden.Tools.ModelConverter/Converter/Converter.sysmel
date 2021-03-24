@@ -2,19 +2,18 @@ namespace Woden definition: {
 namespace Tools definition: {
 namespace ModelConverter definition: {
 
-useNamespace: Stdn Tools TextureConverter.
 
 #**
  * I am a texture converter.
  *#
 class Converter definition: {
     public field parameters type: Parameters.
-    public field targetProfile type: TextureConversionProfilePtr.
+    public field targetProfile type: Sysmel Tools TextureConverter TextureConversionProfilePtr.
 
-    method validTargetProfile => TextureConversionProfilePtr := {
+    method validTargetProfile => Sysmel Tools TextureConverter TextureConversionProfilePtr := {
         targetProfile ifNil: {
-            targetProfile := TextureConversionProfileRegistry uniqueInstance findNamed: parameters targetProfileName asArraySlice default:
-                (PCTextureConversionProfile sharedNew upCastFor: TextureConversionProfile)
+            targetProfile := Sysmel Tools TextureConverter TextureConversionProfileRegistry uniqueInstance findNamed: parameters targetProfileName asArraySlice default:
+                (Sysmel Tools TextureConverter PCTextureConversionProfile sharedNew upCastFor: Sysmel Tools TextureConverter TextureConversionProfile)
         }.
         targetProfile
     }.
@@ -23,8 +22,30 @@ class Converter definition: {
         parameters
             inputFileName: inputFileName;
             outputFileName: outputFileName.
-        Stdn stdout << "TODO: convert model from " << inputFileName << " into " << outputFileName; nl.
-        true
+
+        let inputModelAsset := {
+            let inputFileReference := inputFileName asNativeFileReference.
+            let inputModelImporterExporter := Woden Assets ModelImporterExporterRegistry uniqueInstance findForFileReference: inputFileReference.
+            inputModelImporterExporter ifNil: {
+                return: false
+            }.
+
+            inputModelImporterExporter _ readFromFileReference: inputFileReference.
+        }.
+
+        inputModelAsset ifNil: {
+            return: false.
+        }.
+
+        ## TODO: Process the model asset textures.
+
+        let outputFileReference := outputFileName asNativeFileReference.
+        let outputModelImporterExporter := Woden Assets ModelImporterExporterRegistry uniqueInstance findForFileReference: outputFileReference.
+        outputModelImporterExporter ifNil: {
+            return: false
+        }.
+
+        outputModelImporterExporter _ write: inputModelAsset intoFileReference: outputFileReference
     }.
 }.
 

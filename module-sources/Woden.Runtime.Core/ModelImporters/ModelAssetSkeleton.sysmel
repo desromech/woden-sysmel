@@ -3,6 +3,7 @@ namespace Assets definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Graphics Core.
 
 #**
  * I represent a skeleton which is composed of a hierarchy of unions.
@@ -53,6 +54,50 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     }.
 
     field skeleton type: SkeletonPtr.
+
+    method permutateBoneIndex: (boneIndex: UInt32) ::=> UInt32
+        := joints[boneIndex] _ jointIndex castTo: UInt32.
+
+    method permutateBoneIndicesInVertices: (vertexData: ModelAssetBinaryBufferAccessorPtr const ref) ::=> Void := {
+        vertexData _ format selectCase: #{
+        PixelFormat R32G32B32A32_UInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt32
+            }
+        }.
+        PixelFormat R32G32B32A32_SInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int32 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int32
+            }
+        }.
+        PixelFormat R16G16B16A16_UInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt16 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt16
+            }
+        }.
+        PixelFormat R16G16B16A16_SInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int16 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int16
+            }
+        }.
+        PixelFormat R8G8B8A8_UInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt8 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt8
+            }
+        }.
+        PixelFormat R8G8B8A8_SInt : {
+            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int8 pointer.
+            0 until: vertexData _ count * 4 do: {:i :: Void |
+                data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int8
+            }
+        }.
+        }.
+    }.
 
     method asSkeleton => SkeletonPtr := {
         skeleton ifNotNil: {return: skeleton}.
