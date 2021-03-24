@@ -73,8 +73,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample06Sponza [
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample06Sponza.sysmel' with: [ :prog |
-				"Do not convert this with our asset tool. The tool is not yet capable of inferring the adequate target formats."
-				prog resourcesDirectory: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza' prefix: 'woden-assets'
+				prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza'
 			]
 		]
 ]
@@ -89,6 +88,17 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Fox'
 			]
 		]
+]
+
+{ #category : #examples }
+WDCSysmelSampleBuildScripts class >> modelTool [
+	<example>
+	| prog |
+	self newNativeBuildEnvironment
+		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
+			prog := packageScript programWithSource: 'tools/wodenModelTool.sysmel'
+		].
+	^ prog asFileReference asAbsolute canonicalize
 ]
 
 { #category : #'see class side' }
