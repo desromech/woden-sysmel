@@ -8,6 +8,7 @@ ResourceCache extend: {
     method solveModelAssetFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
         let extensions mutable := Char8 const arraySlice array(
             "wmdl",
+            "wtmdl",
             "obj",
             "gltf",
             "glb"

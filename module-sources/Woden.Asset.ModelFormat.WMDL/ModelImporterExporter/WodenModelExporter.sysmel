@@ -15,7 +15,7 @@ class WodenModelExporter definition: {
             at: "dataSize" asMutableString put: buffer _ dataSize.
 
         buffer _ data ifNotNil: {:content :: Void |
-            result _ at: "data" asMutableString put: (DOM ByteArray()
+            result _ at: "data" asMutableString put: (Stdn ByteVector()
                 addAll: (content until: buffer _ dataSize);
                 yourself)
         }.
@@ -488,12 +488,17 @@ class WodenModelExporter definition: {
         modelAsset := theModelAsset.
         let result := self encodeModelAsset.
 
-        let out := fileReference binaryWriteStream.
+        let out mutable := fileReference binaryWriteStream.
         out ifNil: {
             return: false
         }.
 
-        JSON Writer writeValue: result onStream: out _.
+        fileReference extension asArraySlice = "wtmdl" ifTrue: {
+            JSON Writer writeValue: result onStream: out _.
+        } ifFalse: {
+            MessagePack Encoder encodeValue: result onStream: out _.
+        }.
+
         true
     }.
 }.

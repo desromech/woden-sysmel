@@ -3,7 +3,7 @@ namespace Assets definition: {
 
 class WodenModelImporterExporter superclass: ModelImporterExporter; definition: {
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
-        := extension = "wmdl".
+        := extension = "wmdl" || extension = "wtmdl".
 
     const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
         let importer mutable := WodenModelImporter().

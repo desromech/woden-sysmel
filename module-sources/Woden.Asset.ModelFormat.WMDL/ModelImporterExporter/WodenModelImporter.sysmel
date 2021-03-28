@@ -455,11 +455,14 @@ class WodenModelImporter definition: {
     method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
         parentFolder := fileReference parent.
 
-        let jsonReadStream := fileReference binaryReadStream.
-        jsonReadStream ifNil: {return: ModelAssetPtr nil}.
+        let inputReadStream mutable := fileReference binaryReadStream.
+        inputReadStream ifNil: {return: ModelAssetPtr nil}.
 
-        let jsonValue := JSON ValueParser parseStream: jsonReadStream getPointer.
-        self parseTopLevel: (jsonValue get: DOM ObjectPtr) _.
+        let domValue := fileReference extension asArraySlice = "wtmdl"
+            ifTrue: { JSON ValueParser parseStream: inputReadStream getPointer }
+            ifFalse: { MessagePack ValueDecoder decodeStream: inputReadStream getPointer }.
+
+        self parseTopLevel: (domValue get: DOM ObjectPtr) _.
     }.
 }.
 
