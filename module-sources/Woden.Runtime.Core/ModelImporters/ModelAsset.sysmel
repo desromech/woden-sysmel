@@ -500,6 +500,66 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
             }
         }.
     }.
+
+    method optimizeIndexBuffers => Void := {
+        let processedIndices mutable type: Stdn Collections Set(ModelAssetBinaryBufferAccessorPtr).
+        let convertedIndices mutable type: Stdn Collections Vector(UInt16).
+        let convertedIndicesAccessors mutable type: Stdn Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+
+        ## Create the accessors for the new index buffers.
+        meshes do: {:eachMesh :: Void |
+            eachMesh _ primitives do: {:eachPrimitive :: Void |
+                let indices := eachPrimitive _ indices.
+                indices isNotNil && (processedIndices includes: indices) not ifTrue: {
+                    processedIndices add: indices.
+
+                    indices _ format = PixelFormat R32_UInt && indices _ maxValue <= 16rFFFF ifTrue: {
+                        let newAccessor := self newBufferAccessor.
+                        newAccessor _
+                            offset: convertedIndices size * 2;
+                            count: indices _ count;
+                            columnCount: indices _ columnCount;
+                            format: PixelFormat R16_UInt.
+                        convertedIndicesAccessors add: newAccessor.
+
+                        let sourceData := indices _ asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
+                        convertedIndices reserve: indices _ count.
+                        0 until: indices _ count do: {:i :: Void |
+                            convertedIndices add: (sourceData[i] castTo: UInt16)
+                        }.
+
+                        eachPrimitive _ indices: newAccessor
+                    }
+                }
+            }
+        }.
+
+        ## If there is nothing required to convert, just return.
+        convertedIndicesAccessors ifEmpty: {
+            return: void
+        }.
+
+        ## Create the new buffer and buffer view.
+        let newBuffer := self newBuffer.
+        newBuffer _
+            setContent: ((convertedIndices data reinterpretCastTo: UInt8 pointer) until: convertedIndices size * 4).
+
+        let newBufferView := self newBufferView.
+        newBufferView _
+            buffer: newBuffer;
+            size: newBuffer _ dataSize;
+            stride: 2;
+            usage: BufferUsageMode ElementArray.
+
+        ## Use the new buffer view in the new accessors.
+        convertedIndicesAccessors do: {:each :: Void |
+            each _ bufferView: newBufferView
+        }
+    }.
+
+    method optimizeBuffers => Void := {
+
+    }.
 }.
 
 compileTime constant ModelAssetPtr := ModelAsset sharedPointer.

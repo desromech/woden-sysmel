@@ -18,13 +18,80 @@ class Converter definition: {
         targetProfile
     }.
 
+    method processModel: (modelAsset: Woden Assets ModelAssetPtr const ref) image: (image: Woden Assets ModelAssetImagePtr const ref) ontoDirectory: (outputDirectory: Stdn FileReference const ref) ::=> Boolean8 := {
+        ## Load the model texture data.
+        let textureData := image _ asOfflineTextureData.
+        textureData ifNil: {
+            Stdn stderr << "Failed to load model image " << image _ name.
+            image _ uri ifNotEmpty: {
+                Stdn stderr << " uri: " << image _ uri.
+            }.
+            Stdn stderr nl.
+            return: false
+        }.
+
+        ## Set the texture conversion parameters.
+        let textureConversionParameters mutable := Sysmel Tools TextureConverter Parameters()
+            generateMipmaps: parameters generateMipmaps;
+            targetProfileName: parameters targetProfileName;
+            minMipLevelExtent: parameters minMipLevelExtent;
+            maxMipLevelExtent: parameters maxMipLevelExtent;
+            yourself.
+
+        ## Set the texture usage type.
+        image _ usageMode selectCase: #{
+            Woden Assets ModelAssetImageUsageMode Color : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType Color}.
+            Woden Assets ModelAssetImageUsageMode Linear : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType NonColorData}.
+            Woden Assets ModelAssetImageUsageMode Normal : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType NormalMap}.
+        }.
+
+        ## Get the texture conversion profile.
+        let textureConversionProfile := Sysmel Tools TextureConverter Converter()
+            parameters: textureConversionParameters;
+            validTargetProfile.
+
+        ## Convert the texture data.
+        let convertedTextureData := textureConversionProfile _ convertTextureData: textureData withParameters: textureConversionParameters.
+        convertedTextureData ifNil: {
+            return: false
+        }.
+
+        image _ uri isEmpty || parameters embedTextures ifTrue: {
+            let memoryStream mutable := Stdn IO MemoryStream().
+            let imageReadWriter := Stdn Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
+            imageReadWriter _ putTextureData: convertedTextureData _  onStream: memoryStream.
+
+            let buffer := modelAsset _ newBuffer.
+            buffer _ setContent: memoryStream contents.
+
+            let bufferView := modelAsset _ newBufferView.
+            bufferView _
+                buffer: buffer;
+                offset: 0;
+                size: buffer _ dataSize.
+            image _
+                mimeType: "image/vnd-sysmel.stx" asMutableString;
+                bufferView: bufferView
+        } ifFalse: {
+            let outputBasename := image _ uri asNativeFileReference basenameWithoutExtension asMutableString -- ".stx".
+            let outputFileReference := outputDirectory / outputBasename asArraySlice.
+            convertedTextureData _ writeToFileNamed: outputFileReference fullName asMutableString.
+            image _ uri: outputBasename
+        }.
+
+        true
+    }.
+
     method convertModelFromFileNamed: (inputFileName: Stdn String const ref) into: (outputFileName: Stdn String const ref) ::=> Boolean8 := {
         parameters
             inputFileName: inputFileName;
             outputFileName: outputFileName.
 
-        let inputModelAsset := {
-            let inputFileReference := inputFileName asNativeFileReference.
+        let inputFileReference := inputFileName asNativeFileReference.
+        let outputFileReference := outputFileName asNativeFileReference.
+        let parentOutputDirectoryFileReference := outputFileReference parent.
+
+        let modelAsset := {
             let inputModelImporterExporter := Woden Assets ModelImporterExporterRegistry uniqueInstance findForFileReference: inputFileReference.
             inputModelImporterExporter ifNil: {
                 return: false
@@ -33,19 +100,27 @@ class Converter definition: {
             inputModelImporterExporter _ readFromFileReference: inputFileReference.
         }.
 
-        inputModelAsset ifNil: {
+        modelAsset ifNil: {
             return: false.
         }.
 
-        ## TODO: Process the model asset textures.
+        ## Process the model asset textures.
+        modelAsset _ images do: {:image :: Void |
+            self processModel: modelAsset image: image ontoDirectory: parentOutputDirectoryFileReference
+        }.
 
-        let outputFileReference := outputFileName asNativeFileReference.
+        ## Optimize the buffers in the asset.
+        modelAsset _
+            optimizeIndexBuffers;
+            optimizeBuffers.
+
+        ## Export onto the result.
         let outputModelImporterExporter := Woden Assets ModelImporterExporterRegistry uniqueInstance findForFileReference: outputFileReference.
         outputModelImporterExporter ifNil: {
             return: false
         }.
 
-        outputModelImporterExporter _ write: inputModelAsset intoFileReference: outputFileReference
+        outputModelImporterExporter _ write: modelAsset intoFileReference: outputFileReference
     }.
 }.
 

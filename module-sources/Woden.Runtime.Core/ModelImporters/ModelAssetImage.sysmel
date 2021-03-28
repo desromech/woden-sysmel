@@ -22,7 +22,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
         TextureData readFromFileReference: solvedFileReference
     }.
 
-    method asTextureDataFromBufferViewFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
+    method asTextureDataFromBufferView ::=> TextureDataPtr := {
         mimeType ifEmpty: {return: TextureDataPtr nil}.
 
         let memoryStream mutable := bufferView _ asFixedMemoryStream.
@@ -33,7 +33,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
         let result := bufferView ifNil: {
             self asTextureDataFromFileFor: engine
         } ifNotNil: {
-            self asTextureDataFromBufferViewFor: engine
+            self asTextureDataFromBufferView
         }.
         result ifNil: {return: TextureDataPtr nil}.
 
@@ -49,6 +49,20 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
         }.
         resultWithMiplevels ifNil: {return: result}.
         resultWithMiplevels
+    }.
+
+    method asOfflineTextureDataFromFile ::=> TextureDataPtr := {
+        uri ifEmpty: {return: TextureDataPtr nil}.
+
+        TextureData readFromFileReference: uri asNativeFileReference
+    }.
+
+    method asOfflineTextureData ::=> TextureDataPtr := {
+        bufferView ifNil: {
+            self asOfflineTextureDataFromFile
+        } ifNotNil: {
+            self asTextureDataFromBufferView
+        }.
     }.
 }.
 
