@@ -72,8 +72,8 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample06Sponza [
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample06Sponza.sysmel' with: [ :bundle |
-				"Do not convert this with our asset tool. The tool is not yet capable of inferring the adequate target formats."
-				bundle resourcesDirectory: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza' prefix: 'woden-assets'
+				bundle
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza'
 			]
 		]
 ]

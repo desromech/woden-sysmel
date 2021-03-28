@@ -9,7 +9,7 @@ WBTModuleTarget >> addResource: rawAbsolutePath withRelativePath: rawRelativePat
 
 	convertedTarget := self buildEnvironment
 		generateTargetFile: targetPath inputFiles: {sourceFileTarget}
-		withCommand: '$(MODEL_TOOL) $(WODEN_TEXTURE_TARGET_PROFILE) $(WODEN_TEXTURE_CONVERSION_FLAGS) $(FLAGS) -i $(WBT_INPUT_FILES) -o $(WBT_OUTPUT_FILE)' variables: {
+		withCommand: '$(MODEL_TOOL) $(WODEN_TEXTURE_TARGET_PROFILE) -embed-textures $(WODEN_TEXTURE_CONVERSION_FLAGS) $(FLAGS) -i $(WBT_INPUT_FILES) -o $(WBT_OUTPUT_FILE)' variables: {
 		#MODEL_TOOL . modelTool.
 		#FLAGS . flags
 	}.
