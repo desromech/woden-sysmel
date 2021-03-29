@@ -7,10 +7,12 @@ Class {
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
 	<example>
+	| result |
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
-		]
+			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
+		].
+	^ result asFileReference asAbsolute canonicalize
 ]
 
 { #category : #'native samples' }
@@ -37,7 +39,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample03Floor [
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample03Floor.sysmel' with: [ :prog |
-					prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+					prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
 				]
 		]
 ]
@@ -49,7 +51,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample04Pool [
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript
 				guiProgramWithSource: 'samples/scene/sceneExample04Pool.sysmel' with: [ :prog |
-					prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+					prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
 				]
 		]
 ]

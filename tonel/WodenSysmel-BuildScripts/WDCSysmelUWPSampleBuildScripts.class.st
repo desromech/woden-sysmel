@@ -37,7 +37,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample03Floor [
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample03Floor.sysmel' with: [ :bundle |
-					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
 				]
 		]
 ]
@@ -48,7 +48,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample04Pool [
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample04Pool.sysmel' with: [ :bundle |
-					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleTextures'
+					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
 				]
 		]
 ]

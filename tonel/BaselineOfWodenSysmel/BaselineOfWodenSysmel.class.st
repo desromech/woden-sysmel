@@ -16,8 +16,11 @@ BaselineOfWodenSysmel >> baseline: spec [
 			package: #'WodenSysmel-BuildScripts' with: [
 				spec requires: #(#'WodenEngine')
 			];
+			package: #'WodenSysmel-LevelEditor' with: [
+				spec requires: #(#'WodenEngine' #'WodenSysmel-BuildScripts')
+			];
 			group: 'default' with: #(
-				#'WodenSysmel-BuildScripts'
+				#'WodenSysmel-BuildScripts' #'WodenSysmel-LevelEditor'
 			)
 	]
 ]
