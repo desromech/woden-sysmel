@@ -1,0 +1,33 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+ResourceCache extend: {
+
+    method solveMaterialFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+        let extensions mutable := Char8 const arraySlice array(
+            "wmat",
+            "wtmat"
+        ).
+
+        self solveResourceFileReference: fileReference withExtensions: extensions
+    }.
+
+    method loadMaterialFrom: (fileReference: Stdn FileReference const ref) ::=> MaterialPtr := {
+        let solvedFileReference := self solveMaterialFileReference: fileReference.
+        solvedFileReference exists ifFalse: {
+            return: self defaultMaterial
+        }.
+
+        let result := MaterialLoader()
+            parseMaterialFromFileReference: solvedFileReference for: engine.
+        result ifNil: {
+            return: self defaultMaterial
+        }.
+
+        result
+    }.
+
+}.
+
+} ## End of namespace Runtime
+} ## End of namespace Woden

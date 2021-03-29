@@ -1,0 +1,169 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Serialization.
+useNamespace: Stdn Graphics Core.
+
+class MaterialLoader definition: {
+    field parentFolder type: Stdn FileReference.
+    field engine type: EnginePtr.
+
+    method loadColorTextureFrom: (relativePath: Stdn String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+        let result := engine _ resourceCache _ loadColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        result ifNil: {
+            return: default.
+        }.
+
+        result
+    }.
+
+    method loadColorTextureFrom: (relativePath: Stdn String const ref) ::=> TextureWithViewPtr
+        := self loadColorTextureFrom: relativePath default: TextureWithViewPtr nil.
+
+    method loadNonColorTextureFrom: (relativePath: Stdn String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+        let result := engine _ resourceCache _ loadNonColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        result ifNil: {
+            return: default.
+        }.
+
+        result
+    }.
+
+    method loadNonColorTextureFrom: (relativePath: Stdn String const ref) ::=> TextureWithViewPtr
+        := self loadNonColorTextureFrom: relativePath default: TextureWithViewPtr nil.
+
+    method loadNormalTextureFrom: (relativePath: Stdn String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+        let result := engine _ resourceCache _ loadNormalTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        result ifNil: {
+            return: default.
+        }.
+
+        result
+    }.
+
+    method loadNormalTextureFrom: (relativePath: Stdn String const ref) ::=> TextureWithViewPtr
+        := self loadNormalTextureFrom: relativePath default: TextureWithViewPtr nil.
+
+
+    method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) into: (result: MetallicRoughnessMaterial ref) ::=> Void := {
+        let hasMetallicRoughnessTexture mutable := false.
+
+        object at: "baseColorTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            result baseColorTexture: (self loadColorTextureFrom: (value get: Stdn String)).
+        }.
+
+        object at: "emissionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            result emissionTexture: (self loadColorTextureFrom: (value get: Stdn String)).
+        }.
+
+        object at: "normalTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            result normalTexture: (self loadNormalTextureFrom: (value get: Stdn String)).
+        }.
+
+        object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            hasMetallicRoughnessTexture := true.
+            result metallicRoughnessTexture: (self loadNonColorTextureFrom: (value get: Stdn String)).
+        }.
+
+        object at: "occlusionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            hasMetallicRoughnessTexture := true.
+            result occlusionTexture: (self loadNonColorTextureFrom: (value get: Stdn String)).
+        }.
+
+        object at: "occlusionMetallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let texture := self loadNonColorTextureFrom: (value get: Stdn String).
+            result
+                metallicRoughnessTexture: texture;
+                occlusionTexture: texture.
+        }.
+
+        result
+            baseColorFactor: Stdn Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
+            emissionFactor: Stdn Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissionFactor" asMutableString default: 0, 0)) rgb;
+            occlusionFactor: (object getFloat32: "occlusionFactor" asMutableString default: 1.0);
+            metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: (hasMetallicRoughnessTexture ifTrue: 1.0f ifFalse: 0.0f));
+            roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f);
+            alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.0f);
+            doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
+            isTranslucent: (object getBoolean8: "isTranslucent" asMutableString default: false)
+    }.
+
+    method loadColorCubeTextureFrom: (relativePath: Stdn String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+        let result := engine _ resourceCache _ loadColorCubeTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        result ifNil: {
+            return: default.
+        }.
+
+        result
+    }.
+
+    method loadColorCubeTextureFrom: (relativePath: Stdn String const ref) ::=> TextureWithViewPtr
+        := self loadColorCubeTextureFrom: relativePath default: TextureWithViewPtr nil.
+
+
+    method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+        let result := MetallicRoughnessMaterial for: engine.
+        self parseMetallicRoughnessMaterialFrom: object into: result _.
+        result upCastFor: Material.
+    }.
+
+    method parseUnlitMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+        let result := UnlitMaterial for: engine.
+
+        object at: "texture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            result _ texture: (self loadColorTextureFrom: (value get: Stdn String))
+        }.
+
+        result _
+            colorFactor: Stdn Math Color decodeSRGB(object getFloat32x4: "colorFactor" asMutableString default: 1.0f);
+            alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.0f);
+            doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
+            isTranslucent: (object getBoolean8: "isTranslucent" asMutableString default: false).
+
+        result upCastFor: Material.
+    }.
+
+    method parseSkyMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+        let result := SkyMaterial for: engine.
+
+        object at: "texture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            result _ texture: (self loadColorCubeTextureFrom: (value get: Stdn String))
+        }.
+
+        result upCastFor: Material.
+    }.
+
+    method parseWaterMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+        let result := WaterMaterial for: engine.
+        self parseMetallicRoughnessMaterialFrom: object into: result _.
+        result upCastFor: Material.
+    }.
+
+    method parseMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+        let materialType := object getString: "type" asMutableString default: "MetallicRoughness" asMutableString.
+        materialType asArraySlice selectCase: #{
+        "MetallicRoughness" : (self parseMetallicRoughnessMaterialFrom: object).
+        "Unlit" : (self parseUnlitMaterialFrom: object).
+        "Sky" : (self parseSkyMaterialFrom: object).
+        "Water" : (self parseWaterMaterialFrom: object).
+        _ : MaterialPtr nil
+        }.
+    }.
+
+    method parseMaterialFromFileReference: (fileReference: Stdn FileReference const ref) for: (anEngine: EnginePtr const ref) ::=> MaterialPtr := {
+        parentFolder := fileReference parent.
+        engine := anEngine.
+
+        let inputReadStream mutable := fileReference binaryReadStream.
+        inputReadStream ifNil: {return: MaterialPtr nil}.
+
+        let domValue := fileReference extension asArraySlice = "wtmat"
+            ifTrue: { JSON ValueParser parseStream: inputReadStream getPointer }
+            ifFalse: { MessagePack ValueDecoder decodeStream: inputReadStream getPointer }.
+
+        self parseMaterialFrom: (domValue get: DOM ObjectPtr) _.
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

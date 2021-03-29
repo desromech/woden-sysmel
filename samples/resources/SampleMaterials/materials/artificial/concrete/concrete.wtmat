@@ -1,0 +1,5 @@
+{
+    "type": "MetallicRoughness",
+    "baseColorTexture" : "concrete",
+    "roughnessFactor" : 0.70
+}

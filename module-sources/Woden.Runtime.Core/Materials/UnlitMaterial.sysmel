@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
+useNamespace: Stdn Graphics Core.
+
 #**
  * I am a material that performs flat shading in a surface.
  *#
@@ -13,8 +15,37 @@ class UnlitMaterial superclass: Material; definition: {
         }.
     }.
 
-    override method initialize => Void := {
+    public field state type: Woden Shaders UnlitMaterialStateData.
 
+    public field stateBinding type: ShaderResourceBindingsPtr.
+    public field texture type: TextureWithViewPtr.
+
+    public field doubleSided type: Boolean8.
+    public field isTranslucent type: Boolean8.
+
+    const inline method hasAlphaMask => Boolean8
+        := state alphaCutoff > 0.
+
+    const inline method baseColorFactor => Float32x4
+        := state colorFactor.
+
+    inline method colorFactor: (color: Float32x4) ::=> Void
+        := state colorFactor: color.
+
+    inline method alphaCutoff: (value: Float32) ::=> Void
+        := state alphaCutoff: value.
+
+    const inline method alphaCutoff => Float32
+        := state alphaCutoff.
+
+    override method initialize => Void := {
+        state
+            colorFactor: Float32x4 white
+    }.
+
+    method validTexture => TextureWithViewPtr := {
+        texture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        texture
     }.
 
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8

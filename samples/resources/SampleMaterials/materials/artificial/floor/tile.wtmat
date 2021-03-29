@@ -1,0 +1,6 @@
+{
+    "type": "MetallicRoughness",
+    "baseColorTexture" : "tile-base-color",
+    "normalTexture" : "tile-normal",
+    "roughnessFactor" : 0.45
+}

@@ -78,7 +78,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         defaultMaterial := (MetallicRoughnessMaterial for: engine) upCastFor: Material.
         checkboardMaterial := {
             let material := MetallicRoughnessMaterial for: engine.
-            material _ albedoTexture: checkboardTexture.
+            material _ baseColorTexture: checkboardTexture.
             material upCastFor: Material
         }.
     }.

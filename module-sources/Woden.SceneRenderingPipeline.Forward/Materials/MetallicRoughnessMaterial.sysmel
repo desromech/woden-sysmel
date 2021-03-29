@@ -9,7 +9,7 @@ function decodeNormalTexel(texel: Float32x4) => Float32x3 := {
 template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor0: _LiteralBoolean, hasTangent4: _LiteralBoolean)
     :=  class superclass: ForwardSceneRenderingShaderSignature; definition: {
     macro method materialState := ``(`,self materialStateBinding _ state _).
-    macro method albedoTexture := ``(`,self materialStateBinding _ texture0).
+    macro method baseColorTexture := ``(`,self materialStateBinding _ texture0).
     macro method normalTexture := ``(`,self materialStateBinding _ texture1).
     macro method emissionTexture := ``(`,self materialStateBinding _ texture2).
     macro method occlusionTexture := ``(`,self materialStateBinding _ texture3).
@@ -68,7 +68,7 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         let vertexOut mutable := VertexIO()
             position: viewPosition xyz;
             texcoord: input texcoord;
-            color: self materialState albedo * self objectState color * input color;
+            color: self materialState baseColorFactor * self objectState color * input color;
             normal: normal;
             screenPosition: screenPosition * self cameraState ndcToTextureFetchTransform;
             yourself.
@@ -94,8 +94,8 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         let input := in receive.
         let stageInput := stageIn receive.
 
-        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
-        albedo a < self materialState alphaCutoff ifTrue: {
+        let baseColor := input color * (self baseColorSampler sample: self baseColorTexture at: input texcoord).
+        baseColor a < self materialState alphaCutoff ifTrue: {
             GPU discardFragment
         }.
 
@@ -119,10 +119,10 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
             SN := SN negated.
         }.
 
-        let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
+        let emission := self materialState emissionFactor * (self baseColorSampler sample: self emissionTexture at: input texcoord).
 
-        let roughnessMetallicSample := self albedoSampler sample: self roughnessMetallicTexture at: input texcoord.
-        let occlusion := (self albedoSampler sample: self occlusionTexture at: input texcoord) r.
+        let roughnessMetallicSample := self baseColorSampler sample: self roughnessMetallicTexture at: input texcoord.
+        let occlusion := self materialState occlusionFactor * (self baseColorSampler sample: self occlusionTexture at: input texcoord) r.
         let roughness := self materialState roughnessFactor * roughnessMetallicSample g.
         let metallic := self materialState metallicFactor * roughnessMetallicSample b.
 
@@ -133,11 +133,11 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
             surfaceNormal: SN;
             screenPosition: input screenPosition;
             emission: emission rgb;
-            albedo: albedo rgb;
+            baseColor: baseColor rgb;
             occlusion: occlusion;
             metallic: metallic;
             roughness: roughness;
-            opacityFactor: albedo a;
+            opacityFactor: baseColor a;
             yourself).
 
         out send: (FragmentOutput()
@@ -149,8 +149,8 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         let input := in receive.
         let stageInput := stageIn receive.
 
-        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
-        albedo a < self materialState alphaCutoff ifTrue: {
+        let baseColor := input color * (self baseColorSampler sample: self baseColorTexture at: input texcoord).
+        baseColor a < self materialState alphaCutoff ifTrue: {
             GPU discardFragment
         }.
 
@@ -168,8 +168,8 @@ template MetallicRoughnessMaterialShaders(hasSkinning: _LiteralBoolean, hasColor
         let input := in receive.
         let stageInput := stageIn receive.
 
-        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
-        albedo a < self materialState alphaCutoff ifTrue: {
+        let baseColor := input color * (self baseColorSampler sample: self baseColorTexture at: input texcoord).
+        baseColor a < self materialState alphaCutoff ifTrue: {
             GPU discardFragment
         }.
     }.

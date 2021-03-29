@@ -10,20 +10,13 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     ## Build the floor.
     {
-        let material := MetallicRoughnessMaterial for: engine.
-        material _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/tile-albedo" asNativeFileReference);
-            normalTexture: (engine _ resourceCache _ loadNormalTextureFrom: "textures/tile-normal" asNativeFileReference);
-            roughnessFactor: 0.45f.
-        let concreteMaterial := MetallicRoughnessMaterial for: engine.
-        concreteMaterial _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/esug-floor" asNativeFileReference);
-            roughnessFactor: 0.70f.
+        let tileMaterial := engine _ resourceCache _ loadMaterialFrom: "materials/artificial/floor/tile" asNativeFileReference.
+        let concreteMaterial := engine _ resourceCache _ loadMaterialFrom: "materials/artificial/concrete/concrete" asNativeFileReference.
 
         let borderThickness := 0.5f.
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
-            currentMaterial: (material upCastFor: Material);
+            currentMaterial: (tileMaterial upCastFor: Material);
 
             translateToX: borderThickness*0.5f negated - 4.5f y: -1.0f z: 0.0f;
     		addCubeWithWidth: 4.0f - borderThickness height: 2.0f depth: 5.0f + borderThickness*2.0f;
@@ -90,14 +83,9 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     ## Build the water.
     {
-        let material := WaterMaterial for: engine.
-        material _
-            albedoColor: Float32x4(0.01f, 0.01f, 0.01f, 0.04f);
-            roughnessFactor: 0.02f.
-
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
-            currentMaterial: (material upCastFor: Material);
+            currentMaterial: (engine _ resourceCache _ loadMaterialFrom: "materials/water/pool/pool" asNativeFileReference);
             addGridWithSize: 5.0f subdivisions: 64.
 
         let renderable := WaterRenderableMesh sharedNew.
@@ -133,13 +121,9 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     ## Add the sky box.
     {
-        let material := SkyMaterial for: engine.
-        material _
-            texture: (engine _ resourceCache _ loadColorCubeTextureFrom: "textures/skybox" asNativeFileReference).
-
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
-            currentMaterial: (material upCastFor: Material);
+            currentMaterial: ((engine _ resourceCache _ loadMaterialFrom: "materials/sky/sample/daylight" asNativeFileReference));
             addInteriorCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
         let renderable := meshBuilder _ renderable.
         renderable _ withoutDepth.

@@ -1,6 +1,9 @@
 Compiler importModulesNamed: #(
     #"Sysmel.Math.Core"
     #"Sysmel.Graphics.Core"
+    #"Sysmel.Serialization.Core"
+    #"Sysmel.Serialization.JSON"
+    #"Sysmel.Serialization.MessagePack"
 ); loadPackages: #(
     CoreResources
     GpuStructures

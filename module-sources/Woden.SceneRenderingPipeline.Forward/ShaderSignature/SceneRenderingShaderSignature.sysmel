@@ -5,7 +5,7 @@ class CommonSceneRenderingShaderSignature definition: {
     public field samplingStateBinding type: SamplingStateBinding bindingSetPointer.
     public field cameraStateBinding type: CameraStateBinding bindingSetPointer.
 
-    macro method albedoSampler := ``(`,self samplingStateBinding _ albedoSampler).
+    macro method baseColorSampler := ``(`,self samplingStateBinding _ baseColorSampler).
     macro method normalSampler := ``(`,self samplingStateBinding _ normalSampler).
     macro method cubeMapSampler := ``(`,self samplingStateBinding _ cubeMapSampler).
     macro method deferredSampler := ``(`,self samplingStateBinding _ deferredSampler).

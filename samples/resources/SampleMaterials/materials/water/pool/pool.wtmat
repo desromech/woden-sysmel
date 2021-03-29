@@ -1,0 +1,5 @@
+{
+    "type": "Water",
+    "baseColorFactor" : [0.01, 0.01, 0.01, 0.04],
+    "roughnessFactor" : 0.02
+}

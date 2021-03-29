@@ -115,7 +115,7 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             position: viewPosition xyz;
             surfacePosition: surfacePosition;
             texcoord: input texcoord;
-            color: self materialState albedo * self objectState color;
+            color: self materialState baseColorFactor * self objectState color;
             screenPosition: screenPosition * self cameraState ndcToTextureFetchTransform;
             yourself).
 
@@ -140,11 +140,11 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             N := N negated.
         }.
 
-        let albedo := input color * (self albedoSampler sample: self albedoTexture at: input texcoord).
-        let emission := self materialState emission * (self albedoSampler sample: self emissionTexture at: input texcoord).
+        let baseColor := input color * (self baseColorSampler sample: self albedoTexture at: input texcoord).
+        let emission := self materialState emissionFactor * (self baseColorSampler sample: self emissionTexture at: input texcoord).
 
-        let occlusionRoughnessMetallicSample := self albedoSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
-        let occlusion := occlusionRoughnessMetallicSample r.
+        let occlusionRoughnessMetallicSample := self baseColorSampler sample: self occlusionRoughnessMetallicTexture at: input texcoord.
+        let occlusion := self materialState occlusionFactor * occlusionRoughnessMetallicSample r.
         let roughness := self materialState roughnessFactor * occlusionRoughnessMetallicSample g.
         let metallic := self materialState metallicFactor * occlusionRoughnessMetallicSample b.
 
@@ -155,11 +155,11 @@ class WaterMaterialShaders superclass: ForwardSceneRenderingShaderSignature; def
             surfaceNormal: N;
             screenPosition: input screenPosition;
             emission: emission rgb;
-            albedo: albedo rgb;
+            baseColor: baseColor rgb;
             occlusion: occlusion;
             metallic: metallic;
             roughness: roughness;
-            opacityFactor: albedo a;
+            opacityFactor: baseColor a;
             yourself).
 
         out send: (FragmentOutput()

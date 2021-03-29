@@ -1,0 +1,11 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+struct UnlitMaterialStateData definition: {
+	<gpu>
+    public field colorFactor type: Float32x4.
+	public field alphaCutoff type: Float32.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

@@ -260,7 +260,7 @@ class WaveFrontObjModelImporter definition: {
             "Ka" : {}.
             "Ks" : {}.
             "Kd" : {
-                currentMaterial _ albedoFactor := Float32x4(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32, 1.0f).
+                currentMaterial _ baseColorFactor := Float32x4(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32, 1.0f).
             }.
             "d" : {
                 ## TODO: Support transparency.
@@ -273,8 +273,8 @@ class WaveFrontObjModelImporter definition: {
             "map_Kd" : {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
-                    currentMaterial _ albedoTexture: (self getOrCreateTextureNamed: textureName).
-                    currentMaterial _ albedoTexture _ setColorUsage.
+                    currentMaterial _ baseColorTexture: (self getOrCreateTextureNamed: textureName).
+                    currentMaterial _ baseColorTexture _ setColorUsage.
                 }.
             }.
             "bump" : {

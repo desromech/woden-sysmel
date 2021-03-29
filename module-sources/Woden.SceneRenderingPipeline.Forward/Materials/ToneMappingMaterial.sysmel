@@ -45,7 +45,7 @@ class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definit
 
 	function cameraAutoExposureStateComputation computeShader() => Void := {
 		<localSize: 1>
-		let sceneAverageLuminance := (self albedoSampler sample: self sceneAverageLuminanceTexture at: Float32x2(0.5f, 0.5f) lod: 0.0f) r.
+		let sceneAverageLuminance := (self baseColorSampler sample: self sceneAverageLuminanceTexture at: Float32x2(0.5f, 0.5f) lod: 0.0f) r.
 		let currentAverageLuminance := self cameraPostProcessingState currentAverageLuminance.
 
 		## https://placeholderart.wordpress.com/2014/12/15/implementing-a-physically-based-camera-automatic-exposure/

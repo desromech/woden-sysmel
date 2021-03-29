@@ -1,6 +1,8 @@
 Compiler importModulesNamed: #(
     #"Sysmel.Math.Core"
+    #"Sysmel.Serialization.Core"
     #"Sysmel.Serialization.JSON"
+    #"Sysmel.Serialization.MessagePack"
     #"Woden.Runtime.Core"
 ); loadPackages: #(
     Entities

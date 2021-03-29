@@ -15,7 +15,8 @@ class WaterMaterial superclass: MetallicRoughnessMaterial; definition: {
 
     override method initialize => Void := {
         state
-            albedo: Float32x4 zeros;
+            baseColorFactor: Float32x4 zeros;
+            occlusionFactor: 1.0f;
             metallicFactor: 0.0f;
             roughnessFactor: 0.0f.
     }.

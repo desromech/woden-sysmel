@@ -158,22 +158,22 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMetallicRoughnessMaterial: (material: ModelAssetMetallicRoughnessMaterialPtr const ref) ::=> DOM Value := {
-        let albedoFactor := DOM List sharedNew.
-        albedoFactor _
+        let baseColorFactor := DOM List sharedNew.
+        baseColorFactor _
             reserve: 4;
-            add: material _ albedoFactor x;
-            add: material _ albedoFactor y;
-            add: material _ albedoFactor z;
-            add: material _ albedoFactor w.
+            add: material _ baseColorFactor x;
+            add: material _ baseColorFactor y;
+            add: material _ baseColorFactor z;
+            add: material _ baseColorFactor w.
 
         let result := DOM Object sharedNew.
         result _
-            at: "albedoFactor" asMutableString put: albedoFactor;
+            at: "baseColorFactor" asMutableString put: baseColorFactor;
             at: "metallicFactor" asMutableString put: material _ metallicFactor;
             at: "roughnessFactor" asMutableString put: material _ roughnessFactor.
 
-        material _ albedoTexture ifNotNil: {
-            result _ at: "albedoTexture" asMutableString put: material _ albedoTexture _ index.
+        material _ baseColorTexture ifNotNil: {
+            result _ at: "baseColorTexture" asMutableString put: material _ baseColorTexture _ index.
         }.
 
         material _ metallicRoughnessTexture ifNotNil: {

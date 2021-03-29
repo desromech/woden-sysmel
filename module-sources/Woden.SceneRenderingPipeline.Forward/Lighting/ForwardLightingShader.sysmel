@@ -92,7 +92,7 @@ struct MetallicRoughnessLightingParameters definition: {
     public field screenPosition type: Float32x4.
 
     public field emission type: Float32x3.
-    public field albedo type: Float32x3.
+    public field baseColor type: Float32x3.
 
     public field occlusion type: Float32.
     public field metallic type: Float32.
@@ -102,8 +102,8 @@ struct MetallicRoughnessLightingParameters definition: {
     method asGenericLightingParameters => LightingParameters := {
         let dielectricSpecular := Float32x3(0.04f, 0.04f, 0.04f).
 
-        let Cdiff := albedo rgb * (1.0f - dielectricSpecular r) interpolateTo: Float32x3 zeros at: metallic.
-        let F0 := dielectricSpecular interpolateTo: albedo rgb at: metallic.
+        let Cdiff := baseColor rgb * (1.0f - dielectricSpecular r) interpolateTo: Float32x3 zeros at: metallic.
+        let F0 := dielectricSpecular interpolateTo: baseColor rgb at: metallic.
 
         let alpha := roughness * roughness.
         let directRoughness := 0.01f interpolateTo: 1.0f at: roughness.
@@ -191,7 +191,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
         ## Apply the ambient occlusion.
         let screenCoordinate := (lightingParameters screenPosition xy / lightingParameters screenPosition w) * 0.5f + 0.5f.
-        let ssao := (self albedoSampler sample: self lightingStateBinding _ ssaoTexture at: screenCoordinate) r.
+        let ssao := (self baseColorSampler sample: self lightingStateBinding _ ssaoTexture at: screenCoordinate) r.
         let occlusion := lightingParameters occlusion * ssao.
         result := result * occlusion.
 

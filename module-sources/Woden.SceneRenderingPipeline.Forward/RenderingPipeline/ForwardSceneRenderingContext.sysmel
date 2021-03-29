@@ -62,7 +62,7 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
             material stateBinding := self createMaterialStateBinding.
             material stateBinding _
                 bindOn: 0 uniformBuffer: material stateBuffer;
-                bindOn: 1 sampledTextureWithView: material validAlbedoTexture;
+                bindOn: 1 sampledTextureWithView: material validBaseColorTexture;
                 bindOn: 2 sampledTextureWithView: material validNormalTexture;
                 bindOn: 3 sampledTextureWithView: material validEmissionTexture;
                 bindOn: 4 sampledTextureWithView: material validOcclusionTexture;

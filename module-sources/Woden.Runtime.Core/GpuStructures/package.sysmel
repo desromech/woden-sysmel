@@ -10,6 +10,7 @@ loadFileOnce: "CameraStateData.sysmel".
 loadFileOnce: "CameraPostProcessingStateData.sysmel".
 loadFileOnce: "LightSourceData.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialStateData.sysmel".
+loadFileOnce: "UnlitMaterialStateData.sysmel".
 
 loadFileOnce: "WaterDeformationState.sysmel".
 loadFileOnce: "SkinDeformationState.sysmel".

@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Shaders definition: {
 
 class SamplingStateBinding definition: {
-    public field albedoSampler type: GPUSampler.
+    public field baseColorSampler type: GPUSampler.
     public field normalSampler type: GPUSampler.
     public field displacementSampler type: GPUSampler.
     public field shadowSampler type: GPUSampler.

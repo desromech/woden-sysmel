@@ -1,0 +1,284 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Serialization.
+useNamespace: Stdn Graphics Core.
+useNamespace: Stdn Math.
+useNamespace: Stdn Math Geometry.
+
+class LevelLoadingContext definition: {
+    field textures type: Stdn Collections Vector(TextureDefinitionPtr).
+    field materials type: Stdn Collections Vector(MaterialDefinitionPtr).
+
+    method addTexture: (texture: TextureDefinitionPtr const ref) ::=> Void := {
+        textures add: texture
+    }.
+
+    method getTextureWithIndex: (index: Int32) ::=> TextureDefinitionPtr := {
+        index < 1 ifTrue: {return: TextureDefinitionPtr nil}.
+
+        let actualIndex := index - 1 castTo: UIntPointer.
+        actualIndex >= textures size ifTrue: {return: TextureDefinitionPtr nil}.
+
+        textures[actualIndex]
+    }.
+
+    method addMaterial: (material: MaterialDefinitionPtr const ref) ::=> Void := {
+        materials add: material
+    }.
+
+    method getMaterialWithIndex: (index: Int32) ::=> MaterialDefinitionPtr := {
+        index < 1 ifTrue: {return: MaterialDefinitionPtr nil}.
+
+        let actualIndex := index - 1 castTo: UIntPointer.
+        actualIndex >= materials size ifTrue: {return: MaterialDefinitionPtr nil}.
+
+        materials[actualIndex]
+    }.
+}.
+
+LevelElementDefinition extend: {
+    meta definition: {
+        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition sharedPointer := {
+            let typeName := domObject getString: "type" asMutableString default: "" asMutableString.
+            let resultInstance := typeName asArraySlice selectCase: #{
+            "Level" : (LevelDefinition sharedNew upCastFor: LevelElementDefinition).
+            "Sector" : (SectorDefinition sharedNew upCastFor: LevelElementDefinition).
+            "SectorLayer" : (SectorLayerDefinition sharedNew upCastFor: LevelElementDefinition).
+            "Entity" : (EntityDefinition sharedNew upCastFor: LevelElementDefinition).
+            "BoxCollisionComponent" : (BoxCollisionShape sharedNew upCastFor: LevelElementDefinition).
+            "RectangleCollisionComponent" : (RectangleCollisionShape sharedNew upCastFor: LevelElementDefinition).
+            "RectangleVisualComponent" : (RectangleVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "BoxVisualComponent" : (BoxVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition sharedNew upCastFor: LevelElementDefinition).
+            _ : LevelElementDefinitionPtr nil
+            }.
+
+            resultInstance ifNotNil: {
+                resultInstance _ loadFromDOM: domObject context: context
+            }.
+
+            resultInstance
+        }.
+    }.
+
+    virtual method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        name := domObject getString: "name" asMutableString default: "" asMutableString.
+    }.
+}.
+
+LevelDefinition extend: {
+    meta extend: {
+        static method loadFromFile: (fileReference: Stdn FileReference const ref) ::=> LevelDefinition sharedPointer := {
+            let context mutable type: LevelLoadingContext.
+            let extension := fileReference extension.
+            extension = "wlevel" || extension = "wtlevel" ifTrue: {
+                let inputReadStream := fileReference binaryReadStream.
+                inputReadStream ifNil: {return: LevelDefinitionPtr nil}.
+
+                let domValue := extension = "wtlevel"
+                    ifTrue: {JSON ValueParser parseStream: inputReadStream getPointer}
+                    ifFalse: {MessagePack ValueDecoder decodeStream: inputReadStream getPointer}.
+
+                let result := LevelElementDefinition loadFromDOM: (domValue get: DOM ObjectPtr) _ context: context.
+                result isNotNil && result _ isLevel ifTrue: {
+                    return: (result downCastFor: LevelDefinition)
+                }.
+
+                return: LevelDefinitionPtr nil
+            }.
+
+            LevelDefinitionPtr nil
+        }
+    }.
+
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "textures" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let texture := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                context addTexture: (texture downCastFor: TextureDefinition)
+            }
+        }.
+
+        domObject at: "materials" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let material := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                context addMaterial: (material downCastFor: MaterialDefinition)
+            }
+        }.
+
+        domObject at: "sectors" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let sector := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                sector isNotNil && sector _ isSector ifTrue: {
+                    self addSector: (sector downCastFor: SectorDefinition)
+                }
+            }
+        }.
+    }.
+}.
+
+SectorDefinition extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+        isSector2D := domObject getBoolean8: "isSector2D" asMutableString default: isSector2D.
+
+        domObject at: "layers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let layer := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                layer isNotNil && layer _ isSectorLayer ifTrue: {
+                    self addLayer: (layer downCastFor: SectorLayerDefinition)
+                }
+            }
+        }.
+    }.
+}.
+
+SectorLayerDefinition extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+        layerMinZ := domObject getFloat32: "layerMinZ" asMutableString default: layerMinZ.
+        layerMaxZ := domObject getFloat32: "layerMaxZ" asMutableString default: layerMaxZ.
+
+        domObject at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let entity := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                entity isNotNil && entity _ isEntity ifTrue: {
+                    self addEntity: (entity downCastFor: EntityDefinition)
+                }
+            }
+        }.
+    }.
+}.
+
+EntityDefinition extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        className := domObject getString: "className" asMutableString default: "" asMutableString.
+        position := domObject getFloat32x3: "position" asMutableString default: 0.
+        orientation := QuaternionF32 xyzw: (domObject getFloat32x4: "orientation" asMutableString default: Float32x4(0, 0, 0, 1)).
+        is2DEntity := (domObject getString: "dimensions" asMutableString default: "" asMutableString) asArraySlice = "2D".
+
+        domObject at: "localBoundingBox" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject := (value get: DOM ObjectPtr) _.
+            localBoundingBox := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString)
+        }.
+
+        domObject at: "components" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListPtr) _ do: {:each :: Void |
+                let component := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+                component isNotNil && component _ isEntityComponent ifTrue: {
+                    self addComponent: (component downCastFor: EntityComponentDefinition)
+                }
+            }
+        }.
+    }.
+}.
+
+RectangleCollisionShape extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "rectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectObject := (value get: DOM ObjectPtr) _.
+            let rectangle := RectangleF32 min: (rectObject getFloat32x2: "min" asMutableString) max: (rectObject getFloat32x2: "max" asMutableString).
+
+            ## FIXME: support displaced rectangles.
+            halfExtent := rectangle halfExtent.
+        }.
+    }.
+}.
+
+RectangleVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        material := context getMaterialWithIndex: (domObject getInt32: "material" asMutableString default: 0).
+
+        domObject at: "rectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectObject := (value get: DOM ObjectPtr) _.
+            rectangle := RectangleF32 min: (rectObject getFloat32x2: "min" asMutableString) max: (rectObject getFloat32x2: "max" asMutableString)
+        }.
+    }.
+}.
+
+BoxCollisionShape extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject := (value get: DOM ObjectPtr) _.
+            let box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+
+            ## FIXME: support displaced boxes.
+            halfExtent := box halfExtent.
+        }.
+    }.
+}.
+
+BoxVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        material := context getMaterialWithIndex: (domObject getInt32: "material" asMutableString default: 0).
+
+        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject := (value get: DOM ObjectPtr) _.
+            box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+        }.
+    }.
+}.
+
+LightSourceVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        color := domObject getFloat32x3: "color" asMutableString default: color.
+        intensity := domObject getFloat32: "intensity" asMutableString default: intensity.
+        castShadows := domObject getBoolean8: "castShadows" asMutableString default: castShadows.
+    }.
+}.
+
+PointLightSourceVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        radius := domObject getFloat32: "radius" asMutableString default: intensity.
+    }.
+}.
+
+SpotLightSourceVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        outerCutOffAngle := domObject getFloat32: "outerCutOffAngle" asMutableString default: outerCutOffAngle.
+        innerCutOffAngle := domObject getFloat32: "innerCutOffAngle" asMutableString default: innerCutOffAngle.
+        exponent := domObject getFloat32: "exponent" asMutableString default: exponent.
+    }.
+}.
+
+MetallicRoughnessMaterialDefinition extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        baseColorTexture := context getTextureWithIndex: (domObject getInt32: "baseColorTexture" asMutableString default: 0).
+        emissionTexture := context getTextureWithIndex: (domObject getInt32: "emissionTexture" asMutableString default: 0).
+        normalTexture := context getTextureWithIndex: (domObject getInt32: "normalTexture" asMutableString default: 0).
+        occlusionMetallicRougnessTexture := context getTextureWithIndex: (domObject getInt32: "occlusionMetallicRougnessTexture" asMutableString default: 0).
+
+        baseColor := domObject getFloat32x4: "baseColor" asMutableString default: baseColor.
+        emissionColor := domObject getFloat32x3: "emissionColor" asMutableString default: emissionColor.
+        occlusionFactor := domObject getFloat32: "occlusionFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {occlusionFactor} ifNotNil: {1.0f}).
+        roughnessFactor := domObject getFloat32: "roughnessFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {roughnessFactor} ifNotNil: {1.0f}).
+        metallicFactor := domObject getFloat32: "metallicFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {metallicFactor} ifNotNil: {1.0f}).
+    }.
+}.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

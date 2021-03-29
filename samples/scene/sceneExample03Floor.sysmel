@@ -17,15 +17,9 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Build and add the cube to the scene.
     {
-        let material := MetallicRoughnessMaterial for: engine.
-        material _
-            albedoTexture: (engine _ resourceCache _ loadColorTextureFrom: "textures/tile-albedo" asNativeFileReference);
-            normalTexture: (engine _ resourceCache _ loadNormalTextureFrom: "textures/tile-normal" asNativeFileReference);
-            roughnessFactor: 0.45f.
-
         let meshBuilder := model engine _ newGenericMeshBuilder.
         meshBuilder _
-            currentMaterial: (material upCastFor: Material);
+            currentMaterial: (engine _ resourceCache _ loadMaterialFrom: "materials/artificial/floor/tile" asNativeFileReference);
             addCubeWithWidth: 10.0 height: 0.5 depth: 10.0;
     		planeTextureScale: Float32x2(2, 2) offset: Float32x2(2, 2);
     		computeTangentsBitangents.

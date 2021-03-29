@@ -132,12 +132,12 @@ class WodenModelImporter definition: {
         let material := modelAsset _ newMetallicRoughnessMaterial.
 
         material _
-            albedoFactor: (object getFloat32x4: "albedoFactor" asMutableString default: 1.0f);
+            baseColorFactor: (object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
             roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
-        object at: "albedoTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ albedoTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ albedoTexture _ setColorUsage
+        object at: "baseColorTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            material _ baseColorTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
+            material _ baseColorTexture _ setColorUsage
         }.
         object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             material _ metallicRoughnessTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].

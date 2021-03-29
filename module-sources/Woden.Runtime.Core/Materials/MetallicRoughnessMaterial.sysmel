@@ -20,7 +20,7 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     public field stateBinding type: ShaderResourceBindingsPtr.
     public field stateBuffer type: BufferPtr. ## TODO: Use pool of elements here.
 
-    public field albedoTexture type: TextureWithViewPtr.
+    public field baseColorTexture type: TextureWithViewPtr.
     public field normalTexture type: TextureWithViewPtr.
     public field emissionTexture type: TextureWithViewPtr.
     public field occlusionTexture type: TextureWithViewPtr.
@@ -32,35 +32,23 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     const inline method hasAlphaMask => Boolean8
         := state alphaCutoff > 0.
 
-    const inline method albedoColor => Float32x4
-        := state albedo.
+    const inline method baseColorFactor => Float32x4
+        := state baseColorFactor.
 
-    inline method albedoColor: (color: Float32x4) ::=> Void
-        := state albedo: color.
+    inline method baseColorFactor: (color: Float32x4) ::=> Void
+        := state baseColorFactor: color.
 
-    const inline method baseColor => Float32x4
-        := state albedo.
+    const inline method emissionFactor => Float32x4
+        := state emissionFactor.
 
-    inline method baseColor: (color: Float32x4) ::=> Void
-        := state albedo: color.
-
-    inline method baseColorTexture: (texture: TextureWithViewPtr const ref) ::=> Void
-        := self albedoTexture: texture.
-
-    inline method baseColorTexture => TextureWithViewPtr const ref
-        := self albedoTexture.
-
-    const inline method emissionColor => Float32x4
-        := state emission.
-
-    inline method emissionColor: (color: Float32x3) ::=> Void
-        := state emission: Float32x4(color, 0.0f).
+    inline method emissionFactor: (color: Float32x3) ::=> Void
+        := state emissionFactor: Float32x4(color, 0.0f).
 
     const inline method occlusionFactor => Float32
-        := 1.0f.
+        := state occlusionFactor.
 
     inline method occlusionFactor: (factor: Float32) ::=> Void
-        := void.
+        := state occlusionFactor: factor.
 
     const inline method roughnessFactor => Float32
         := state roughnessFactor.
@@ -74,9 +62,16 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     inline method metallicFactor: (factor: Float32) ::=> Void
         := state metallicFactor: factor.
 
+    inline method alphaCutoff: (value: Float32) ::=> Void
+        := state alphaCutoff: value.
+
+    const inline method alphaCutoff => Float32
+        := state alphaCutoff.
+
     override method initialize => Void := {
         state
-            albedo: Float32x4 white;
+            baseColorFactor: Float32x4 white;
+            occlusionFactor: 1.0f;
             metallicFactor: 0.0f;
             roughnessFactor: 0.55f.
     }.
@@ -84,9 +79,9 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
         := context activateMetallicRoughnessMaterial: self.
 
-    method validAlbedoTexture => TextureWithViewPtr := {
-        albedoTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
-        albedoTexture
+    method validBaseColorTexture => TextureWithViewPtr := {
+        baseColorTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        baseColorTexture
     }.
 
     method validNormalTexture => TextureWithViewPtr := {
