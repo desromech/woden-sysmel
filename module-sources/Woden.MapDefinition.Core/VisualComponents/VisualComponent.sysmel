@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace MapDefinition definition: {
 
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class VisualComponent superclass: EntityComponentDefinition; definition: {
@@ -53,8 +54,11 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
     virtual method boundingBox => BoxF32
         := BoxF32 empty.
 
-    virtual method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr
+    virtual method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr
         := SceneNodePtr nil.
+
+    method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr
+        := self createSceneNodeFor: engine parentTransform: ReversibleAffineTransform3dF32 identity.
 
     virtual method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void
         := {}.

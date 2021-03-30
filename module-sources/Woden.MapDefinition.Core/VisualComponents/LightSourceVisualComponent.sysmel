@@ -2,6 +2,7 @@ namespace Woden definition: {
 namespace MapDefinition definition: {
 
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class LightSourceVisualComponent superclass: PunctualVisualComponent; definition: {
@@ -26,7 +27,7 @@ class LightSourceVisualComponent superclass: PunctualVisualComponent; definition
         node
     }.
 
-    override method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr := {
+    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
         (self createLightSourceNodeFor: engine) upCastFor: SceneNode
     }.
 }.

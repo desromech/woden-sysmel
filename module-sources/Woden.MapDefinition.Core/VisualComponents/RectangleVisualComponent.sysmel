@@ -2,29 +2,60 @@ namespace Woden definition: {
 namespace MapDefinition definition: {
 
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     public field rectangle type: RectangleF32.
     public field material type: MaterialDefinitionPtr.
+    public field textureScale type: Float32x2.
+    public field textureOffset type: Float32x2.
+
+    override method initialize => Void := {
+        textureScale := Float32x2 ones.
+    }.
 
     override method boundingRectangle => RectangleF32
         := rectangle.
 
-    override method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr := {
-        let cube := SpatialObjectNode sharedNew.
-        let renderable mutable := engine _ resourceCache _ unitCubeRenderable _ copy.
-        material ifNotNil: {
-            renderable _ setMaterial: (material _ getOrCreateMaterialFor: engine)
+    field renderable type: RenderablePtr.
+
+    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+        renderable ifNotNil: {return: renderable}.
+
+        material ifNil: {
+            renderable := engine _ resourceCache _ unitCubeRenderable.
         }.
 
-        cube _
-            transform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
-            renderable: renderable.
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        meshBuilder _
+            currentMaterial: (material _ getOrCreateMaterialFor: engine);
+            currentTransform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
 
-        let normalNode := SpatialObjectNode sharedNew.
-        normalNode _ addChild: (cube upCastFor: SceneNode).
-        normalNode upCastFor: SceneNode
+    		addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
+
+    		## Use a planar texture coordinates
+    		planeTextureScale: textureScale offset: textureOffset withModelTransform: parentTransform;
+    		computeTangentsBitangents.
+        renderable := meshBuilder _ renderable
+    }.
+
+    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
+        let node := SpatialObjectNode sharedNew.
+
+        material ifNil: {
+            let deformedCube := SpatialObjectNode sharedNew.
+            deformedCube _
+                renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);
+                transform: self boundingBox reversibleTransformToConvertUnitBoxToMe.
+            node _ addChild: (deformedCube upCastFor: SceneNode).
+
+        } ifNotNil: {
+            node _
+                renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
+        }.
+
+        node upCastFor: SceneNode
     }.
 }.
 

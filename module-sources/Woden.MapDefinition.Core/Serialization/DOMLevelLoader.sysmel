@@ -201,6 +201,8 @@ RectangleVisualComponent extend: {
         super loadFromDOM: domObject context: context.
 
         material := context getMaterialWithIndex: (domObject getInt32: "material" asMutableString default: 0).
+        textureScale := domObject getFloat32x2: "textureScale" asMutableString default: textureScale.
+        textureOffset := domObject getFloat32x2: "textureOffset" asMutableString default: textureOffset.
 
         domObject at: "rectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let rectObject := (value get: DOM ObjectPtr) _.
@@ -228,6 +230,8 @@ BoxVisualComponent extend: {
         super loadFromDOM: domObject context: context.
 
         material := context getMaterialWithIndex: (domObject getInt32: "material" asMutableString default: 0).
+        textureScale := domObject getFloat32x2: "textureScale" asMutableString default: textureScale.
+        textureOffset := domObject getFloat32x2: "textureOffset" asMutableString default: textureOffset.
 
         domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let boxObject := (value get: DOM ObjectPtr) _.

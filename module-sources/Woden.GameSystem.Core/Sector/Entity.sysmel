@@ -139,7 +139,7 @@ class Entity superclass: Stdn SharedObject; definition: {
 
     virtual method createSceneNode ::=> Void := {
         visualComponent ifNil: {return: void}.
-        sceneNode := visualComponent _ createSceneNodeFor: self engine.
+        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: transform.
         self transformChanged.
     }.
 

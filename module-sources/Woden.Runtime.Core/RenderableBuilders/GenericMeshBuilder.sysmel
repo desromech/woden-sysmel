@@ -308,17 +308,25 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     }.
 
     method planeTextureScale: (texScale: Float32x2) offset: (texOffset: Float32x2) ::=> Void := {
+        self planeTextureScale: texScale offset: texOffset withModelTransform: ReversibleAffineTransform3dF32 identity
+    }.
+
+    method planeTextureScale: (texScale: Float32x2) offset: (texOffset: Float32x2) withModelTransform: (modelTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         self planeTextureTransform: Float32x3x3(
             Float32x3(texScale x, 0, 0),
             Float32x3(0, texScale y, 0),
             Float32x3(texOffset, 1)
-        ).
+        ) withModelTransform: modelTransform.
     }.
 
     method planeTextureTransform: (textureMatrix: Float32x3x3) ::=> Void := {
+        self planeTextureTransform: textureMatrix withModelTransform: ReversibleAffineTransform3dF32 identity
+    }.
+
+    method planeTextureTransform: (textureMatrix: Float32x3x3) withModelTransform: (modelTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         vertices do: {:vertex :: Void |
-            let normal := vertex normal.
-            let position := vertex position.
+            let normal := modelTransform transformVector: vertex normal.
+            let position := modelTransform transformPosition: vertex position.
 
             ## Compute the predominant normal plane.
     		let normalAxis := self computeNormalAxis: normal.
