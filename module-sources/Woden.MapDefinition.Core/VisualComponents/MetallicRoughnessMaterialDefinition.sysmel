@@ -4,8 +4,8 @@ namespace MapDefinition definition: {
 useNamespace: Woden Runtime.
 
 class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; definition: {
-    public field baseColor type: Float32x4.
-    public field emissionColor type: Float32x3.
+    public field baseColorFactor type: Float32x4.
+    public field emissionFactor type: Float32x3.
     public field occlusionFactor type: Float32.
     public field roughnessFactor type: Float32.
     public field metallicFactor type: Float32.
@@ -16,16 +16,16 @@ class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; defini
     public field occlusionMetallicRougnessTexture type: TextureDefinitionPtr.
 
     meta definition: {
-        static method baseColor: (baseColor: Float32x4) ::=> MaterialDefinitionPtr := {
+        static method baseColorFactor: (baseColorFactor: Float32x4) ::=> MaterialDefinitionPtr := {
             let material := MetallicRoughnessMaterialDefinition sharedNew.
-            material _ baseColor: baseColor.
+            material _ baseColorFactor: baseColorFactor.
             material upCastFor: MaterialDefinition
         }.
     }.
 
     override method initialize => Void := {
-        baseColor := Float32x4(0.8f, 0.8f, 0.8f, 1.0f).
-        emissionColor := Float32x3 zeros.
+        baseColorFactor := Float32x4(0.8f, 0.8f, 0.8f, 1.0f).
+        emissionFactor := Float32x3 zeros.
         occlusionFactor := 1.0f.
         roughnessFactor := 0.55f.
         metallicFactor := 0.0f.
@@ -43,8 +43,8 @@ class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; defini
         runtimeMaterial ifNil: {
             let mat := MetallicRoughnessMaterial for: engine.
             mat _
-                baseColor: baseColor;
-                emissionColor: emissionColor;
+                baseColorFactor: baseColorFactor;
+                emissionFactor: emissionFactor;
                 occlusionFactor: occlusionFactor;
                 roughnessFactor: roughnessFactor;
                 metallicFactor: metallicFactor.

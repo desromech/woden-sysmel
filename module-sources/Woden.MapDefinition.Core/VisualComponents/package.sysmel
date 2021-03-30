@@ -2,6 +2,7 @@ loadFileOnce: "TextureDefinition.sysmel".
 
 loadFileOnce: "MaterialDefinition.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialDefinition.sysmel".
+loadFileOnce: "FileReferenceMaterialDefinition.sysmel".
 
 loadFileOnce: "VisualComponent.sysmel".
 loadFileOnce: "VisualComponent2d.sysmel".

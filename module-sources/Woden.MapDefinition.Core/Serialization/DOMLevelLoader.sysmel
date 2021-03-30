@@ -54,6 +54,7 @@ LevelElementDefinition extend: {
             "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition sharedNew upCastFor: LevelElementDefinition).
+            "FileReferenceMaterial" : (FileReferenceMaterialDefinition sharedNew upCastFor: LevelElementDefinition).
             _ : LevelElementDefinitionPtr nil
             }.
 
@@ -272,11 +273,19 @@ MetallicRoughnessMaterialDefinition extend: {
         normalTexture := context getTextureWithIndex: (domObject getInt32: "normalTexture" asMutableString default: 0).
         occlusionMetallicRougnessTexture := context getTextureWithIndex: (domObject getInt32: "occlusionMetallicRougnessTexture" asMutableString default: 0).
 
-        baseColor := domObject getFloat32x4: "baseColor" asMutableString default: baseColor.
-        emissionColor := domObject getFloat32x3: "emissionColor" asMutableString default: emissionColor.
+        baseColorFactor := domObject getFloat32x4: "baseColorFactor" asMutableString default: baseColorFactor.
+        emissionFactor := domObject getFloat32x3: "emissionFactor" asMutableString default: emissionFactor.
         occlusionFactor := domObject getFloat32: "occlusionFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {occlusionFactor} ifNotNil: {1.0f}).
         roughnessFactor := domObject getFloat32: "roughnessFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {roughnessFactor} ifNotNil: {1.0f}).
         metallicFactor := domObject getFloat32: "metallicFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {metallicFactor} ifNotNil: {1.0f}).
+    }.
+}.
+
+FileReferenceMaterialDefinition extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        path := domObject getString: "path" asMutableString default: "" asMutableString.
     }.
 }.
 

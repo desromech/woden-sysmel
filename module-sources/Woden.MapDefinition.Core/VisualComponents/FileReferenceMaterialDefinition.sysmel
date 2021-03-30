@@ -1,0 +1,37 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Woden Runtime.
+
+class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition: {
+    public field path type: Stdn String.
+
+    meta definition: {
+        static method path: (path: Stdn String) ::=> MaterialDefinitionPtr := {
+            let material := FileReferenceMaterialDefinition sharedNew.
+            material _ path: path.
+            material upCastFor: MaterialDefinition
+        }.
+    }.
+
+    override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
+        := visitor visitFileReferenceMaterialDefinition: self.
+
+    override method isFileReferenceMaterialDefinition => Boolean8
+        := true.
+
+    field runtimeMaterial type: MaterialPtr.
+
+    override method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr := {
+        runtimeMaterial ifNil: {
+            runtimeMaterial := engine _ resourceCache _ loadMaterialFrom: path asNativeFileReference
+        }.
+
+        runtimeMaterial
+    }.
+}.
+
+compileTime constant FileReferenceMaterialDefinitionPtr := FileReferenceMaterialDefinition sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

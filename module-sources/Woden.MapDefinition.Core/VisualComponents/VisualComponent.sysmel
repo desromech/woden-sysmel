@@ -10,7 +10,7 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
             := self rectangle: rectangle material: MaterialDefinitionPtr nil.
 
         static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer
-            := self rectangle: rectangle material: (MetallicRoughnessMaterialDefinition baseColor: color).
+            := self rectangle: rectangle material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
         static method rectangle: (rectangle: RectangleF32) material: (material: MaterialDefinitionPtr const ref)::=> VisualComponent sharedPointer := {
             let result := RectangleVisualComponent sharedNew.
@@ -24,7 +24,7 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
             := self box: box material: MaterialDefinitionPtr nil.
 
         static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer
-            := self box: box material: (MetallicRoughnessMaterialDefinition baseColor: color).
+            := self box: box material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
         static method box: (box: BoxF32) material: (material: MaterialDefinitionPtr const ref) ::=> VisualComponent sharedPointer := {
             let result := BoxVisualComponent sharedNew.
