@@ -1,11 +1,18 @@
 Class {
 	#name : #WDEWodenSysmelGameSettings,
-	#superclass : #WDEGameSettings,
+	#superclass : #WDEWodenGameSettings,
 	#instVars : [
 		'levelPlayer'
 	],
 	#category : #'WodenSysmel-LevelEditor'
 }
+
+{ #category : #palettes }
+WDEWodenSysmelGameSettings >> defaultAssetSearchPaths [
+	^ {
+		WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+	} 
+]
 
 { #category : #accessing }
 WDEWodenSysmelGameSettings >> levelPlayer [

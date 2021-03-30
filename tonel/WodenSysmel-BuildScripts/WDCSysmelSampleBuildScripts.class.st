@@ -10,7 +10,9 @@ WDCSysmelSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
 	| result |
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
+			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel' with: [ :prog |
+				prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+			]
 		].
 	^ result asFileReference asAbsolute canonicalize
 ]

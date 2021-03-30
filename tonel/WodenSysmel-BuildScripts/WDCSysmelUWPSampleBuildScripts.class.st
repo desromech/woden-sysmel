@@ -9,7 +9,9 @@ WDCSysmelUWPSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
 	<example>
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			packageScript guiBundleWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel'
+			packageScript guiBundleWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel' with: [ :prog |
+				prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+			]
 		]
 ]
 
