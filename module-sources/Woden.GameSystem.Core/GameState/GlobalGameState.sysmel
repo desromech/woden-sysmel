@@ -55,7 +55,9 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
 
         let startPosition := activeSector _ findPositionUsingMetadataEntityClassNamed: "PlayerStartPoint" default: Float32x3 zeros.
         let newPlayer := self newPlayerEntity.
-        newPlayer _ position: startPosition.
+        newPlayer _
+            position: startPosition;
+            postLoadInitialization.
         activeSector _ spawnEntity: (newPlayer upCastFor: Entity).
         newPlayer
     }.

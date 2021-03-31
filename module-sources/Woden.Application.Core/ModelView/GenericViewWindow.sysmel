@@ -53,7 +53,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
             return: false.
         }.
 
-        let initialExtent := Int32x2(640, 480).
+        let initialExtent := Int32x2(864, 486).
 
         window := self engine _ windowSystem _ createWindow: (WindowCreationInfo()
 			resizable: true;

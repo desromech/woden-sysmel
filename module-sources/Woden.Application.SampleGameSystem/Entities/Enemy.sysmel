@@ -3,6 +3,9 @@ namespace GameSystem definition: {
 
 class Enemy superclass: Character; definition: {
     SelfType registerWithClassName: "Enemy".
+
+    override method isAvailableInEditor => Boolean8
+        := true.
 }.
 
 }. ## namespace GameSystem

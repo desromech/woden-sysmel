@@ -6,6 +6,12 @@ useNamespace: Woden MapDefinition.
 class Wall superclass: Entity; definition: {
     SelfType registerWithClassName: "Wall".
 
+    override method editorEntityType => EditorEntityType
+        := EditorEntityType Solid.
+
+    override method isMapIntrinsic => Boolean8
+        := true.
+
     override method buildCollisionObjectWithShape: (collisionShape: CollisionShapePtr const ref) ::=> Void := {
         collisionObject := CollisionObject staticRigidBodyFor: collisionShape.
         collisionObject _ ownerEntity: (self asSharedPointer upCastFor: Entity)

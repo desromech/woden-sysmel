@@ -5,18 +5,30 @@ useNamespace: Woden MapDefinition.
 
 class LightSource superclass: Entity; definition: {
     SelfType registerWithClassName: "LightSource".
+
+    override method isMapIntrinsic => Boolean8
+        := true.
 }.
 
 class DirectionalLight superclass: LightSource; definition: {
     SelfType registerWithClassName: "DirectionalLight".
+
+    override method editorEntityType => EditorEntityType
+        := EditorEntityType DirectionalLight.
 }.
 
 class PointLight superclass: LightSource; definition: {
     SelfType registerWithClassName: "PointLight".
+
+    override method editorEntityType => EditorEntityType
+        := EditorEntityType PointLight.
 }.
 
 class SpotLight superclass: PointLight; definition: {
     SelfType registerWithClassName: "SpotLight".
+
+    override method editorEntityType => EditorEntityType
+        := EditorEntityType SpotLight.
 }.
 
 }. ## namespace GameSystem

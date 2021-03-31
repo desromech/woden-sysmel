@@ -141,7 +141,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 
         let player := self player.
         event button selectCase: #{
-        GameControllerButton Back : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
+        GameControllerButton Start : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
         _ : {}.
         }.
 
@@ -195,6 +195,29 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
             GameControllerButton ButtonLeft : {player _ onInputAction: "shoot" buttonState: false}.
     		GameControllerButton ButtonDown : {player _ onInputAction: "jump" buttonState: false}.
     		GameControllerButton RightShoulder : {player _ onInputAction: "dash" buttonState: false}.
+            _ : {}.
+            }.
+        }.
+	}.
+
+    override method onGameControllerAxisMotionEvent: (event: GameControllerAxisMotionEvent ref) ::=> Void := {
+        self isSecondaryView ifTrue: {return: void}.
+
+        let player := self player.
+        freeCameraMovementEnabled || player isNil ifTrue: {
+    		event axis selectCase: #{
+            GameControllerAxis LeftX : {cameraMovementDirection x: event value}.
+            GameControllerAxis LeftY : {cameraMovementDirection z: event value}.
+            GameControllerAxis RightX : {cameraAngularVelocity y: event value negated}.
+            GameControllerAxis RightY : {cameraAngularVelocity x: event value negated}.
+    		_ : {}.
+    		}.
+        } ifFalse: {
+        event axis selectCase: #{
+            GameControllerAxis LeftX : {player _ onInputAction: "moveRight" axisState: event value}.
+            GameControllerAxis LeftY : {player _ onInputAction: "moveForward" axisState: event value negated}.
+            GameControllerAxis RightX : {player _ onInputAction: "lookRight" axisState: event value}.
+            GameControllerAxis RightY : {player _ onInputAction: "lookUp" axisState: event value}.
             _ : {}.
             }.
         }.

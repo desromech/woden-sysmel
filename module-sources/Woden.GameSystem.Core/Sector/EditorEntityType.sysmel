@@ -1,0 +1,26 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+enum EditorEntityType valueType: UInt32; values: #{
+    Point: 0.
+    Model:.
+    Solid:.
+    NonSolid:.
+    PointLight:.
+    SpotLight:.
+    DirectionalLight:.
+}; definition: {
+    method asString => Stdn ImmutableString := {
+        self selectCase: #{
+        Point : "point".
+        Model : "model".
+        Solid : "solid".
+        NonSolid : "nonSolid".
+        PointLight : "pointLight".
+        SpotLight : "spotLight".
+        DirectionalLight : "directionalLight".
+        }
+    }
+}.
+}. ## namespace GameSystem
+}. ## namespace Woden

@@ -52,7 +52,8 @@ class Sector superclass: Stdn SharedObject; definition: {
         entity ifNil: {return: void}.
         entity _
             parentSector: self address;
-            loadFromDefinition: definition fromLayer: layerDefinition.
+            loadFromDefinition: definition fromLayer: layerDefinition;
+            postLoadInitialization.
         self spawnEntity: entity.
     }.
 

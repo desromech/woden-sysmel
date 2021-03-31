@@ -12,8 +12,19 @@ class Character superclass: Entity; definition: {
     field moveDirection type: Float32x3.
     field lookDirection type: Float32x3.
 
+    override method classDescription => Stdn ImmutableString
+        := "Generic Character".
+
+    override method editorCategory => Stdn ImmutableString
+        := "NPC".
+
     override method initialize => Void := {
         hitPoints := 100.
+    }.
+
+    override method postLoadInitialization => Void := {
+        super postLoadInitialization.
+        localBoundingBox := BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4).
     }.
 
     override method spawn => Void := {
@@ -31,7 +42,7 @@ class Character superclass: Entity; definition: {
     }.
 
     virtual method buildVisualComponent => Void := {
-        visualComponent := VisualComponent box: (BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4)) color: Float32x4 white.
+        visualComponent := VisualComponent box: localBoundingBox color: Float32x4 white.
     }.
 
     override method isAlive => Boolean8
@@ -72,7 +83,7 @@ class Character superclass: Entity; definition: {
         rigidBody := RigidBody sharedNew.
         rigidBody _
             ownerEntity: (self asSharedPointer upCastFor: Entity);
-            collisionShape: (CollisionShape boxWithHalfExtent: Float32x3(0.5f, 1.0f, 0.4));
+            collisionShape: (CollisionShape boxWithHalfExtent: localBoundingBox halfExtent);
             coefficientOfRestitution: 0.2f;
             mass: 70.0f;
             makeCharacter.

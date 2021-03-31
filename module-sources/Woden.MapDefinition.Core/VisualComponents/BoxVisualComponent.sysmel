@@ -19,12 +19,13 @@ class BoxVisualComponent superclass: VisualComponent2d; definition: {
         := box.
 
     field renderable type: RenderablePtr.
-    
+
     method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
         renderable ifNotNil: {return: renderable}.
 
         material ifNil: {
             renderable := engine _ resourceCache _ unitCubeRenderable.
+            return: renderable
         }.
 
         let meshBuilder := engine _ newGenericMeshBuilder.

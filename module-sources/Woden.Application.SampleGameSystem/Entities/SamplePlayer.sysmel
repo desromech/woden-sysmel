@@ -6,10 +6,10 @@ class SamplePlayer superclass: Player; definition: {
 
     override method onInputAction: (action: Char8 const arraySlice) buttonState: (state: Boolean8) ::=> Void := {
         action selectCase: #{
-        "moveLeft" : {self moveLeftInput: state}.
-        "moveRight" : {self moveRightInput: state}.
-        "moveForward" : {self moveForwardInput: state}.
-        "moveBackward" : {self moveBackwardInput: state}.
+        "moveLeft" : {self moveRightInput: (state ifTrue: -1.0f ifFalse: 0.0f) cancelSign: -1.0f }.
+        "moveRight" : {self moveRightInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
+        "moveForward" : {self moveForwardInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
+        "moveBackward" : {self moveForwardInput: (state ifTrue: -1.0f ifFalse: 0.0f) cancelSign: -1.0f}.
         "shoot" : {state ifTrue: {self shoot} }.
         "jump" : {state ifTrue: {self jump} }.
         "dash" : {state ifTrue: {self dash} }.
@@ -19,53 +19,33 @@ class SamplePlayer superclass: Player; definition: {
     }.
 
     override method onInputAction: (action: Char8 const arraySlice) axisState: (state: Float32) ::=> Void := {
-
+        action selectCase: #{
+        "moveRight" : {self moveRightInput: state cancelSign: 0.0f }.
+        "moveForward" : {self moveForwardInput: state cancelSign: 0.0f}.
+        _ : {}
+        }
     }.
 
-    method moveLeftInput: (state: Boolean8) ::=> Void := {
-        state ifTrue: {
-            moveDirection x: -1.0.
-            lookDirection x: -1.0.
+    method moveRightInput: (state: Float32) cancelSign: (cancelSign: Float32) ::=> Void := {
+        state > 0 || state < 0  ifTrue: {
+            moveDirection x: state.
+            lookDirection x: state sign.
         } ifFalse: {
-            moveDirection x < 0.0 ifTrue: {
+            moveDirection x sign = cancelSign || cancelSign = 0 ifTrue: {
                 moveDirection x: 0.0.
             }.
         }.
     }.
 
-    method moveRightInput: (state: Boolean8) ::=> Void := {
-        state ifTrue: {
-            moveDirection x: 1.0.
-            lookDirection x: 1.0.
-        } ifFalse: {
-            moveDirection x > 0.0 ifTrue: {
-                moveDirection x: 0.0.
-            }.
-        }.
-    }.
-
-    method moveForwardInput: (state: Boolean8) ::=> Void := {
+    method moveForwardInput: (state: Float32) cancelSign: (cancelSign: Float32) ::=> Void := {
         self isInSector2D ifTrue: {return: void}.
 
-        state ifTrue: {
-            moveDirection z: -1.0.
-            lookDirection z: -1.0.
+        state > 0 || state < 0  ifTrue: {
+            moveDirection z: state negated.
+            lookDirection z: state sign negated.
         } ifFalse: {
-            moveDirection z < 0.0 ifTrue: {
+            moveDirection z sign negated = cancelSign || cancelSign = 0 ifTrue: {
                 moveDirection z: 0.0.
-            }.
-        }.
-    }.
-
-    method moveBackwardInput: (state: Boolean8) ::=> Void := {
-        self isInSector2D ifTrue: {return: void}.
-
-        state ifTrue: {
-            moveDirection z: 1.0.
-            lookDirection z: 1.0.
-        } ifFalse: {
-            moveDirection x > 0.0 ifTrue: {
-                moveDirection x: 0.0.
             }.
         }.
     }.

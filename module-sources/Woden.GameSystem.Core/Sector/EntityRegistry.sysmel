@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
+useNamespace: Stdn Serialization.
+
 class EntityRegistry definition: {
     meta definition: {
         let singleton mutable type: EntityRegistry uniquePointer.
@@ -27,6 +29,27 @@ class EntityRegistry definition: {
         }.
 
         factory _ newInstance
+    }.
+
+    method dumpEntityDefinitionsInto: (out: Stdn IO TextStreamWriter ref) ::=> Void := {
+        let definitionObject := DOM Object sharedNew.
+        let entities := DOM Object sharedNew.
+
+        factories keysAndValuesDo: {:(Stdn String const ref)className :(AbstractEntityFactory pointer const ref)factory :: Void |
+            let descriptionObject := DOM Object sharedNew.
+            entities _
+                at: className put: descriptionObject.
+
+            let entity := factory _ newInstance.
+            entity _
+                postLoadInitialization;
+                writeDescriptionOnto: descriptionObject _
+        }.
+
+        definitionObject _
+            at: "entities" asMutableString put: entities.
+
+        JSON Writer writeValue: definitionObject onTextStream: out.
     }.
 }.
 

@@ -1,6 +1,8 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
+useNamespace: Stdn Math Geometry.
+
 class Player superclass: Character; definition: {
     SelfType registerWithClassName: "Player".
 
@@ -13,6 +15,15 @@ compileTime constant PlayerPtr := Player sharedPointer.
 
 class PlayerStartPoint superclass: MetadataEntity; definition: {
     SelfType registerWithClassName: "PlayerStartPoint".
+
+    override method classDescription => Stdn ImmutableString
+        := "The point where the player is going to be spawn.".
+
+    override method isAvailableInEditor => Boolean8
+        := true.
+
+    override method editorBoundingBox => BoxF32
+        := BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4).
 }.
 
 }. ## namespace GameSystem

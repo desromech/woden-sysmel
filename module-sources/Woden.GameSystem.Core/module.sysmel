@@ -2,6 +2,8 @@ Compiler
 	importModulesNamed: #(
         #"Woden.Runtime.Core"
 		#"Woden.MapDefinition.Core"
+		#"Sysmel.Serialization.Core"
+		#"Sysmel.Serialization.JSON"
     );
 	loadPackages: #(
 		#"Physics"

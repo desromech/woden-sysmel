@@ -1,3 +1,4 @@
+loadFileOnce: "EditorEntityType.sysmel".
 loadFileOnce: "Entity.sysmel".
 loadFileOnce: "EntityFactory.sysmel".
 loadFileOnce: "EntityRegistry.sysmel".

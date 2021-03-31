@@ -2,6 +2,12 @@ namespace Woden definition: {
 namespace GameSystem definition: {
 
 class MetadataEntity superclass: Entity; definition: {
+    override method classDescription => Stdn ImmutableString
+        := "Generic metadata entity".
+
+    override method editorCategory => Stdn ImmutableString
+        := "Metadata".
+
     override method isAlive => Boolean8
         := false.
 

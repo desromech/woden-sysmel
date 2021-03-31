@@ -4,6 +4,7 @@ namespace GameSystem definition: {
 useNamespace: Stdn Math.
 useNamespace: Stdn Math Geometry.
 useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Stdn Serialization.
 useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
@@ -29,6 +30,10 @@ class Entity superclass: Stdn SharedObject; definition: {
     override method initialize => Void := {
         orientation := QuaternionF32 identity.
         transform := ReversibleAffineTransform3dF32 identity.
+    }.
+
+    virtual method postLoadInitialization => Void := {
+        ## This is a place to initialize parameters and ignore there values after loading from a definition.
     }.
 
     const inline method isInSector2D => Boolean8
@@ -176,6 +181,70 @@ class Entity superclass: Stdn SharedObject; definition: {
             }.
             transformChanged := false.
         }.
+    }.
+
+    virtual method classDescription => Stdn ImmutableString
+        := "Generic Entity".
+
+    virtual method editorCategory => Stdn ImmutableString
+        := "Generic".
+
+    virtual method editorPreviewModel => Stdn ImmutableString
+        := "".
+
+    virtual method editorBoundingBox => BoxF32
+        := localBoundingBox.
+
+    virtual method editorEntityType => EditorEntityType
+        := EditorEntityType Point.
+
+    virtual method isAvailableInEditor => Boolean8
+        := false.
+
+    virtual method isMapIntrinsic => Boolean8
+        := false.
+
+    virtual method writeDescriptionOnto: (descriptionObject: DOM Object ref) ::=> Void := {
+        let editorBoundingBox := self editorBoundingBox.
+        let boundingBoxObject := DOM Object sharedNew.
+        {
+            let value := DOM List sharedNew.
+            value _
+                add: editorBoundingBox min x;
+                add: editorBoundingBox min y;
+                add: editorBoundingBox min z.
+            boundingBoxObject _
+                at: "min" asMutableString put: value.
+        }.
+
+        {
+            let value := DOM List sharedNew.
+            value _
+                add: editorBoundingBox max x;
+                add: editorBoundingBox max y;
+                add: editorBoundingBox max z.
+            boundingBoxObject _
+                at: "max" asMutableString put: value.
+        }.
+
+        let descriptionProperties := DOM Object sharedNew.
+        self writeDescriptionPropertiesOnto: descriptionProperties _.
+
+        descriptionObject
+            at: "classDescription" asMutableString put: self classDescription asMutableString;
+            at: "editorCategory" asMutableString put: self editorCategory asMutableString;
+            at: "type" asMutableString put: self editorEntityType asString asMutableString;
+            at: "previewModel" asMutableString put: self editorPreviewModel asMutableString;
+            at: "boundingBox" asMutableString put: boundingBoxObject;
+            at: "isAvailableInEditor" asMutableString put: self isAvailableInEditor;
+            at: "isMapIntrinsic" asMutableString put: self isMapIntrinsic;
+            at: "isMetadata" asMutableString put: self isMetadata;
+            at: "needsTicking" asMutableString put: self needsTicking;
+            at: "properties" asMutableString put: descriptionProperties.
+    }.
+
+    virtual method writeDescriptionPropertiesOnto: (descriptionObject: DOM Object ref) ::=> Void := {
+
     }.
 }.
 

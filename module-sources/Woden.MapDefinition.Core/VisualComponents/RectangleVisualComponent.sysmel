@@ -25,6 +25,7 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
 
         material ifNil: {
             renderable := engine _ resourceCache _ unitCubeRenderable.
+            return: renderable
         }.
 
         let meshBuilder := engine _ newGenericMeshBuilder.

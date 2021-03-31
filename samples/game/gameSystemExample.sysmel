@@ -6,6 +6,16 @@ useNamespace: Woden GameSystem.
 useNamespace: Woden MapDefinition.
 
 Stdn MainEntryPoint: {:args :: Int32 |
+    args do: {:arg :: Void |
+        (arg until: Stdn cstrlen(arg)) selectCase: #{
+        "-dump-entity-definitions" : {
+            EntityRegistry uniqueInstance dumpEntityDefinitionsInto: Stdn stdout.
+            return: 0
+        }.
+        _ : {}
+        }.
+    }.
+
     ## Create the scene model and initialize with the C arguments.
     let gameModel mutable := SampleGameApplicationModel sharedNew.
     (gameModel _ initializeWithCommandLine: args) ifFalse: {
