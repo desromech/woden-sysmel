@@ -16,8 +16,17 @@ WDEWodenSysmelGameSettings >> defaultAssetSearchPaths [
 
 { #category : #'as yet unclassified' }
 WDEWodenSysmelGameSettings >> fetchEntityDescriptions [
-	| definitionString jsonData |
-	definitionString := LibC resultOfCommand: self levelPlayer asAbsolute canonicalize fullName , ' -dump-entity-definitions'.
+	| definitionString jsonData workingDirectory commandFormat command |
+	
+	workingDirectory := self levelPlayer parent asAbsolute canonicalize fullName.
+	
+	commandFormat := 'cd "{1}" && "{2}" -dump-entity-definitions'.
+	command := commandFormat format: {
+		workingDirectory.
+		self levelPlayer asAbsolute canonicalize fullName	
+	}.
+
+	definitionString := LibC resultOfCommand: command.
 	jsonData := NeoJSONReader fromString: definitionString.
 	^ WDEEntityDescriptions loadFromJson: jsonData
 	
@@ -41,6 +50,9 @@ WDEWodenSysmelGameSettings >> playLevelInSession: levelSession [
 	workingDirectory := self levelPlayer parent asAbsolute canonicalize fullName.
 	
 	commandFormat := 'cd "{1}" && "{2}" "{3}"'.
+	Smalltalk platform isLinux ifTrue: [
+		commandFormat := 'unset LD_LIBRARY_PATH &&' , commandFormat
+	].
 	Smalltalk platform isWindows ifTrue: [
 		commandFormat := 'cd "{1}" && start "" "{2}" "{3}"'.
 	].
