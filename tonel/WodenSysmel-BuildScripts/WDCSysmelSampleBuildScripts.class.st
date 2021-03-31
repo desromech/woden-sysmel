@@ -5,13 +5,30 @@ Class {
 }
 
 { #category : #'native samples' }
-WDCSysmelSampleBuildScripts class >> buildGameSystemExample01SampleLevel [
+WDCSysmelSampleBuildScripts class >> buildConsoleGameSystemExample [
+	<example>
+	| result |
+	Smalltalk platform isWindows ifFalse: [ ^ self buildGameSystemExample ].
+	self newNativeBuildEnvironment
+		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
+			result := packageScript program: 'consoleGameSystemExample' with: [ :prog |
+				prog
+					source: 'samples/game/gameSystemExample.sysmel';
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+			]
+		].
+	^ result asFileReference asAbsolute canonicalize
+]
+
+{ #category : #'native samples' }
+WDCSysmelSampleBuildScripts class >> buildGameSystemExample [
 	<example>
 	| result |
 	self newNativeBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
-			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample01SampleLevel.sysmel' with: [ :prog |
-				prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample.sysmel' with: [ :prog |
+				prog
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
 			]
 		].
 	^ result asFileReference asAbsolute canonicalize

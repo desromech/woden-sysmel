@@ -14,9 +14,18 @@ WDEWodenSysmelGameSettings >> defaultAssetSearchPaths [
 	} 
 ]
 
+{ #category : #'as yet unclassified' }
+WDEWodenSysmelGameSettings >> fetchEntityDescriptions [
+	| definitionString jsonData |
+	definitionString := LibC resultOfCommand: self levelPlayer asAbsolute canonicalize fullName , ' -dump-entity-definitions'.
+	jsonData := NeoJSONReader fromString: definitionString.
+	^ WDEEntityDescriptions loadFromJson: jsonData
+	
+]
+
 { #category : #accessing }
 WDEWodenSysmelGameSettings >> levelPlayer [
-	^ levelPlayer ifNil: [ levelPlayer := WDCSysmelSampleBuildScripts buildGameSystemExample01SampleLevel ]
+	^ levelPlayer ifNil: [ levelPlayer := WDCSysmelSampleBuildScripts buildConsoleGameSystemExample ]
 ]
 
 { #category : #accessing }
@@ -28,7 +37,7 @@ WDEWodenSysmelGameSettings >> name [
 WDEWodenSysmelGameSettings >> playLevelInSession: levelSession [
 	| destFile workingDirectory command commandFormat |
 	destFile := FileSystem workingDirectory / 'wde-play-test-level.tmp.wtlevel'.
-	levelSession saveJSONEncodedTo: destFile.
+	levelSession saveTemporaryJSONEncodedTo: destFile.
 	workingDirectory := self levelPlayer parent asAbsolute canonicalize fullName.
 	
 	commandFormat := 'cd "{1}" && "{2}" "{3}"'.
