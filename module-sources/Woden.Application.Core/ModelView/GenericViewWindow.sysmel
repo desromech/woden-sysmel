@@ -59,6 +59,8 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 			resizable: true;
 			extent: initialExtent;
 			title: "Test Window" asMutableString;
+            animated: true;
+            vsyncDisabled: self engine _ vsyncDisabled;
 			yourself).
 	    window ifNil: {
 	        return: false.

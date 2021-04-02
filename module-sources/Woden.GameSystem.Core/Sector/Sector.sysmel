@@ -140,10 +140,10 @@ class Sector superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    method validateRenderingState: (renderingDelta: Float32) ::=> Void := {
+    method validateRenderingState: (alpha: Float32) ::=> Void := {
         aliveEntities do: {:each :: Void |
             each _ isAlive ifTrue: {
-                each _ validateRenderingState: renderingDelta.
+                each _ validateRenderingState: alpha.
             }
         }.
     }.

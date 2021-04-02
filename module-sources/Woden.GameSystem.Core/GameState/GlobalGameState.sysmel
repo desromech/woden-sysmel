@@ -28,9 +28,9 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    method validateRenderingState: (renderingDelta: Float32) ::=> Void := {
+    method validateRenderingState: (alpha: Float32) ::=> Void := {
         activeSector ifNotNil: {
-            activeSector _ validateRenderingState: renderingDelta
+            activeSector _ validateRenderingState: alpha
         }.
     }.
 

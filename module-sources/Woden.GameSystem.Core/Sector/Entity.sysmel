@@ -173,8 +173,8 @@ class Entity superclass: Stdn SharedObject; definition: {
         transformChanged := true
     }.
 
-    virtual method validateRenderingState: (renderingDelta: Float32) ::=> Void := {
-        ## FIXME: use the rendering delta to perform and additional linear interpolation.
+    virtual method validateRenderingState: (alpha: Float32) ::=> Void := {
+        ## FIXME: use perform an additional linear interpolation.
         transformChanged ifTrue: {
             sceneNode ifNotNil: {
                 sceneNode _ transform: transform.

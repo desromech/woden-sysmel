@@ -129,7 +129,10 @@ class SceneView superclass: View; definition: {
     }.
 
     virtual method buildOverlayFPSDisplayWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+        let frameTime := self engine _ lastFrameTime.
         let frameTimeString := Stdn String textStreamContents: {:out :: Void |
+            out << "Frame time " << (frameTime * 1000.0f) << " ms "; nl.
+            out << "FPS " << (1.0 / frameTime); nl.
             out << "Preparation time " << (framePreparationTime * 1000.0f) << " ms "; nl.
             out << "3D CMDLIST time " << (commandListConstructionTime* 1000.0f) << " ms "; nl.
             out << "Rendered objects: " << lastFrameVisibleObjectCount; nl.

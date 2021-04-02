@@ -54,7 +54,17 @@ class Engine superclass: Stdn SharedObject; definition: {
         }.
     }.
 
+    public field vsyncDisabled type: Boolean8.
+
     method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        arguments do: {:arg :: Void |
+            (arg until: Stdn cstrlen(arg)) selectCase: #{
+                "-no-vsync" : {
+                    vsyncDisabled := true.
+                }.
+                _ : {}
+            }.
+        }.
         true
     }.
 
@@ -64,8 +74,6 @@ class Engine superclass: Stdn SharedObject; definition: {
     method initializeEngine => Boolean8 := {
         windowSystem := createDefaultWindowSystem().
         windowSystem ifNil: { return: false }.
-
-        windowSystem _ targetFrameRate: 60.
 
         renderingDevice := RenderingDriverRegistry defaultDriver _ getMainDevice.
         renderingDevice ifNil: {return: false }.
@@ -141,7 +149,13 @@ class Engine superclass: Stdn SharedObject; definition: {
         pendingCommandLists removeAll.
     }.
 
+    field lastFrameTime type: Float32.
+    method lastFrameTime => Float32
+        := lastFrameTime.
+
     method onTickEvent: (event: TickEvent ref) ::=> Void := {
+        lastFrameTime := event deltaSeconds castTo: Float32.
+
         let thisFrameProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
         let thisFrameRenderingProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
         pendingCommandLists removeAll.

@@ -27,12 +27,11 @@ class SampleSceneView superclass: SceneView; definition: {
         super prepareViewCamera.
     }.
 
-    ##override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
-    override method onTickEvent: (event: TickEvent ref) ::=> Void := {
+    override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         let camera := self camera.
         camera ifNil: {return: void}.
 
-        let delta := event deterministicDeltaSeconds castTo: Float32.
+        let delta := event deltaSeconds castTo: Float32.
 
         cameraAngularVelocity = 0 ifFalse: {
             cameraAngle := cameraAngle + (cameraAngularVelocity normalized)*delta / Float32 pi *2.0f.

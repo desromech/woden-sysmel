@@ -7,6 +7,12 @@ useNamespace: Stdn Graphics GUI.
 
 class GameApplicationModel superclass: SceneModel; definition: {
     field globalGameState type: GlobalGameStatePtr.
+    field accumulatedTime type: Float32.
+    field updateTimeStep type: Float32.
+
+    override method initialize => Void := {
+        updateTimeStep := 1.0f / 60.0f.
+    }.
 
     method globalGameState => GlobalGameStatePtr const ref
         := globalGameState.
@@ -33,13 +39,15 @@ class GameApplicationModel superclass: SceneModel; definition: {
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         globalGameState ifNotNil: {
             ## Update the game state in deterministic steps.
-            let deterministicDelta := event deterministicDeltaSeconds castTo: Float32.
-            0 until: event deterministicFrameCount do: {:i :: Void |
-                globalGameState _ update: deterministicDelta.
+            let deltaSeconds := (event deltaSeconds castTo: Float32) min: 2.0f.
+            accumulatedTime := accumulatedTime + deltaSeconds.
+            while: accumulatedTime >= updateTimeStep do: {
+                globalGameState _ update: updateTimeStep.
+                accumulatedTime := accumulatedTime - updateTimeStep.
             }.
 
             ## Validate and interpolate the rendering state using the remaining delta.
-            globalGameState _ validateRenderingState: (event deterministicRemainingDeltaSeconds castTo: Float32).
+            globalGameState _ validateRenderingState: accumulatedTime / updateTimeStep.
         }.
 
         super onStartFrameTick: event.
