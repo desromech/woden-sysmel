@@ -93,7 +93,9 @@ class Model superclass: RenderingProcess; definition: {
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         views do: {:each :: Void |
-            each _ onStartFrameTick: event.
+            each _
+                timeSinceLastFrame: (event deltaSeconds castTo: Float32);
+                onStartFrameTick: event.
         }
     }.
 

@@ -7,6 +7,8 @@ useNamespace: Stdn Graphics Core.
  * An abstract pipeline for rendering a scene.
  *#
 class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
+    public field timeSinceLastFrame type: Float32.
+
     protected field camera type: CameraPtr.
     protected field scene type: ScenePtr.
     protected field stereoPresentationMode type: StereoPresentationMode.

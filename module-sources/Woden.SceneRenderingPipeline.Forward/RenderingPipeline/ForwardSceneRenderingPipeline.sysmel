@@ -9,9 +9,8 @@ useNamespace: Stdn Math Geometry.
  * An abstract pipeline for rendering a null scene.
  *#
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
-    compileTime constant DefaultShadowMapTextureSize := 2048.
     compileTime constant ShadowMapTextureLayers := 8u.
-
+    
     public field shaderSignature type: ShaderSignaturePtr.
     protected field sampler type: SamplerPtr.
     protected field cubeMapSampler type: SamplerPtr.
@@ -31,6 +30,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     public field luminanceComputationMaterialBindings type: (ShaderResourceBindingsPtr array: LuminanceComputationTextureCount).
 
     protected field shadowMapSampler type: SamplerPtr.
+    protected field shadowMapTextureSize type: UInt32.
     public field shadowMapTexture type: TexturePtr.
     public field shadowMapTextureView type: TextureViewPtr.
     public field shadowMapRenderPass type: RenderPassPtr.
@@ -39,11 +39,12 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     method luminanceComputationResultMaterialBindings => ShaderResourceBindingsPtr const ref
         := luminanceComputationMaterialBindings[LuminanceComputationTextureCount - 1].
 
+
     const inline method shadowMapTextureSize => UInt32
-        := DefaultShadowMapTextureSize.
+        := shadowMapTextureSize.
 
     const inline method shadowMapTextureExtent => UInt32x2
-        := UInt32x2(DefaultShadowMapTextureSize, DefaultShadowMapTextureSize).
+        := UInt32x2(shadowMapTextureSize, shadowMapTextureSize).
 
     override method defaultClearDepth => Float32
         := 0.0f.
@@ -52,6 +53,8 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
         super initializeForEngine: anEngine.
 
         let device := anEngine _ renderingDevice.
+        let renderingSettings ref := anEngine _ renderingSettings.
+        shadowMapTextureSize := renderingSettings shadowMapSize max: 256.
 
         ## Get or create the shader signature.
         {
@@ -125,12 +128,18 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
 
         ## Create the sampling state binding.
         {
+            let anisotropy := renderingSettings maxAnisotropy max: 1u.
+            let anisotropicFilter := anisotropy > 1
+                ifTrue: (TextureFilter Anisotropic)
+                ifFalse: (TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear).
+
             sampler := device _ createSampler: (SamplerDescription()
-                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear;
+                filter: anisotropicFilter;
                 addressU: TextureAddressMode Wrap;
                 addressV: TextureAddressMode Wrap;
                 addressW: TextureAddressMode Wrap;
                 maxLod: 10000.0f;
+                maxAnisotropy: anisotropy;
                 yourself).
 
             samplingStateBinding := shaderSignature _ createShaderResourceBindings: 0.
@@ -150,10 +159,11 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             samplingStateBinding _ bindOn: 3 sampler: shadowMapSampler.
 
             cubeMapSampler := device _ createSampler: (SamplerDescription()
-                filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear;
+                filter: anisotropicFilter;
                 addressU: TextureAddressMode Border;
                 addressV: TextureAddressMode Border;
                 addressW: TextureAddressMode Border;
+                maxAnisotropy: anisotropy;
                 yourself).
             samplingStateBinding _ bindOn: 4 sampler: cubeMapSampler.
 

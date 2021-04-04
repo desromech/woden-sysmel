@@ -49,7 +49,6 @@ class ToneMappingMaterialShaders superclass: CompositionMaterialShaders; definit
 		let currentAverageLuminance := self cameraPostProcessingState currentAverageLuminance.
 
 		## https://placeholderart.wordpress.com/2014/12/15/implementing-a-physically-based-camera-automatic-exposure/
-		## FIXME: Use the actual time since the last frame here.
 		let newAverageLuminance := currentAverageLuminance + (sceneAverageLuminance - currentAverageLuminance) * (1.0f - (self cameraState currentFrameDeltaTime negated) exp).
 		self cameraPostProcessingState currentAverageLuminance := newAverageLuminance clampMin: 0.04f max: 200.0f.
     }.

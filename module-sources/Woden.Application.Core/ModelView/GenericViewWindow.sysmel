@@ -33,6 +33,8 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     ## For displaying we only need a swap chain with the color buffer, by default.
     method createSwapChainWithExtent: (newExtent: UInt32x2) ::=> Void := {
         let device := self engine _ renderingDevice.
+        let renderingSettings ref := self engine _ renderingSettings.
+        window _ vsyncDisabled: renderingSettings vsyncEnabled not.
 
         let swapChainCreationInfo mutable := SwapChainCreationInfo()
             colorBufferFormat: self colorBufferFormat;
@@ -53,14 +55,15 @@ class GenericViewWindow superclass: ViewWindow; definition: {
             return: false.
         }.
 
-        let initialExtent := Int32x2(864, 486).
+        let renderingSettings ref := self engine _ renderingSettings.
 
         window := self engine _ windowSystem _ createWindow: (WindowCreationInfo()
 			resizable: true;
-			extent: initialExtent;
+			extent: (renderingSettings resolution castTo: Int32x2);
 			title: "Test Window" asMutableString;
+            fullscreen: renderingSettings fullscreen;
             animated: true;
-            vsyncDisabled: self engine _ vsyncDisabled;
+            vsyncDisabled: renderingSettings vsyncEnabled not;
 			yourself).
 	    window ifNil: {
 	        return: false.

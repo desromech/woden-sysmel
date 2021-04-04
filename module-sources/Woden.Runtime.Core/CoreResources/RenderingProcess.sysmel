@@ -12,6 +12,10 @@ class RenderingProcess superclass: Stdn SharedObject; definition: {
     const virtual method needsToRender => Boolean8
         := false.
 
+    virtual method onEngineRenderingSettingsChanged: (newRenderingSettings: EngineRenderingSettings const ref) ::=> Void := {
+
+    }.
+    
     virtual method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
 
     }.

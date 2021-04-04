@@ -54,19 +54,19 @@ class Engine superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    public field vsyncDisabled type: Boolean8.
+    protected field renderingSettings type: EngineRenderingSettings.
+    protected field renderingSettingsChanged type: Boolean8.
 
-    method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
-        arguments do: {:arg :: Void |
-            (arg until: Stdn cstrlen(arg)) selectCase: #{
-                "-no-vsync" : {
-                    vsyncDisabled := true.
-                }.
-                _ : {}
-            }.
-        }.
-        true
+    method renderingSettings => EngineRenderingSettings const ref
+        := renderingSettings.
+
+    method renderingSettings: (newSettings: EngineRenderingSettings const ref) ::=> Void := {
+        renderingSettings := newSettings.
+        renderingSettingsChanged = true.
     }.
+
+    method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8
+        := renderingSettings parseFromCommandLine: arguments.
 
     method initializeEngineWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8
         := (self parseCommandLine: arguments) && self initializeEngine.
@@ -171,6 +171,14 @@ class Engine superclass: Stdn SharedObject; definition: {
             }
         }.
 
+        ## Notify the process about a settings change.
+        renderingSettingsChanged ifTrue: {
+            thisFrameProcesses do: {:each :: Void |
+                each _ onEngineRenderingSettingsChanged: renderingSettings
+            }.
+            renderingSettingsChanged := false.
+        }.
+
         ## Send the tick event to the rendering processes.
         thisFrameProcesses do: {:each :: Void |
             each _ onStartFrameTick: event
@@ -186,11 +194,6 @@ class Engine superclass: Stdn SharedObject; definition: {
 
         thisFrameRenderingProcesses ifEmpty: {
             return: void
-        }.
-
-        let fence ref := syncronizationFences[frameBufferingIndex].
-        fence ifNotNil: {
-            fence _ wait
         }.
 
         ## First phase: prepare rendering.
@@ -211,14 +214,32 @@ class Engine superclass: Stdn SharedObject; definition: {
             each _ commitSurfaces.
         }.
 
+        ## Rendering queue synchronization.
+        self
+            signalThisFrameFence;
+            advanceSynchronizationFrame;
+            waitThisFrameFence.
+    }.
+
+    method signalThisFrameFence => Void := {
+        let fence ref := syncronizationFences[frameBufferingIndex].
         fence ifNil: {
             fence := renderingDevice _ createFence
         }.
-
         fence ifNotNil: {
             renderingDevice _ getDefaultCommandQueue _ signalFence: fence
         }.
+    }.
+
+    method advanceSynchronizationFrame => Void := {
         frameBufferingIndex := (frameBufferingIndex + 1) % FrameBufferingCount.
+    }.
+
+    method waitThisFrameFence => Void := {
+        let fence ref := syncronizationFences[frameBufferingIndex].
+        fence ifNotNil: {
+            fence _ wait
+        }.
     }.
 }.
 

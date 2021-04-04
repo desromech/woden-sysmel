@@ -1,0 +1,88 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * Engine rendering settings.
+ *#
+struct EngineRenderingSettings definition: {
+    public field vsyncEnabled type: Boolean8.
+    public field resolution type: UInt32x2.
+    public field fullscreen type: Boolean8.
+    public field multiSampleCount type: UInt32.
+    public field maxAnisotropy type: UInt32.
+    public field shadowMapSize type: UInt32.
+    public field screenSpaceAmbientOcclusionQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
+
+    method initialize => Void := {
+        vsyncEnabled := true.
+        resolution := UInt32x2(864, 486).
+        shadowMapSize := 2048.
+        screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting Low.
+        multiSampleCount := 4.
+        maxAnisotropy := 4.
+    }.
+
+    method parseFromCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+        for: (let i mutable type: UIntPointer := 0) while: (i < arguments size) do: {
+            (arguments[i] until: Stdn cstrlen(arguments[i])) selectCase: #{
+                "-no-vsync" : {
+                    vsyncEnabled := false.
+                }.
+                "-fullscreen" : {
+                    fullscreen := true.
+                }.
+                "-resolution" : {
+                    i + 2 >= arguments size ifTrue: {
+                        return: false
+                    }.
+
+                    i := i + 1.
+                    let width := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
+
+                    i := i + 1.
+                    let height := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
+                    resolution := UInt32x2(width, height)
+                }.
+                "-shadow-map-size" : {
+                    i + 1 >= arguments size ifTrue: {
+                        return: false
+                    }.
+
+                    i := i + 1.
+                    shadowMapSize := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
+                }.
+                "-msaa" : {
+                    i + 1 >= arguments size ifTrue: {
+                        return: false
+                    }.
+
+                    i := i + 1.
+                    multiSampleCount := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32 max: 1u.
+                }.
+                "-anisotropic-quality" : {
+                    i + 1 >= arguments size ifTrue: {
+                        return: false
+                    }.
+
+                    i := i + 1.
+                    maxAnisotropy := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32 max: 1u.
+                }.
+                "-ssao-quality" : {
+                    i + 1 >= arguments size ifTrue: {
+                        return: false
+                    }.
+
+                    i := i + 1.
+                    screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting fromString: (arguments[i] until: Stdn cstrlen(arguments[i])).
+                }.
+                _ : {}
+            }.
+
+        } continueWith: (i := i + 1).
+
+        true
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

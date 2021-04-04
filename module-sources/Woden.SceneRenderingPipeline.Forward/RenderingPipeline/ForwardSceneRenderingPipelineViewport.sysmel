@@ -24,6 +24,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     public field depthNormalFramebuffer type: FramebufferPtr.
     public field depthNormalRenderPass type: RenderPassPtr.
     public field depthBufferTextureView type: TextureViewPtr.
+    public field normalBufferTextureView type: TextureViewPtr.
+
+    public field ssaoQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
+    public field multiSampleCount type: UInt32.
 
     public field ssaoTextureExtent type: UInt32x2.
     public field ssaoTextureView type: TextureViewPtr.
@@ -62,7 +66,17 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     override method extent: (requiredExtent: UInt32x2) ::=> Void := {
-        currentExtent = requiredExtent && hdrColorFramebuffer isNotNil ifTrue: {return: void}.
+        let renderingSettings ref := self engine _ renderingSettings.
+
+        currentExtent = requiredExtent &&
+            hdrColorFramebuffer isNotNil &&
+            ssaoQuality = renderingSettings screenSpaceAmbientOcclusionQuality &&
+            multiSampleCount = renderingSettings multiSampleCount ifTrue: {
+            return: void
+        }.
+
+        ssaoQuality := renderingSettings screenSpaceAmbientOcclusionQuality.
+        multiSampleCount := renderingSettings multiSampleCount.
 
         let device := self engine _ renderingDevice.
         renderingCommandQueue ifNotNil: {
@@ -106,7 +120,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         depthBufferTextureViewDescription format: PixelFormat R32_Float.
         depthBufferTextureView := depthBuffer _ createView: depthBufferTextureViewDescription.
 
-        let normalBufferTextureView := normalBuffer _ getOrCreateFullView.
+        normalBufferTextureView := normalBuffer _ getOrCreateFullView.
 
         ## Create the depth normal framebuffer.
         {
@@ -130,78 +144,6 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
             depthNormalRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
-        }.
-
-        ssaoComputationBinding ifNil: {
-            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
-        }.
-        ssaoComputationBinding _
-            bindOn: 1 sampledTextureView: depthBufferTextureView;
-            bindOn: 2 sampledTextureView: normalBufferTextureView.
-
-        ## Create the SSAO computation framebuffer.
-        ssaoTextureExtent := requiredExtent / 2 max: UInt32x2(4, 4).
-        ##ssaoTextureExtent := requiredExtent max: UInt32x2(4, 4).
-        {
-            let ssaoTexture := device _ createTexture: (TextureDescription()
-                type: TextureType Texture2D;
-                width: ssaoTextureExtent x;
-                height: ssaoTextureExtent y;
-                depth: 1;
-                layers: 1;
-                miplevels: 1;
-                format: PixelFormat R8_UNorm;
-                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
-                mainUsageMode: TextureUsageMode Sampled;
-                heapType: MemoryHeapType DeviceLocal;
-                sampleCount: 1;
-                yourself).
-            ssaoTextureView := ssaoTexture _ getOrCreateFullView.
-
-            let colorAttachments mutable := TextureViewPtr array(ssaoTextureView).
-            ssaoFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
-        }.
-
-        {
-            let ssaoPingTexture := device _ createTexture: (TextureDescription()
-                type: TextureType Texture2D;
-                width: ssaoTextureExtent x;
-                height: ssaoTextureExtent y;
-                depth: 1;
-                layers: 1;
-                miplevels: 1;
-                format: PixelFormat R8_UNorm;
-                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
-                mainUsageMode: TextureUsageMode Sampled;
-                heapType: MemoryHeapType DeviceLocal;
-                sampleCount: 1;
-                yourself).
-            ssaoPingTextureView := ssaoPingTexture _ getOrCreateFullView.
-
-            let colorAttachments mutable := TextureViewPtr array(ssaoPingTextureView).
-            ssaoPingFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
-        }.
-
-        ssaoBlurPingBinding ifNil: {
-            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
-        }.
-        ssaoBlurPingBinding _ bindOn: 1 sampledTextureView: ssaoTextureView.
-
-        ssaoBlurPongBinding ifNil: {
-            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
-        }.
-        ssaoBlurPongBinding _ bindOn: 1 sampledTextureView: ssaoPingTextureView.
-
-        ssaoComputationRenderPass ifNil: {
-            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
-                RenderPassColorAttachmentDescription()
-                    format: PixelFormat R8_UNorm;
-                    beginAction: RenderPassAttachmentAction Keep;
-                    endAction: RenderPassAttachmentAction Keep;
-                    yourself
-            ).
-
-            ssaoComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
 
         ## Create the main hdr framebuffer.
@@ -228,6 +170,16 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
             hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
+        }.
+
+        ssaoFramebuffer reset.
+        ssaoTextureView reset.
+        ssaoPingFramebuffer reset.
+        ssaoPingTextureView reset.
+        ssaoQuality isDisabled ifTrue: {
+            ssaoTextureView := self engine _ resourceCache _ whiteTexture _ textureView.
+        } ifFalse: {
+            self createSSAOBuffersForExtent: requiredExtent.
         }.
 
         hdrColorRenderPass ifNil: {
@@ -317,6 +269,81 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         currentExtent := requiredExtent.
+    }.
+
+    method createSSAOBuffersForExtent: (framebufferExtent: UInt32x2) ::=> Void := {
+        let device ref := self engine _ renderingDevice.
+        
+        ssaoComputationBinding ifNil: {
+            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoComputationBinding _
+            bindOn: 1 sampledTextureView: depthBufferTextureView;
+            bindOn: 2 sampledTextureView: normalBufferTextureView.
+
+        ## Create the SSAO computation framebuffer.
+        ssaoTextureExtent := ssaoQuality computeTextureExtentForFramebufferExtent: framebufferExtent.
+        {
+            let ssaoTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: ssaoTextureExtent x;
+                height: ssaoTextureExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat R8_UNorm;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            ssaoTextureView := ssaoTexture _ getOrCreateFullView.
+
+            let colorAttachments mutable := TextureViewPtr array(ssaoTextureView).
+            ssaoFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        {
+            let ssaoPingTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: ssaoTextureExtent x;
+                height: ssaoTextureExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: PixelFormat R8_UNorm;
+                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+            ssaoPingTextureView := ssaoPingTexture _ getOrCreateFullView.
+
+            let colorAttachments mutable := TextureViewPtr array(ssaoPingTextureView).
+            ssaoPingFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        ssaoBlurPingBinding ifNil: {
+            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoBlurPingBinding _ bindOn: 1 sampledTextureView: ssaoTextureView.
+
+        ssaoBlurPongBinding ifNil: {
+            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        ssaoBlurPongBinding _ bindOn: 1 sampledTextureView: ssaoPingTextureView.
+
+        ssaoComputationRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat R8_UNorm;
+                    beginAction: RenderPassAttachmentAction Keep;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+
+            ssaoComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
     }.
 
     override method getLastFrameVisibleObjectCount => UIntPointer := {

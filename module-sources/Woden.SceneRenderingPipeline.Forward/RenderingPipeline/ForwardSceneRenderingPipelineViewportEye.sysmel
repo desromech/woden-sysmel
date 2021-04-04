@@ -137,7 +137,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 ifFalse: Float32x4(1.0f, -1.0f, 1.0f, 1.0f));
 
             currentTime: scene _ currentTime;
-            currentFrameDeltaTime: 1.0f/60.0f; ## TODO: Compute this properly
+            currentFrameDeltaTime: viewport _ timeSinceLastFrame;
 
             exposure: camera _ exposure;
             autoExposureInfluenceFactor: camera _ autoExposureInfluenceFactor;
@@ -177,14 +177,16 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     }.
 
     method uploadLightingState => Void := {
+        let ssaoTextureView := viewport _ ssaoTextureView.
+
         backgroundLayer
-            setSSAOTextureView: viewport _ ssaoTextureView;
+            setSSAOTextureView: ssaoTextureView;
             uploadLightingState.
         normalLayer
-            setSSAOTextureView: viewport _ ssaoTextureView;
+            setSSAOTextureView: ssaoTextureView;
             uploadLightingState.
         foregroundLayer
-            setSSAOTextureView: viewport _ ssaoTextureView;
+            setSSAOTextureView: ssaoTextureView;
             uploadLightingState.
     }.
 
@@ -533,6 +535,10 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     }.
 
     method computeScreenSpaceAmbientOcclusion => Void := {
+        viewport _ ssaoQuality isDisabled ifTrue: {
+            return: void.
+        }.
+
         let ssaoViewport := RectangleI32 min: Int32x2 zeros max: (viewport _ ssaoTextureExtent castTo: Int32x2).
         stateTracker _
             resetState;

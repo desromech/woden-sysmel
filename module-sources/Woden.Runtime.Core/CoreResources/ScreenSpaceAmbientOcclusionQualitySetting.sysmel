@@ -1,0 +1,49 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+#**
+ * Screen space ambient occlusion quality setting.
+ *#
+enum ScreenSpaceAmbientOcclusionQualitySetting valueType: UInt8; values: #{
+    Disabled:0.
+    Low:.
+    Middle:.
+    High:.
+}; definition: {
+    meta definition: {
+        method fromString: (string: Stdn ImmutableString) ::=> InstanceType  := {
+            string selectCase: #{
+            "disabled" : Disabled.
+            "low" : Low.
+            "mid" : Middle.
+            "middle" : Middle.
+            "high" : High.
+            _ : Disabled
+            }
+        }.
+    }.
+
+    method asString => Stdn ImmutableString := {
+        self selectCase: #{
+            Disabled : (return: "disabled").
+            Low : (return: "low").
+            Middle : (return: "middle").
+            High : (return: "high").
+        }
+    }.
+
+    method isDisabled => Boolean8
+        := self = Disabled.
+
+    method computeTextureExtentForFramebufferExtent: (framebufferExtent: UInt32x2) ::=> UInt32x2 := {
+        self selectCase: #{
+            Disabled : (UInt32x2 zeros).
+            Low : (framebufferExtent / 2 max: UInt32x2(4, 4)).
+            Middle : (framebufferExtent / UInt32x2(1, 2) max: UInt32x2(4, 4)).
+            High : (framebufferExtent max: UInt32x2(4, 4)).
+        }
+    }
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -10,6 +10,8 @@ useNamespace: Stdn Graphics GUI.
  * I am the model that lies underlying a Woden application.
  *#
 class View superclass: EventHandler; definition: {
+    public field timeSinceLastFrame type: Float32.
+    
     protected field model type: ModelPtr.
     protected field viewWindow type: ViewWindowPtr.
     protected field isSecondaryView type: Boolean8.
@@ -25,7 +27,7 @@ class View superclass: EventHandler; definition: {
 
     virtual method defaultClearStencil => UInt8
         := 0.
-        
+
     virtual method colorBufferFormat => PixelFormat
         := PixelFormat B8G8R8A8_UNormSRGB.
 

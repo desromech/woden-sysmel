@@ -1,3 +1,6 @@
+loadFileOnce: "ScreenSpaceAmbientOcclusionQualitySetting.sysmel".
+loadFileOnce: "EngineRenderingSettings.sysmel".
+
 loadFileOnce: "Engine.sysmel".
 loadFileOnce: "ResourceCache.sysmel".
 loadFileOnce: "RenderingProcess.sysmel".

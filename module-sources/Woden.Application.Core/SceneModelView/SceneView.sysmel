@@ -94,6 +94,7 @@ class SceneView superclass: View; definition: {
             currentBackBufferRightEye := viewWindow _ getCurrentBackBufferRightEye.
             self prepareViewCamera.
             sceneRenderingPipelineViewport _
+                timeSinceLastFrame: timeSinceLastFrame;
                 scene: self scene;
                 camera: self camera;
                 setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport _ scene2DBuilder);
