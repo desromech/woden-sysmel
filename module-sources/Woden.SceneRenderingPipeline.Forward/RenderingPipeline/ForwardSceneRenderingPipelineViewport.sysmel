@@ -23,7 +23,15 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
     public field depthNormalFramebuffer type: FramebufferPtr.
     public field depthNormalRenderPass type: RenderPassPtr.
-    public field depthBufferTextureView type: TextureViewPtr.
+
+    public field renderDepthBufferTextureView type: TextureViewPtr.
+    public field decodedDepthBufferTextureView type: TextureViewPtr.
+    public field decodeDepthFramebuffer type: FramebufferPtr.
+    public field decodeDepthRenderPass type: RenderPassPtr.
+    public field decodeDepthBinding type: ShaderResourceBindingsPtr.
+
+    public field renderNormalBufferTexture type: TexturePtr.
+    public field normalBufferTexture type: TexturePtr.
     public field normalBufferTextureView type: TextureViewPtr.
 
     public field ssaoQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
@@ -40,6 +48,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     public field ssaoBlurPongBinding type: ShaderResourceBindingsPtr.
 
     public field hdrColorFramebuffer type: FramebufferPtr.
+    public field renderHDRColorBuffer type: TexturePtr.
+    public field resolveHDRColorBuffer type: TexturePtr.
     public field hdrColorRenderPass type: RenderPassPtr.
     public field hdrColorBufferBinding type: ShaderResourceBindingsPtr.
 
@@ -71,21 +81,28 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         currentExtent = requiredExtent &&
             hdrColorFramebuffer isNotNil &&
             ssaoQuality = renderingSettings screenSpaceAmbientOcclusionQuality &&
-            multiSampleCount = renderingSettings multiSampleCount ifTrue: {
+            multiSampleCount = (renderingSettings multiSampleCount max: 1u) ifTrue: {
             return: void
         }.
 
         ssaoQuality := renderingSettings screenSpaceAmbientOcclusionQuality.
-        multiSampleCount := renderingSettings multiSampleCount.
 
         let device := self engine _ renderingDevice.
         renderingCommandQueue ifNotNil: {
             renderingCommandQueue _ waitForIdle
         }.
 
+        let newMultiSampleCount := renderingSettings multiSampleCount max: 1u.
+        multiSampleCount = newMultiSampleCount ifFalse: {
+            depthNormalRenderPass reset.
+            hdrColorRenderPass reset.
+        }.
+
+        multiSampleCount := newMultiSampleCount.
+
         hdrColorFramebuffer reset.
 
-        let depthBuffer := device _ createTexture: (TextureDescription()
+        let renderDepthBuffer := device _ createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: requiredExtent x;
             height: requiredExtent y;
@@ -96,42 +113,83 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             usageModes: TextureUsageMode Sampled | TextureUsageMode DepthAttachment;
             mainUsageMode: TextureUsageMode Sampled;
             heapType: MemoryHeapType DeviceLocal;
-            sampleCount: 1;
+            sampleCount: multiSampleCount;
             yourself).
-        let normalBuffer := device _ createTexture: (TextureDescription()
+        let decodedDepthBuffer := device _ createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: requiredExtent x;
             height: requiredExtent y;
             depth: 1;
             layers: 1;
             miplevels: 1;
-            format: PixelFormat R10G10B10A2_UNorm;
+            format: PixelFormat R32_Float;
             usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
             mainUsageMode: TextureUsageMode Sampled;
             heapType: MemoryHeapType DeviceLocal;
             sampleCount: 1;
             yourself).
 
-        let depthBufferAttachmentViewDescription  mutable := depthBuffer _ getFullViewDescription.
-        depthBufferAttachmentViewDescription format: PixelFormat D32_Float.
-        let depthBufferAttachmentView := depthBuffer _ createView: depthBufferAttachmentViewDescription.
+        ## We cannot use R10G10B10A2_UNorm for multi-sampled rendering.
+        let normalBufferFormat := PixelFormat R10G10B10A2_UNorm.
 
-        let depthBufferTextureViewDescription  mutable := depthBuffer _ getFullViewDescription.
-        depthBufferTextureViewDescription format: PixelFormat R32_Float.
-        depthBufferTextureView := depthBuffer _ createView: depthBufferTextureViewDescription.
+        renderNormalBufferTexture := device _ createTexture: (TextureDescription()
+            type: TextureType Texture2D;
+            width: requiredExtent x;
+            height: requiredExtent y;
+            depth: 1;
+            layers: 1;
+            miplevels: 1;
+            format: normalBufferFormat;
+            usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+            mainUsageMode: TextureUsageMode Sampled;
+            heapType: MemoryHeapType DeviceLocal;
+            sampleCount: multiSampleCount;
+            yourself).
+        normalBufferTexture := renderNormalBufferTexture.
+        multiSampleCount > 1u ifTrue: {
+            normalBufferTexture := device _ createTexture: (TextureDescription()
+                type: TextureType Texture2D;
+                width: requiredExtent x;
+                height: requiredExtent y;
+                depth: 1;
+                layers: 1;
+                miplevels: 1;
+                format: normalBufferFormat;
+                usageModes: TextureUsageMode Sampled;
+                mainUsageMode: TextureUsageMode Sampled;
+                heapType: MemoryHeapType DeviceLocal;
+                sampleCount: 1;
+                yourself).
+        }.
 
-        normalBufferTextureView := normalBuffer _ getOrCreateFullView.
+        let depthBufferAttachmentView := {
+            let depthBufferAttachmentViewDescription mutable := renderDepthBuffer _ getFullViewDescription.
+            depthBufferAttachmentViewDescription
+                format: PixelFormat D32_Float.
+            renderDepthBuffer _ createView: depthBufferAttachmentViewDescription
+        }.
+
+        {
+            let renderDepthBufferTextureViewDescription mutable := renderDepthBuffer _ getFullViewDescription.
+            renderDepthBufferTextureViewDescription format: PixelFormat R32_Float.
+            renderDepthBufferTextureView := renderDepthBuffer _ createView: renderDepthBufferTextureViewDescription.
+        }.
+
+        decodedDepthBufferTextureView := decodedDepthBuffer _ getOrCreateFullView.
+        normalBufferTextureView := normalBufferTexture _ getOrCreateFullView.
 
         ## Create the depth normal framebuffer.
         {
-            let colorAttachments mutable := TextureViewPtr array(normalBufferTextureView).
+            let renderNormalBufferTextureView := renderNormalBufferTexture _ getOrCreateFullView.
+            let colorAttachments mutable := TextureViewPtr array(renderNormalBufferTextureView).
             depthNormalFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
         depthNormalRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
-                    format: PixelFormat R10G10B10A2_UNorm;
+                    format: normalBufferFormat;
+                    sampleCount: multiSampleCount;
                     beginAction: RenderPassAttachmentAction Clear;
                     endAction: RenderPassAttachmentAction Keep;
                     clearValue: Float32x4(0.5f, 0.5f, 1.0f, 0.0f);
@@ -140,15 +198,39 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
                 format: PixelFormat D32_Float;
+                sampleCount: multiSampleCount;
                 beginAction: RenderPassAttachmentAction Clear;
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
             depthNormalRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
+        ## Create the decode framebuffer render pass.
+        {
+            let colorAttachments mutable := TextureViewPtr array(decodedDepthBufferTextureView).
+            decodeDepthFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+        }.
+
+        decodeDepthBinding ifNil: {
+            decodeDepthBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+        }.
+        decodeDepthBinding _
+            bindOn: 1 sampledTextureView: renderDepthBufferTextureView.
+
+        decodeDepthRenderPass ifNil: {
+            let colorAttachments mutable := RenderPassColorAttachmentDescription array (
+                RenderPassColorAttachmentDescription()
+                    format: PixelFormat R32_Float;
+                    beginAction: RenderPassAttachmentAction Discard;
+                    endAction: RenderPassAttachmentAction Keep;
+                    yourself
+            ).
+            decodeDepthRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+        }.
+
         ## Create the main hdr framebuffer.
         {
-            let colorBuffer := device _ createTexture: (TextureDescription()
+            renderHDRColorBuffer := device _ createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
                 height: requiredExtent y;
@@ -159,16 +241,33 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
                 mainUsageMode: TextureUsageMode Sampled;
                 heapType: MemoryHeapType DeviceLocal;
-                sampleCount: 1;
+                sampleCount: multiSampleCount;
                 yourself).
-            let colorBufferTextureView := colorBuffer _ getOrCreateFullView.
+            resolveHDRColorBuffer := renderHDRColorBuffer.
+            multiSampleCount > 1u ifTrue: {
+                resolveHDRColorBuffer := device _ createTexture: (TextureDescription()
+                    type: TextureType Texture2D;
+                    width: requiredExtent x;
+                    height: requiredExtent y;
+                    depth: 1;
+                    layers: 1;
+                    miplevels: 1;
+                    format: PixelFormat R16G16B16A16_Float;
+                    usageModes: TextureUsageMode Sampled;
+                    mainUsageMode: TextureUsageMode Sampled;
+                    heapType: MemoryHeapType DeviceLocal;
+                    sampleCount: 1;
+                    yourself).
+            }.
+
+            let renderColorBufferTextureView := renderHDRColorBuffer _ getOrCreateFullView.
 
             hdrColorBufferBinding ifNil: {
                 hdrColorBufferBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
             }.
-            hdrColorBufferBinding _ bindOn: 1 sampledTextureView: colorBuffer _ getOrCreateFullView.
+            hdrColorBufferBinding _ bindOn: 1 sampledTextureView: resolveHDRColorBuffer _ getOrCreateFullView.
 
-            let colorAttachments mutable := TextureViewPtr array(colorBufferTextureView).
+            let colorAttachments mutable := TextureViewPtr array(renderColorBufferTextureView).
             hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
@@ -186,6 +285,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
                     format: PixelFormat R16G16B16A16_Float;
+                    sampleCount: multiSampleCount;
                     beginAction: RenderPassAttachmentAction Clear;
                     endAction: RenderPassAttachmentAction Keep;
                     yourself
@@ -193,6 +293,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             let depthStencilAttachment mutable := RenderPassDepthStencilAttachmentDescription()
                 format: PixelFormat D32_Float;
+                sampleCount: multiSampleCount;
                 beginAction: RenderPassAttachmentAction Keep;
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
@@ -246,7 +347,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                     RenderPassColorAttachmentDescription()
                         format: sceneRenderingPipeline _ swapChainColorBufferFormat;
-                        beginAction: RenderPassAttachmentAction Keep;
+                        beginAction: RenderPassAttachmentAction Discard;
                         endAction: RenderPassAttachmentAction Keep;
                         yourself
                 ).
@@ -273,12 +374,12 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
     method createSSAOBuffersForExtent: (framebufferExtent: UInt32x2) ::=> Void := {
         let device ref := self engine _ renderingDevice.
-        
+
         ssaoComputationBinding ifNil: {
             ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
         }.
         ssaoComputationBinding _
-            bindOn: 1 sampledTextureView: depthBufferTextureView;
+            bindOn: 1 sampledTextureView: decodedDepthBufferTextureView;
             bindOn: 2 sampledTextureView: normalBufferTextureView.
 
         ## Create the SSAO computation framebuffer.
@@ -337,7 +438,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
                     format: PixelFormat R8_UNorm;
-                    beginAction: RenderPassAttachmentAction Keep;
+                    beginAction: RenderPassAttachmentAction Discard;
                     endAction: RenderPassAttachmentAction Keep;
                     yourself
             ).

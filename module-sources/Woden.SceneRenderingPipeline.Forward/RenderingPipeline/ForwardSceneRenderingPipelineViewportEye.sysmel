@@ -534,10 +534,48 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             endRenderPass.
     }.
 
+    method decodeDepthBuffer => Void := {
+        let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (viewport _ currentExtent castTo: Int32x2).
+        stateTracker _
+            resetState;
+
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: normalLayer cameraStateBindings current;
+            useGraphicShaderBindings: viewport _ decodeDepthBinding;
+
+            beginRenderPass: viewport _ decodeDepthRenderPass on: viewport _ decodeDepthFramebuffer contentOnBundle: false;
+            setViewport: viewportRectangle;
+            setScissor: viewportRectangle;
+
+            vertexShader: viewport _ screenQuadShader;
+            fragmentShader: (viewport _ multiSampleCount > 1u
+                ifTrue: Woden Shaders DepthBufferComputationMaterial decodeDepthBufferMS shaderEntryPointInfo address
+                ifFalse: Woden Shaders DepthBufferComputationMaterial decodeDepthBuffer  shaderEntryPointInfo address);
+            primitiveTopology: PrimitiveTopology Triangles;
+            drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+
+            endRenderPass.
+    }.
+
+    method resolveNormalBuffer => Void := {
+        viewport _ renderNormalBufferTexture = viewport _ normalBufferTexture ifFalse: {
+            stateTracker _
+                resolveTexture: viewport _ renderNormalBufferTexture level: 0 layer: 0
+                    into: viewport _ normalBufferTexture level: 0 layer: 0
+                    levelCount: 1 layerCount: 1
+                    aspect: TextureAspect Color
+        }.
+    }.
+
     method computeScreenSpaceAmbientOcclusion => Void := {
         viewport _ ssaoQuality isDisabled ifTrue: {
             return: void.
         }.
+
+        self
+            decodeDepthBuffer;
+            resolveNormalBuffer.
 
         let ssaoViewport := RectangleI32 min: Int32x2 zeros max: (viewport _ ssaoTextureExtent castTo: Int32x2).
         stateTracker _
@@ -600,6 +638,14 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         stateTracker _
             endRenderPass.
+
+        viewport _ renderHDRColorBuffer = viewport _ resolveHDRColorBuffer ifFalse: {
+            stateTracker _
+                resolveTexture: viewport _ renderHDRColorBuffer level: 0 layer: 0
+                    into: viewport _ resolveHDRColorBuffer level: 0 layer: 0
+                    levelCount: 1 layerCount: 1
+                    aspect: TextureAspect Color
+        }.
     }.
 
     method getLastFrameVisibleObjectCount => UIntPointer := {

@@ -1,0 +1,38 @@
+namespace Woden definition: {
+namespace Shaders definition: {
+
+
+class DepthBufferComputationMaterial superclass: CompositionMaterialShaders; definition: {
+    macro method depthTexture := ``(`,self materialStateBinding _ texture0).
+	macro method depthTextureMS := ``(`,self materialStateBinding _ textureMS0).
+
+    class FragmentOutput definition: {
+        public field color0 type: Float32x4; location: 0.
+    }.
+
+    function decodeDepthBuffer fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let uv := in receive texcoord.
+		let depth := (self deferredSampler sample: self depthTexture at: uv lod: 0.0f) r.
+
+		## TODO: Decode the non-linear depth, into a linear depth.
+
+        out send: (FragmentOutput()
+            color0: depth;
+            yourself)
+    }.
+
+	function decodeDepthBufferMS fragmentShader(in: VertexIO inputChannel, out: FragmentOutput outputChannel) => Void := {
+		let uv := in receive texcoord.
+		let texelCoord := uv * (self depthTextureMS extent castTo: Float32x2) castTo: UInt32x2.
+		let depth := (self depthTextureMS fetchTexel: texelCoord sample: 0u) r.
+
+		## TODO: Decode the non-linear depth, into a linear depth.
+
+        out send: (FragmentOutput()
+            color0: depth;
+            yourself)
+    }.
+}.
+
+}. ## End of namespace Shaders
+}. ## End of namespace Woden

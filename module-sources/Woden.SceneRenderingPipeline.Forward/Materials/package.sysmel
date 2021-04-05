@@ -4,6 +4,7 @@ loadFileOnce: "SkyMaterial.sysmel".
 loadFileOnce: "UnlitMaterial.sysmel".
 
 loadFileOnce: "CompositionMaterial.sysmel".
+loadFileOnce: "DepthBufferComputationMaterial.sysmel".
 loadFileOnce: "SSAOComputationMaterial.sysmel".
 loadFileOnce: "ToneMappingMaterial.sysmel".
 loadFileOnce: "StereoscopicCompositionMaterial.sysmel".
