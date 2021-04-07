@@ -6,6 +6,12 @@ useNamespace: Stdn Graphics GUI.
 
 class SampleSceneModel superclass: SceneModel; definition: {
     field animationScheduler type: AnimationSchedulerPtr.
+    field accumulatedTime type: Float32.
+    field updateTimeStep type: Float32.
+
+    override method initialize => Void := {
+        updateTimeStep := 1.0f / 60.0f.
+    }.
 
     const inline method animationScheduler => AnimationSchedulerPtr const ref
         := animationScheduler.
@@ -19,7 +25,14 @@ class SampleSceneModel superclass: SceneModel; definition: {
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         super onStartFrameTick: event.
 
-        animationScheduler _ update: (event deltaSeconds castTo: Float32)
+        accumulatedTime := accumulatedTime + (event deltaSeconds castTo: Float32).
+        while: accumulatedTime >= updateTimeStep do: {
+            animationScheduler _ update: (event deltaSeconds castTo: Float32).
+            accumulatedTime := accumulatedTime - updateTimeStep
+        }.
+
+        ## Validate and interpolate the rendering state using the remaining delta.
+        animationScheduler _ applyInterpolationForRendering: accumulatedTime / updateTimeStep.
     }.
 
     override method createNewView => ViewPtr

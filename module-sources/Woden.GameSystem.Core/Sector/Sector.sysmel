@@ -60,7 +60,8 @@ class Sector superclass: Stdn SharedObject; definition: {
     method spawnEntity: (entity: EntityPtr const ref) ::=> Void := {
         entity _
             parentSector: self address;
-            spawn.
+            spawn;
+            storeOldRenderingStateForInterpolation.
         entity _ isMetadata ifTrue: {
             metadataEntities add: entity.
         }.
@@ -78,7 +79,9 @@ class Sector superclass: Stdn SharedObject; definition: {
         }.
 
         scene ifNotNil: {
-            entity _ addToScene: scene
+            entity _
+                applyInterpolationForRendering: 0;
+                addToScene: scene
         }.
     }.
 
@@ -104,6 +107,11 @@ class Sector superclass: Stdn SharedObject; definition: {
     }.
 
     method update: (delta: Float32) ::=> Void := {
+        ## Store the old rendering state.
+        aliveEntities do: {:each :: Void |
+            each _ storeOldRenderingStateForInterpolation.
+        }.
+
         ## Physics
         {
             physicalEntities do: {:each :: Void |
@@ -140,10 +148,10 @@ class Sector superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    method validateRenderingState: (alpha: Float32) ::=> Void := {
+    method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
         aliveEntities do: {:each :: Void |
             each _ isAlive ifTrue: {
-                each _ validateRenderingState: alpha.
+                each _ applyInterpolationForRendering: alpha.
             }
         }.
     }.

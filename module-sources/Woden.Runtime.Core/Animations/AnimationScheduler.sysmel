@@ -19,6 +19,12 @@ class AnimationScheduler superclass: Stdn SharedObject; definition: {
             }
         }.
     }.
+
+    method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
+        activeAnimations do: {:each :: Void |
+            each _ applyInterpolationForRendering: alpha
+        }
+    }.
 }.
 
 compileTime constant AnimationSchedulerPtr := AnimationScheduler sharedPointer.

@@ -5,6 +5,9 @@ class Animation superclass: Stdn SharedObject; definition: {
     virtual method update: (time: Float32) withState: (state: AnimationState ref) ::=> Boolean8
         := false.
 
+    virtual method applyInterpolationForRendering: (alpha: Float32) withState: (state: AnimationState ref) ::=> Void
+        := void.
+
     virtual method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState sharedPointer := {
         let result := AnimationState sharedNew.
         result _

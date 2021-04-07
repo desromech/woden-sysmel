@@ -11,7 +11,9 @@ class AnimationState superclass: Stdn SharedObject; definition: {
     const inline method target => AnimationTargetPtr const ref
         := target.
 
+    public field previousTime type: Float32.
     public field currentTime type: Float32.
+    public field currentNonLoopedTime type: Float32. ## Non looped animation. Use for linear interpolation.
     public field isLooped type: Boolean8.
 
     virtual method initializeWithAnimation: (theAnimation: AnimationPtr) target: (theTarget: AnimationTargetPtr const ref)::=> Void := {
@@ -25,9 +27,16 @@ class AnimationState superclass: Stdn SharedObject; definition: {
     virtual method update: (deltaTime: Float32) ::=> Boolean8 := {
         animation ifNil: {return: false}.
 
-        currentTime := currentTime + deltaTime.
+        previousTime := currentTime.
+        currentNonLoopedTime := currentTime := currentTime + deltaTime.
         animation _ update: deltaTime withState: self
-    }
+    }.
+
+    virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
+        animation ifNotNil: {
+            animation _ applyInterpolationForRendering: alpha withState: self
+        }.
+    }.
 }.
 
 compileTime constant AnimationStatePtr := AnimationState sharedPointer.

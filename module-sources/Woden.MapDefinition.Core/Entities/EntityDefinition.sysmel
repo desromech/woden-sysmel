@@ -2,20 +2,38 @@ namespace Woden definition: {
 namespace MapDefinition definition: {
 
 useNamespace: Stdn Math.
+useNamespace: Stdn Math LinearAlgebra.
 useNamespace: Stdn Math Geometry.
 
 class EntityDefinition superclass: LevelElementDefinition; definition: {
     public field className type: Stdn String.
-    public field position type: Float32x3.
-    public field orientation type: QuaternionF32.
+    public field transform type: DecomposedTransform3dF32.
     public field localBoundingBox type: BoxF32.
     public field components type: Stdn Collections Vector(EntityComponentDefinitionPtr).
     public field is2DEntity type: Boolean8.
 
+    const inline method position => Float32x3
+        := transform translation.
+
+    inline method position: (position: Float32x3) ::=> Void
+        := transform translation: position.
+
+    const inline method orientation => QuaternionF32
+        := transform rotation.
+
+    inline method orientation: (orientation: QuaternionF32) ::=> Void
+        := transform rotation: orientation.
+
+    const inline method scale => Float32x3
+        := transform scale.
+
+    inline method scale: (scale: Float32x3) ::=> Void
+        := transform translation: scale.
+
     method positionForLayer: (layer: SectorLayerDefinition sharedPointer const ref) ::=> Float32x3 := {
         is2DEntity
-            ifTrue: {Float32x3(position xy, layer _ defaultZ)}
-            ifFalse: {position}
+            ifTrue: {Float32x3(self position xy, layer _ defaultZ)}
+            ifFalse: {self position}
     }.
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void

@@ -28,9 +28,10 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    method validateRenderingState: (alpha: Float32) ::=> Void := {
+    virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
+        animationScheduler _ applyInterpolationForRendering: alpha.
         activeSector ifNotNil: {
-            activeSector _ validateRenderingState: alpha
+            activeSector _ applyInterpolationForRendering: alpha
         }.
     }.
 

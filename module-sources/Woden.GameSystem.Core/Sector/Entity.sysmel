@@ -13,9 +13,9 @@ class Entity superclass: Stdn SharedObject; definition: {
     public field className type: Stdn String.
     public field name type: Stdn String.
 
-    field orientation type: QuaternionF32.
-    field transform type: ReversibleAffineTransform3dF32.
-    field transformChanged type: Boolean8.
+    field previousTransform type: DecomposedTransform3dF32.
+    field transform type: DecomposedTransform3dF32.
+    field renderTransform type: ReversibleAffineTransform3dF32.
 
     public field localBoundingBox type: BoxF32.
     public field collisionObject type: CollisionObjectPtr.
@@ -27,11 +27,6 @@ class Entity superclass: Stdn SharedObject; definition: {
             := ``(global Factory mutable type: EntityFactory(SelfType, `,className))
     }.
 
-    override method initialize => Void := {
-        orientation := QuaternionF32 identity.
-        transform := ReversibleAffineTransform3dF32 identity.
-    }.
-
     virtual method postLoadInitialization => Void := {
         ## This is a place to initialize parameters and ignore there values after loading from a definition.
     }.
@@ -39,8 +34,8 @@ class Entity superclass: Stdn SharedObject; definition: {
     const inline method isInSector2D => Boolean8
         := parentSector isNotNil && parentSector _ isSector2D.
 
-    method boundingBox => BoxF32 :=
-        localBoundingBox transformedWith: transform.
+    method boundingBox => BoxF32
+        := localBoundingBox transformedWith: transform asReversibleAffineTransform3d.
 
     method engine => EnginePtr
         := parentSector ifNil: {EnginePtr nil} ifNotNil: {parentSector _ engine}.
@@ -54,8 +49,9 @@ class Entity superclass: Stdn SharedObject; definition: {
         className := definition _ className asArraySlice.
         name := definition _ name.
         self
-            position: (definition _ positionForLayer: layerDefinition);
-            orientation: definition _ orientation.
+            scale: definition _ scale;
+            orientation: definition _ orientation;
+            position: (definition _ positionForLayer: layerDefinition).
         localBoundingBox := definition _ localBoundingBox.
         localBoundingBox depth = 0 ifTrue: {
             localBoundingBox min z: layerDefinition _ layerMinZ.
@@ -144,42 +140,46 @@ class Entity superclass: Stdn SharedObject; definition: {
 
     virtual method createSceneNode ::=> Void := {
         visualComponent ifNil: {return: void}.
-        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: transform.
-        self transformChanged.
+        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: renderTransform.
+    }.
+
+    const inline method transform => DecomposedTransform3dF32 const ref
+        := transform.
+
+    inline method transform: (aTransform: DecomposedTransform3dF32 const ref) ::=> Void := {
+        transform := aTransform.
+    }.
+
+    const inline method scale => Float32x3
+        := transform scale.
+
+    inline method scale: (aPosition: Float32x3) ::=> Void := {
+        transform scale: aPosition.
     }.
 
     const inline method position => Float32x3
         := transform translation.
 
     inline method position: (aPosition: Float32x3) ::=> Void := {
-        aPosition = transform translation ifFalse: {
-            transform translation: aPosition.
-            self transformChanged.
-        }.
+        transform translation: aPosition.
     }.
 
     const inline method orientation => QuaternionF32
-        := orientation.
+        := transform rotation.
 
     inline method orientation: (newOrientation: QuaternionF32) ::=> Void := {
-        orientation = newOrientation ifFalse: {
-            orientation := newOrientation.
-            transform orthonormal: orientation asMatrix3x3.
-            self transformChanged.
-        }.
+        transform rotation: newOrientation
     }.
 
-    inline method transformChanged => Void := {
-        transformChanged := true
+    virtual method storeOldRenderingStateForInterpolation => Void := {
+        previousTransform := transform.
     }.
 
-    virtual method validateRenderingState: (alpha: Float32) ::=> Void := {
-        ## FIXME: use perform an additional linear interpolation.
-        transformChanged ifTrue: {
-            sceneNode ifNotNil: {
-                sceneNode _ transform: transform.
-            }.
-            transformChanged := false.
+    virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
+        let interpolatedTransform := previousTransform interpolateTo: transform at: alpha.
+        renderTransform := interpolatedTransform asReversibleAffineTransform3d.
+        sceneNode ifNotNil: {
+            sceneNode _ transform: renderTransform.
         }.
     }.
 

@@ -47,7 +47,7 @@ class GameApplicationModel superclass: SceneModel; definition: {
             }.
 
             ## Validate and interpolate the rendering state using the remaining delta.
-            globalGameState _ validateRenderingState: accumulatedTime / updateTimeStep.
+            globalGameState _ applyInterpolationForRendering: accumulatedTime / updateTimeStep.
         }.
 
         super onStartFrameTick: event.

@@ -162,8 +162,10 @@ EntityDefinition extend: {
         super loadFromDOM: domObject context: context.
 
         className := domObject getString: "className" asMutableString default: "" asMutableString.
-        position := domObject getFloat32x3: "position" asMutableString default: 0.
-        orientation := QuaternionF32 xyzw: (domObject getFloat32x4: "orientation" asMutableString default: Float32x4(0, 0, 0, 1)).
+        self
+            scale: (domObject getFloat32x3: "scale" asMutableString default: 1);
+            orientation: (QuaternionF32 xyzw: (domObject getFloat32x4: "orientation" asMutableString default: Float32x4(0, 0, 0, 1)));
+            position: (domObject getFloat32x3: "position" asMutableString default: 0);
         is2DEntity := (domObject getString: "dimensions" asMutableString default: "" asMutableString) asArraySlice = "2D".
 
         domObject at: "localBoundingBox" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
