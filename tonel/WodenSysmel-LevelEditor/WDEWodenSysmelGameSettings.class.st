@@ -49,7 +49,7 @@ WDEWodenSysmelGameSettings >> playLevelInSession: levelSession [
 	levelSession saveTemporaryJSONEncodedTo: destFile.
 	workingDirectory := self levelPlayer parent asAbsolute canonicalize fullName.
 	
-	commandFormat := 'cd "{1}" && "{2}" "{3}"'.
+	commandFormat := 'cd "{1}" && "{2}" "{3}" &'.
 	Smalltalk platform isLinux ifTrue: [
 		commandFormat := 'unset LD_LIBRARY_PATH &&' , commandFormat
 	].
