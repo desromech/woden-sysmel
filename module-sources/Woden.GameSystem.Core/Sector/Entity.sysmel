@@ -140,7 +140,7 @@ class Entity superclass: Stdn SharedObject; definition: {
 
     virtual method createSceneNode ::=> Void := {
         visualComponent ifNil: {return: void}.
-        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: renderTransform.
+        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: transform asReversibleAffineTransform3d.
     }.
 
     const inline method transform => DecomposedTransform3dF32 const ref
