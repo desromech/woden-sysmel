@@ -5,14 +5,12 @@ useNamespace: Stdn Math Geometry.
 useNamespace: Stdn Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
-class BoxVisualComponent superclass: VisualComponent2d; definition: {
+class BoxVisualComponent superclass: VisualComponent; definition: {
     public field box type: BoxF32.
-    public field material type: MaterialDefinitionPtr.
-    public field textureScale type: Float32x2.
-    public field textureOffset type: Float32x2.
+    public field materialAttributes type: FaceMaterialAttributes.
 
-    override method initialize => Void := {
-        textureScale := Float32x2 ones.
+    method material: (material: MaterialDefinitionPtr const ref) ::=> Void := {
+        materialAttributes material: material
     }.
 
     override method boundingBox => BoxF32
@@ -23,20 +21,20 @@ class BoxVisualComponent superclass: VisualComponent2d; definition: {
     method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
         renderable ifNotNil: {return: renderable}.
 
-        material ifNil: {
+        materialAttributes material ifNil: {
             renderable := engine _ resourceCache _ unitCubeRenderable.
             return: renderable
         }.
 
         let meshBuilder := engine _ newGenericMeshBuilder.
         meshBuilder _
-            currentMaterial: (material _ getOrCreateMaterialFor: engine);
+            currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine);
             currentTransform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
 
     		addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
 
     		## Use a planar texture coordinates
-    		planeTextureScale: textureScale offset: textureOffset withModelTransform: parentTransform;
+    		planeTextureTransform: materialAttributes textureTransform withModelTransform: parentTransform;
     		computeTangentsBitangents.
         renderable := meshBuilder _ renderable
     }.
@@ -44,7 +42,7 @@ class BoxVisualComponent superclass: VisualComponent2d; definition: {
     override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
         let node := SpatialObjectNode sharedNew.
 
-        material ifNil: {
+        materialAttributes material ifNil: {
             let deformedCube := SpatialObjectNode sharedNew.
             deformedCube _
                 renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);

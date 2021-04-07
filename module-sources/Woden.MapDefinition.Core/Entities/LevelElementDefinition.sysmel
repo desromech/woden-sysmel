@@ -17,6 +17,8 @@ class LevelElementDefinition superclass: Stdn SharedObject; definition: {
     virtual method isLightSourceVisualComponent => Boolean8 := false.
     virtual method isCollisionShape => Boolean8 := false.
 
+    virtual method isPolyhedronFace => Boolean8 := false.
+
     virtual method isTextureDefinition => Boolean8 := false.
 
     virtual method isMaterialDefinition => Boolean8 := false.

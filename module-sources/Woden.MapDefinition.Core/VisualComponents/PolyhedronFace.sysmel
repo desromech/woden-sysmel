@@ -1,0 +1,40 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Woden Runtime.
+
+class PolyhedronFace superclass: LevelElementDefinition; definition: {
+    public field materialAttributes type: FaceMaterialAttributes.
+    public field plane type: PlaneF32.
+    public field vertices type: Stdn Collections Vector(Float32x3).
+
+    override method isPolyhedronFace => Boolean8
+        := true.
+
+    method buildMeshFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) ::=> Void := {
+        meshBuilder _
+            currentMaterial:  (materialAttributes material _ getOrCreateMaterialFor: engine);
+            beginTriangles.
+
+    	let normalAxis := meshBuilder _ computeNormalAxis: plane normal.
+    	let tangent := meshBuilder _ tangentForAxis: normalAxis.
+    	let bitangent := meshBuilder _ bitangentForAxis: normalAxis.
+    	let textureMatrix := materialAttributes textureTransform.
+
+        vertices do: {:each :: Void |
+            let uv := Float32x2 x: (tangent dot: each) y: (bitangent dot: each).
+            meshBuilder _ addP: each N: plane normal TC: (textureMatrix * Float32x3(uv, 1)) xy
+        }.
+
+        2 until: (vertices size castTo: UInt32) do: {:(UInt32)index :: Void |
+            meshBuilder _ addI1: 0 i2: index - 1 i3: index
+        }.
+    }.
+}.
+
+compileTime constant PolyhedronFacePtr := PolyhedronFace sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

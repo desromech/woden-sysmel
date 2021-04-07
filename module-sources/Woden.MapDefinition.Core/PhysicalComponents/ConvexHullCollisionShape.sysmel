@@ -1,0 +1,25 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class ConvexHullCollisionShape superclass: CollisionShape; definition: {
+    public field points type: Stdn Collections Vector(Float32x3).
+    public field planes type: Stdn Collections Vector(PlaneF32).
+    field boundingBox type: BoxF32.
+
+    method computeBoundingBox => Void := {
+        boundingBox := BoxF32 empty.
+        points do: {:each :: Void |
+            boundingBox := boundingBox unionWith: each
+        }.
+    }.
+
+    override method boundingBox => BoxF32
+        := boundingBox.
+}.
+
+compileTime constant ConvexHullCollisionShapePtr := ConvexHullCollisionShape sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

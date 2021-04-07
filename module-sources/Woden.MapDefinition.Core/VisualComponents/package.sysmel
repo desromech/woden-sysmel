@@ -4,10 +4,13 @@ loadFileOnce: "MaterialDefinition.sysmel".
 loadFileOnce: "MetallicRoughnessMaterialDefinition.sysmel".
 loadFileOnce: "FileReferenceMaterialDefinition.sysmel".
 
+loadFileOnce: "FaceMaterialAttributes.sysmel".
 loadFileOnce: "VisualComponent.sysmel".
 loadFileOnce: "VisualComponent2d.sysmel".
 loadFileOnce: "PunctualVisualComponent.sysmel".
 loadFileOnce: "BoxVisualComponent.sysmel".
+loadFileOnce: "PolyhedronFace.sysmel".
+loadFileOnce: "PolyhedronVisualComponent.sysmel".
 loadFileOnce: "RectangleVisualComponent.sysmel".
 
 loadFileOnce: "LightSourceVisualComponent.sysmel".

@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Woden Runtime.
+
+struct FaceMaterialAttributes definition: {
+    public field material type: MaterialDefinitionPtr.
+    public field scale type: Float32x2.
+    public field offset type: Float32x2.
+    public field rotation type: Float32.
+
+    method initialize => Void := {
+        scale := Float32x2 ones.
+    }.
+
+    method textureTransform => Float32x3x3 := {
+        Float32x3x3(
+            Float32x3(scale x, 0, 0),
+            Float32x3(0, scale y, 0),
+            Float32x3(offset, 1))
+    }.
+}.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden
