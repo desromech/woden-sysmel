@@ -27,7 +27,7 @@ class SampleSceneModel superclass: SceneModel; definition: {
 
         accumulatedTime := accumulatedTime + (event deltaSeconds castTo: Float32).
         while: accumulatedTime >= updateTimeStep do: {
-            animationScheduler _ update: (event deltaSeconds castTo: Float32).
+            animationScheduler _ update: updateTimeStep.
             accumulatedTime := accumulatedTime - updateTimeStep
         }.
 
