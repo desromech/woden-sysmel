@@ -453,6 +453,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     override method prepareRendering ::=> Void := {
+        let camera ref := self camera.
+        camera ifNotNil: {
+            self engine _ frameProfiler cameraTransform: camera _ globalTransform
+        }.
+
         leftEyeViewport prepareRendering.
         stereoPresentationMode isStereoscopic ifTrue: {
             rightEyeViewport prepareRendering.

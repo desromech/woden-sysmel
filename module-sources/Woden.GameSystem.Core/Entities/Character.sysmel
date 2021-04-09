@@ -1,6 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
+useNamespace: Stdn Math.
 useNamespace: Stdn Math Geometry.
 useNamespace: Woden MapDefinition.
 
@@ -10,7 +11,7 @@ class Character superclass: Entity; definition: {
     field hitPoints type: Float32.
     field rigidBody type: RigidBodyPtr.
     field moveDirection type: Float32x3.
-    field lookDirection type: Float32x3.
+    field lookOrientation type: QuaternionF32.
 
     override method classDescription => Stdn ImmutableString
         := "Generic Character".
@@ -27,6 +28,9 @@ class Character superclass: Entity; definition: {
         localBoundingBox := BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4).
     }.
 
+    virtual method eyePosition => Float32x3
+        := Float32x3 y: localBoundingBox max y - 0.2f.
+
     override method spawn => Void := {
         super spawn.
         self buildVisualComponent.
@@ -34,7 +38,6 @@ class Character superclass: Entity; definition: {
     }.
 
     override method prePhysicsTick: (delta: Float32) ::=> Void := {
-
         rigidBody _ engineAcceleration: ((moveDirection closeTo: 0)
             ifTrue: {Float32x3 zeros}
             ifFalse: {moveDirection normalized * self internalEngineAcceleration}).

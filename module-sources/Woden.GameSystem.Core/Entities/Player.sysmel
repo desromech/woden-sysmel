@@ -2,9 +2,39 @@ namespace Woden definition: {
 namespace GameSystem definition: {
 
 useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
 
 class Player superclass: Character; definition: {
     SelfType registerWithClassName: "Player".
+
+    field previousCameraTransform type: DecomposedTransform3dF32.
+    field cameraTransform type: DecomposedTransform3dF32.
+    field renderCameraTransform type: ReversibleAffineTransform3dF32.
+
+    const inline method renderCameraTransform => ReversibleAffineTransform3dF32 const ref
+        := renderCameraTransform.
+
+    override method storeOldRenderingStateForInterpolation => Void := {
+        super storeOldRenderingStateForInterpolation.
+        previousCameraTransform := cameraTransform.
+    }.
+
+    override method postPhysicsTick: (delta: Float32) ::=> Void := {
+        super postPhysicsTick: delta.
+        self cameraTick: delta.
+    }.
+
+    virtual method cameraTick: (delta: Float32) ::=> Void := {
+        cameraTransform
+            setIdentity;
+            translation: self position + Float32x3(0, 2, 10)
+    }.
+
+    override method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
+        super applyInterpolationForRendering: alpha.
+
+        renderCameraTransform := (previousCameraTransform interpolateTo: cameraTransform at: alpha) asReversibleAffineTransform3d.
+    }.
 
     virtual method onInputAction: (action: Char8 const arraySlice) buttonState: (state: Boolean8) ::=> Void := {}.
     virtual method onInputAction: (action: Char8 const arraySlice) axisState: (state: Float32) ::=> Void := {}.

@@ -12,6 +12,7 @@ struct EngineRenderingSettings definition: {
     public field maxAnisotropy type: UInt32.
     public field shadowMapSize type: UInt32.
     public field screenSpaceAmbientOcclusionQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
+    public field profiling type: Boolean8.
 
     method initialize => Void := {
         vsyncEnabled := true.
@@ -74,6 +75,9 @@ struct EngineRenderingSettings definition: {
 
                     i := i + 1.
                     screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting fromString: (arguments[i] until: Stdn cstrlen(arguments[i])).
+                }.
+                "-profile" : {
+                    profiling := true.
                 }.
                 _ : {}
             }.

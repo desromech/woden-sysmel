@@ -29,10 +29,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
                 transform orthonormal: self cameraOrientation.
                 camera _ transform: transform.
             } ifFalse: {
-                camera _ transform: (ReversibleAffineTransform3dF32()
-                    setIdentity;
-                    translation: player _ position + Float32x3(0, 2, 10);
-                    yourself).
+                camera _ transform: player _ renderCameraTransform.
             }.
         }.
 

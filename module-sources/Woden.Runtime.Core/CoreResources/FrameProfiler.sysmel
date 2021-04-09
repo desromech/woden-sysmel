@@ -1,0 +1,77 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math LinearAlgebra.
+
+#**
+ * Engine rendering settings.
+ *#
+class FrameProfiler definition: {
+    public field engine type: Engine pointer.
+    public field currentFrameSample type: FrameProfilingLogSample.
+    field frameStartTime type: Stdn Chrono Time.
+    field logFile type: Stdn IO Stream uniquePointer.
+    field logFileWriter type: Stdn IO TextStreamWriter.
+
+    method beginFrame => Void := {
+        let nextFrameTime := Stdn Chrono now().
+        currentFrameSample frameTime: Stdn Chrono ticksToFloatSeconds(nextFrameTime - frameStartTime).
+        frameStartTime = 0 ifTrue: {
+            self createProfileLogFile
+        } ifFalse: {
+            self saveFrameSampleToDisk.
+        }.
+
+        currentFrameSample := FrameProfilingLogSample().
+        frameStartTime := nextFrameTime
+    }.
+
+    method endFrame => Void := {
+        currentFrameSample frameProcessingTime: Stdn Chrono ticksToFloatSeconds(Stdn Chrono now() - frameStartTime).
+    }.
+
+    method createProfileLogFile => Void := {
+        engine _ renderingSettings profiling ifFalse: {
+            return: void
+        }.
+
+        logFile swapWith: "profile-log.csv" asNativeFileReference binaryWriteStream.
+        logFileWriter := Stdn IO TextStreamWriter for: logFile getPointer.
+        currentFrameSample writeHeaderOn: logFileWriter for: engine _.
+    }.
+
+    method saveFrameSampleToDisk => Void := {
+        engine _ renderingSettings profiling ifFalse: {
+            return: void
+        }.
+
+        currentFrameSample writeSampleOn: logFileWriter for: engine _.
+    }.
+
+    method cameraTransform: (transform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        engine _ renderingSettings profiling ifFalse: {
+            return: void
+        }.
+
+        self cameraTransform: transform asDecomposedTransform3d
+    }.
+
+    method cameraTransform: (transform: DecomposedTransform3dF32 const ref) ::=> Void := {
+        currentFrameSample cameraTransform: transform
+    }.
+
+    method updateTime: (time: Float64) ::=> Void := {
+        currentFrameSample updateTime: time.
+    }.
+
+    method renderingPreparationTime: (time: Float64) ::=> Void := {
+        currentFrameSample renderingPreparationTime: time.
+    }.
+
+    method commandListConstructionTime: (time: Float64) ::=> Void := {
+        currentFrameSample commandListConstructionTime: time.
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

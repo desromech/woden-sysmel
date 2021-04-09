@@ -1,0 +1,72 @@
+namespace Woden definition: {
+namespace Runtime definition: {
+
+useNamespace: Stdn Math.
+useNamespace: Stdn Math LinearAlgebra.
+#**
+ * Engine rendering settings.
+ *#
+struct FrameProfilingLogSample definition: {
+    public field frameTime type: Float64.
+    public field frameProcessingTime type: Float64.
+    public field updateTime type: Float64.
+    public field renderingPreparationTime type: Float64.
+    public field commandListConstructionTime type: Float64.
+    public field cameraTransform type: DecomposedTransform3dF32.
+
+    method writeHeaderOn: (output: Stdn IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
+        output
+            << "Platform,Rendering Platform name,Rendering Device Name"
+
+            << ",Is VSync Enabled?"
+            << ",Is Fullscreen?"
+            << ",Resolution X,Resolution Y"
+            << ",Multi-Sample Count"
+            << ",Max Anisotropy"
+            << ",Shadow Map Size"
+            << ",SSAO Quality"
+
+            << ",Frame Time (ms),FPS"
+            << ",Frame Processing time (ms)"
+            << ",Update Time (ms)"
+            << ",Rendering Preparation time (ms)"
+            << ",Command List Construction time (ms)"
+
+            << ",Camera Position X,Camera Position X, Camera Position Z"
+            << ",Camera Scale X,Camera Scale Y,Camera Scale Z"
+            << ",Camera Orientation X,Camera Orientation Y,Camera Orientation Z,Camera Orientation W"
+            ; nl
+    }.
+
+    method writeSampleOn: (output: Stdn IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
+        let plaform type: Stdn ImmutableString := Compiler compilationTarget operatingSystemName.
+        let renderingDevice ref := engine renderingDevice _.
+        let renderingPlatformName ref := renderingDevice platformName.
+        let renderingDeviceName ref := renderingDevice name.
+        let renderingSettings ref := engine renderingSettings.
+        output
+            << plaform << "," << renderingPlatformName << "," << renderingDeviceName
+
+            << "," << renderingSettings vsyncEnabled asBit
+            << "," << renderingSettings fullscreen asBit
+            << "," << renderingSettings resolution x << "," << renderingSettings resolution y
+            << "," << renderingSettings multiSampleCount
+            << "," << renderingSettings maxAnisotropy
+            << "," << renderingSettings shadowMapSize
+            << "," << renderingSettings screenSpaceAmbientOcclusionQuality asString
+
+            << "," << (frameTime * 1000.0) << "," << (1.0 / frameTime)
+            << "," << (frameProcessingTime*1000.0)
+            << "," << (updateTime*1000.0)
+            << "," << (renderingPreparationTime*1000.0)
+            << "," << (commandListConstructionTime*1000.0)
+
+            << "," << cameraTransform translation x << "," << cameraTransform translation y << "," << cameraTransform translation z
+            << "," << cameraTransform scale x << "," << cameraTransform scale y << "," << cameraTransform scale z
+            << "," << cameraTransform rotation x << "," << cameraTransform rotation y << "," << cameraTransform rotation z << "," << cameraTransform rotation w
+            ; nl
+    }.
+}.
+
+}. ## End of namespace Runtime
+}. ## End of namespace Woden

@@ -72,6 +72,8 @@ class Engine superclass: Stdn SharedObject; definition: {
         := (self parseCommandLine: arguments) && self initializeEngine.
 
     method initializeEngine => Boolean8 := {
+        frameProfiler engine: self address.
+        
         windowSystem := createDefaultWindowSystem().
         windowSystem ifNil: { return: false }.
 
@@ -153,8 +155,11 @@ class Engine superclass: Stdn SharedObject; definition: {
     method lastFrameTime => Float32
         := lastFrameTime.
 
+    public field frameProfiler type: FrameProfiler.
+
     method onTickEvent: (event: TickEvent ref) ::=> Void := {
         lastFrameTime := event deltaSeconds castTo: Float32.
+        frameProfiler beginFrame.
 
         let thisFrameProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
         let thisFrameRenderingProcesses mutable type: Stdn Collections Vector(RenderingProcessPtr).
@@ -172,39 +177,46 @@ class Engine superclass: Stdn SharedObject; definition: {
         }.
 
         ## Notify the process about a settings change.
-        renderingSettingsChanged ifTrue: {
+        frameProfiler updateTime: (Stdn Chrono profileTimeToRun: {
+            renderingSettingsChanged ifTrue: {
+                thisFrameProcesses do: {:each :: Void |
+                    each _ onEngineRenderingSettingsChanged: renderingSettings
+                }.
+                renderingSettingsChanged := false.
+            }.
+
+            ## Send the tick event to the rendering processes.
             thisFrameProcesses do: {:each :: Void |
-                each _ onEngineRenderingSettingsChanged: renderingSettings
+                each _ onStartFrameTick: event
             }.
-            renderingSettingsChanged := false.
-        }.
 
-        ## Send the tick event to the rendering processes.
-        thisFrameProcesses do: {:each :: Void |
-            each _ onStartFrameTick: event
-        }.
-
-        ## Select the rendering processes that need to render.
-        thisFrameRenderingProcesses reserve: renderingProcesses size.
-        thisFrameProcesses do: {:each :: Void |
-            each _ needsToRender ifTrue: {
-                thisFrameRenderingProcesses add: each.
+            ## Select the rendering processes that need to render.
+            thisFrameRenderingProcesses reserve: renderingProcesses size.
+            thisFrameProcesses do: {:each :: Void |
+                each _ needsToRender ifTrue: {
+                    thisFrameRenderingProcesses add: each.
+                }.
             }.
-        }.
+        }).
 
         thisFrameRenderingProcesses ifEmpty: {
+            frameProfiler endFrame.
             return: void
         }.
 
         ## First phase: prepare rendering.
-        thisFrameRenderingProcesses do: {:each :: Void |
-            each _ prepareRendering.
-        }.
+        frameProfiler renderingPreparationTime: (Stdn Chrono profileTimeToRun: {
+            thisFrameRenderingProcesses do: {:each :: Void |
+                each _ prepareRendering.
+            }
+        }).
 
         ## Second phase: command list construction
-        thisFrameRenderingProcesses do: {:each :: Void |
-            each _ constructRenderingCommandList.
-        }.
+        frameProfiler commandListConstructionTime: (Stdn Chrono profileTimeToRun: {
+            thisFrameRenderingProcesses do: {:each :: Void |
+                each _ constructRenderingCommandList.
+            }
+        }).
 
         ## Third phase: command list submission
         self submitPendingCommandLists.
@@ -213,6 +225,8 @@ class Engine superclass: Stdn SharedObject; definition: {
         thisFrameRenderingProcesses do: {:each :: Void |
             each _ commitSurfaces.
         }.
+
+        frameProfiler endFrame.
 
         ## Rendering queue synchronization.
         self

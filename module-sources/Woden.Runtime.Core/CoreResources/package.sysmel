@@ -1,5 +1,7 @@
 loadFileOnce: "ScreenSpaceAmbientOcclusionQualitySetting.sysmel".
 loadFileOnce: "EngineRenderingSettings.sysmel".
+loadFileOnce: "FrameProfilingLogSample.sysmel".
+loadFileOnce: "FrameProfiler.sysmel".
 
 loadFileOnce: "Engine.sysmel".
 loadFileOnce: "ResourceCache.sysmel".
