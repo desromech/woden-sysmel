@@ -2,5 +2,6 @@ loadFileOnce: "MetadataEntity.sysmel".
 loadFileOnce: "Wall.sysmel".
 loadFileOnce: "LightSources.sysmel".
 loadFileOnce: "Character.sysmel".
+loadFileOnce: "PlayerCameraMode.sysmel".
 loadFileOnce: "Player.sysmel".
 loadFileOnce: "DynamicProjectile.sysmel".

@@ -11,7 +11,10 @@ class Character superclass: Entity; definition: {
     field hitPoints type: Float32.
     field rigidBody type: RigidBodyPtr.
     field moveDirection type: Float32x3.
-    field lookOrientation type: QuaternionF32.
+
+    field headOrientation type: QuaternionF32.
+    field turningAngularVelocity type: Float32x3.
+    field headAngularVelocity type: Float32x3.
 
     override method classDescription => Stdn ImmutableString
         := "Generic Character".
@@ -20,6 +23,7 @@ class Character superclass: Entity; definition: {
         := "NPC".
 
     override method initialize => Void := {
+        headOrientation := QuaternionF32 identity.
         hitPoints := 100.
     }.
 
@@ -29,7 +33,7 @@ class Character superclass: Entity; definition: {
     }.
 
     virtual method eyePosition => Float32x3
-        := Float32x3 y: localBoundingBox max y - 0.2f.
+        := Float32x3(0, localBoundingBox max y - 0.1f, 0).
 
     override method spawn => Void := {
         super spawn.
@@ -38,9 +42,31 @@ class Character superclass: Entity; definition: {
     }.
 
     override method prePhysicsTick: (delta: Float32) ::=> Void := {
+        ## Constraint the valid orientations in a 2D sector.
+        let engineOrientation mutable := self orientation.
+        let angularVelocity mutable := turningAngularVelocity.
+
+        self isInSector2D ifTrue: {
+            let lookRight := QuaternionF32 yRotation: Float32 halfPi negated.
+            let lookLeft := QuaternionF32 yRotation: Float32 halfPi.
+            (self orientation closeTo: lookLeft) || (self orientation closeTo: lookRight) ifFalse: {
+                self orientation: lookRight
+            }.
+
+            rigidBody _ angularVelocity: Float32x3 zeros.
+            headAngularVelocity := Float32x3 zeros.
+            engineOrientation := QuaternionF32 identity.
+            angularVelocity := Float32x3 zeros.
+        }.
+
+        headOrientation := (headOrientation + (QuaternionF32 xyz: headAngularVelocity*0.5f*delta) * headOrientation) normalized.
+
+        rigidBody _
+            angularDamping: 0;
+            angularVelocity: angularVelocity.
         rigidBody _ engineAcceleration: ((moveDirection closeTo: 0)
             ifTrue: {Float32x3 zeros}
-            ifFalse: {moveDirection normalized * self internalEngineAcceleration}).
+            ifFalse: {engineOrientation rotateVector: moveDirection normalized * self internalEngineAcceleration}).
         super prePhysicsTick: delta.
     }.
 

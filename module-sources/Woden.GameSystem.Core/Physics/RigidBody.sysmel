@@ -11,6 +11,7 @@ class RigidBody superclass: CollisionObject; definition: {
     public field hasCustomGravity type: Boolean8.
     public field gravity type: Float32x3.
     public field engineAcceleration type: Float32x3.
+    public field engineAngularAcceleration type: Float32x3.
 
     field mass type: Float32.
     field massReciprocal type: Float32.

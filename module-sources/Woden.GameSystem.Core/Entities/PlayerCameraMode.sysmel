@@ -1,0 +1,14 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+
+enum PlayerCameraMode valueType: UInt8; values: #{
+    FirstPerson:.
+    ThirdPerson:.
+    ThirdPersonFixed:.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

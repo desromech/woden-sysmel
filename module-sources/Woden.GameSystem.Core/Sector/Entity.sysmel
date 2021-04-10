@@ -94,7 +94,9 @@ class Entity superclass: Stdn SharedObject; definition: {
     }.
 
     virtual method postPhysicsTick: (delta: Float32) ::=> Void := {
-        self position: collisionObject _ position.
+        self
+            orientation: collisionObject _ orientation;
+            position: collisionObject _ position.
     }.
 
     virtual method onPhysicsCollisionHit: (collidingObject: CollisionObject ref) at: (collisionPoint: Float32x3) ::=> Void := {

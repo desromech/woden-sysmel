@@ -1,6 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
+useNamespace: Stdn Math.
 useNamespace: Stdn Math Geometry.
 
 class PhysicalSector superclass: Stdn SharedObject; definition: {
@@ -47,6 +48,29 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
         false
     }.
 
+    method rayCast: (ray: Ray3dF32) emittingResultInto: (result: CollisionSweepTestResult ref) ::=> Void := {
+        collisionObjects do: {:each :: Void |
+            (result exclusionSet includes: each getPointer) not &&
+                (result collisionGroupFilter anyMask: each _ collisionGroup) &&
+                (each _ collisionObjectExclusionSet includes: result collisionTestObject) not
+                ifTrue: {
+
+                let objectBoundingBox := each _ boundingBox.
+                let intersectionResult mutable := objectBoundingBox intersectionWithRay: ray.
+                intersectionResult isPresent ifTrue: {
+                    let intersectionAlpha := intersectionResult _.
+                    result hasCollision || intersectionAlpha < result collisionDistance ifTrue: {
+                        result
+                            hasCollision: true;
+                            collisionDistance: intersectionAlpha;
+                            collidingBox: objectBoundingBox;
+                            collidingObject: each getPointer
+                    }
+                }
+            }
+        }.
+    }.
+
     method sweepCollisionBoxWithHalfExtent: (halfExtent: Float32x3) alongRay: (ray: Ray3dF32) emittingResultInto: (result: CollisionSweepTestResult ref) ::=> Void := {
         collisionObjects do: {:each :: Void |
             (result exclusionSet includes: each getPointer) not &&
@@ -77,13 +101,19 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
             ifTrue: {rigidBody gravity}
             ifFalse: {gravity}.
         let acceleration := bodyGravity + rigidBody engineAcceleration - rigidBody linearVelocity * rigidBody linearDamping.
+        let angularAcceleration := rigidBody engineAngularAcceleration - rigidBody angularVelocity * rigidBody angularDamping.
 
-        rigidBody linearVelocity: rigidBody linearVelocity + acceleration * delta.
+        rigidBody
+            linearVelocity: rigidBody linearVelocity + acceleration * delta;
+            angularVelocity: rigidBody angularVelocity + angularAcceleration * delta.
     }.
 
     virtual method simulateRigidBodyMovement: (rigidBody: RigidBody ref) withDelta: (delta: Float32) ::=> Void := {
         let linearVelocity mutable := rigidBody linearVelocity.
         let currentPosition mutable := rigidBody position.
+
+        let angularVelocity mutable := rigidBody angularVelocity.
+        let currentOrientation mutable := rigidBody orientation.
         linearVelocity = 0 && rigidBody massReciprocal = 0 ifTrue: {return: void}.
 
         let halfExtent := rigidBody boundingBox halfExtent.
@@ -104,6 +134,7 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
         while: remainingDeltaTime > 0 && remainingIterations > 0 do: {
 
             let targetPosition := currentPosition + linearVelocity * remainingDeltaTime.
+            let targetOrientation := (currentOrientation + (QuaternionF32 xyz: angularVelocity) * remainingDeltaTime *currentOrientation) normalized.
             let ray := Ray3dF32 from: currentPosition to: targetPosition.
 
             sweepTestResult reset.
@@ -112,6 +143,7 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
             sweepTestResult hasCollision ifTrue: {
                 let collisionPoint := ray pointAtDistance: sweepTestResult collisionDistance.
                 let collisionTime := remainingDeltaTime * sweepTestResult collisionDistance / ray tmax.
+                let collisionOrientation := currentOrientation interpolateTo: targetOrientation at: collisionTime / remainingDeltaTime.
 
                 let (let otherCollisionNormal, let penetrationDistance) := sweepTestResult collidingBox computePenetrationNormalAndDistanceForPoint: collisionPoint.
                 let collidingObject := sweepTestResult collidingObject.
@@ -139,6 +171,7 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
                         let penetrationThreshold := 0.01f.
                         let penetrationCorrection := (penetrationDistance - penetrationThreshold max: 0.0)*massReciprocalWeight*0.2f*otherCollisionNormal.
                         currentPosition := collisionPoint + penetrationCorrection*rigidBody massReciprocal.
+                        currentOrientation := collisionOrientation.
                         otherRigidBody _ translateBy: penetrationCorrection negated * otherRigidBody _ massReciprocal.
                     }.
                 }.
@@ -154,13 +187,16 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
                 remainingDeltaTime := remainingDeltaTime - collisionTime
             } ifFalse: {
                 currentPosition := targetPosition.
+                currentOrientation := targetOrientation.
                 remainingDeltaTime := 0.
             }
         } continueWith: {remainingIterations := remainingIterations - 1}.
 
         rigidBody
             linearVelocity: linearVelocity;
-            position: currentPosition.
+            position: currentPosition;
+            orientation: currentOrientation;
+            angularVelocity: angularVelocity
     }.
 }.
 

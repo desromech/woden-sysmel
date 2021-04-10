@@ -1,8 +1,22 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
+useNamespace: Stdn Math.
+
 class SamplePlayer superclass: Player; definition: {
     SelfType registerWithClassName: "SamplePlayer".
+
+    field enableFPSCamera type: Boolean8.
+
+    override method currentCameraMode => PlayerCameraMode := {
+        self isInSector2D ifTrue: {
+            PlayerCameraMode ThirdPersonFixed
+        } ifFalse: {
+            enableFPSCamera
+                ifTrue: {PlayerCameraMode FirstPerson}
+                ifFalse: {PlayerCameraMode ThirdPerson}
+        }.
+    }.
 
     override method onInputAction: (action: Char8 const arraySlice) buttonState: (state: Boolean8) ::=> Void := {
         action selectCase: #{
@@ -10,9 +24,14 @@ class SamplePlayer superclass: Player; definition: {
         "moveRight" : {self moveRightInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
         "moveForward" : {self moveForwardInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
         "moveBackward" : {self moveForwardInput: (state ifTrue: -1.0f ifFalse: 0.0f) cancelSign: -1.0f}.
+        "lookLeft" : {self lookRightInput: (state ifTrue: -1.0f ifFalse: 0.0f) cancelSign: -1.0f }.
+        "lookRight" : {self lookRightInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
+        "lookDown" : {self lookUpInput: (state ifTrue: -1.0f ifFalse: 0.0f) cancelSign: -1.0f}.
+        "lookUp" : {self lookUpInput: (state ifTrue: 1.0f ifFalse: 0.0f) cancelSign: 1.0f}.
         "shoot" : {state ifTrue: {self shoot} }.
         "jump" : {state ifTrue: {self jump} }.
         "dash" : {state ifTrue: {self dash} }.
+        "toggleFirstPerson" : {state ifTrue: {self toggleFirstPerson} }.
         _ : {}
         }
 
@@ -20,8 +39,10 @@ class SamplePlayer superclass: Player; definition: {
 
     override method onInputAction: (action: Char8 const arraySlice) axisState: (state: Float32) ::=> Void := {
         action selectCase: #{
-        "moveRight" : {self moveRightInput: state cancelSign: 0.0f }.
+        "moveRight" : {self moveRightInput: state cancelSign: 0.0f}.
         "moveForward" : {self moveForwardInput: state cancelSign: 0.0f}.
+        "lookRight" : {self lookRightInput: state cancelSign: 0.0f}.
+        "lookUp" : {self lookUpInput: state cancelSign: 0.0f}.
         _ : {}
         }
     }.
@@ -29,7 +50,9 @@ class SamplePlayer superclass: Player; definition: {
     method moveRightInput: (state: Float32) cancelSign: (cancelSign: Float32) ::=> Void := {
         state > 0 || state < 0  ifTrue: {
             moveDirection x: state.
-            lookDirection x: state sign.
+            self isInSector2D ifTrue: {
+                self orientation: (QuaternionF32 yRotation: Float32 halfPi * state sign negated)
+            }.
         } ifFalse: {
             moveDirection x sign = cancelSign || cancelSign = 0 ifTrue: {
                 moveDirection x: 0.0.
@@ -42,7 +65,6 @@ class SamplePlayer superclass: Player; definition: {
 
         state > 0 || state < 0  ifTrue: {
             moveDirection z: state negated.
-            lookDirection z: state sign negated.
         } ifFalse: {
             moveDirection z sign negated = cancelSign || cancelSign = 0 ifTrue: {
                 moveDirection z: 0.0.
@@ -50,19 +72,48 @@ class SamplePlayer superclass: Player; definition: {
         }.
     }.
 
+    method lookRightInput: (state: Float32) cancelSign: (cancelSign: Float32) ::=> Void := {
+        self isInSector2D ifTrue: {return: void}.
+
+        state > 0 || state < 0  ifTrue: {
+            turningAngularVelocity y: state negated
+        } ifFalse: {
+            turningAngularVelocity y sign negated = cancelSign || cancelSign = 0 ifTrue: {
+                turningAngularVelocity y: 0.0
+            }.
+        }.
+    }.
+
+    method lookUpInput: (state: Float32) cancelSign: (cancelSign: Float32) ::=> Void := {
+        self isInSector2D ifTrue: {return: void}.
+
+        state > 0 || state < 0  ifTrue: {
+            headAngularVelocity x: state.
+        } ifFalse: {
+            headAngularVelocity x sign = cancelSign || cancelSign = 0 ifTrue: {
+                headAngularVelocity x: 0.0.
+            }.
+        }.
+    }.
+
+    method gunPosition => Float32x3 := {
+        self currentCameraMode = PlayerCameraMode FirstPerson ifTrue: {
+            self position + self eyePosition
+        } ifFalse: {
+            self position
+        }
+    }.
+
     method shoot => Void := {
         parentSector ifNil: {return: void}.
 
-        let shootDirection mutable := lookDirection.
-        shootDirection = 0 ifTrue: {
-            shootDirection := Float32x3(1, 0, 0)
-        }.
+        let shootDirection mutable := self orientation * headOrientation rotateVector: Float32x3(0, 0, -1).
         let bulletVelocity := shootDirection normalized*10.0f.
 
         let bullet := Bullet sharedNew.
         bullet _
             remainingLifeTime: 1.0f;
-            position: self position;
+            position: self gunPosition;
             launchVelocity: collisionObject _ linearVelocity + bulletVelocity;
             shooter: (self asWeakPointer upCastFor: Entity).
         parentSector _ spawnEntity: (bullet upCastFor: Entity).
@@ -70,6 +121,10 @@ class SamplePlayer superclass: Player; definition: {
 
     method dash => Void := {
 
+    }.
+
+    method toggleFirstPerson => Void := {
+        enableFPSCamera := enableFPSCamera not.
     }.
 }.
 

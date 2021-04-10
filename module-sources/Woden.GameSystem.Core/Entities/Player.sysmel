@@ -24,10 +24,84 @@ class Player superclass: Character; definition: {
         self cameraTick: delta.
     }.
 
+    virtual method currentCameraMode => PlayerCameraMode
+        := self isInSector2D
+            ifTrue: {PlayerCameraMode ThirdPersonFixed}
+            ifFalse: {PlayerCameraMode ThirdPerson}.
+
+    virtual method thirdPersonCameraFocalPoint => Float32x3
+        := self eyePosition.
+
+    virtual method thirdPersonCameraDistance => Float32
+        := 10.
+
+    virtual method thirdPersonFixedCameraFocalPoint => Float32x3
+        := self eyePosition.
+
+    virtual method thirdPersonFixedCameraDistance => Float32
+        := 10.
+
+    field lastCameraMode type: PlayerCameraMode.
+
     virtual method cameraTick: (delta: Float32) ::=> Void := {
-        cameraTransform
-            setIdentity;
-            translation: self position + Float32x3(0, 2, 10)
+        let cameraMode := self currentCameraMode.
+        cameraMode selectCase: #{
+        PlayerCameraMode FirstPerson  : {
+            cameraTransform
+                setIdentity;
+                rotation: self orientation * headOrientation;
+                translation: self position + self eyePosition
+        }.
+        PlayerCameraMode ThirdPerson  : {
+            let oldTranslation := cameraTransform translation.
+            cameraTransform
+                setIdentity;
+                rotation: self orientation * headOrientation.
+
+            let focalPoint := self position + self thirdPersonCameraFocalPoint.
+            let wantedCameraPosition := focalPoint + (cameraTransform rotation rotateVector: Float32x3(0, 0, self thirdPersonCameraDistance)).
+
+            let newTranslation := self positionThirdPersonCameraFrom: focalPoint onto: wantedCameraPosition.
+            ## Attempt to smooth the translation change to account for the discontinuities in the scene.
+            lastCameraMode = PlayerCameraMode ThirdPerson ifTrue: {
+                cameraTransform translation: oldTranslation + (newTranslation - oldTranslation) * (1.0f - (delta negated * 30.0f) exp).
+
+            } ifFalse: {
+                cameraTransform translation: newTranslation
+            }.
+        }.
+        PlayerCameraMode ThirdPersonFixed  : {
+            cameraTransform
+                setIdentity;
+                translation: self position + self thirdPersonCameraFocalPoint + Float32x3(0, 0, self thirdPersonFixedCameraDistance)
+        }.
+        }.
+
+        lastCameraMode := cameraMode.
+    }.
+
+    method positionThirdPersonCameraFrom: (startingPoint: Float32x3) onto: (wantedPoint: Float32x3) ::=> Float32x3 := {
+        rigidBody ifNil: {
+            return: wantedPoint
+        }.
+
+        let physicalSector := rigidBody _ physicalSector.
+        physicalSector ifNil: {
+            return: wantedPoint
+        }.
+
+        let ray := Ray3dF32 from: startingPoint to: wantedPoint.
+        let collisionTestResult mutable := CollisionSweepTestResult()
+            collisionGroupFilter: CollisionGroup AllSolid;
+            addExcludedObject: rigidBody getPointer;
+            yourself.
+
+        physicalSector _ rayCast: ray emittingResultInto: collisionTestResult.
+        collisionTestResult hasCollision ifFalse: {
+            return: wantedPoint
+        }.
+
+        ray pointAtDistance: collisionTestResult collisionDistance *0.95f.
     }.
 
     override method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
