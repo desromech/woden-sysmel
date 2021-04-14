@@ -150,7 +150,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
 
         let player := self player.
         event button selectCase: #{
-        GameControllerButton Start : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
+        GameControllerButton Back : {freeCameraMovementEnabled := freeCameraMovementEnabled not}.
         _ : {}.
         }.
 

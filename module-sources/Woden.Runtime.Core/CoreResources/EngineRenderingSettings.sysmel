@@ -21,6 +21,14 @@ struct EngineRenderingSettings definition: {
         screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting Low.
         multiSampleCount := 4.
         maxAnisotropy := 4.
+
+        ## We are using the windows Store target mostly for targeting the xbox one.
+        ## On the Xbox One X, 4K rendering will always be done by default, and in
+        ## the non-4k monitor it will act as super-sampling.
+compileTime if: Compiler compilationTarget isWindowsStore then: {
+        maxAnisotropy := 16.
+        multiSampleCount := 1
+}.
     }.
 
     method parseFromCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
