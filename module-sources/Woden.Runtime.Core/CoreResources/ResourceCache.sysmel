@@ -157,7 +157,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
             width: 1;
             height: 1;
             depth: 1;
-            layers: 1;
+            layers: 6;
             miplevels: 1;
             format: format;
             usageModes: TextureUsageMode CopyDestination | TextureUsageMode Sampled;

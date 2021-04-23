@@ -262,8 +262,9 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 let layerDescription mutable := shadowMapTexture _ getFullViewDescription.
                 layerDescription
                     format: PixelFormat D32_Float;
+                    usageMode: TextureUsageMode DepthAttachment;
                     subresourceRange: (TextureSubResourceRange()
-                        usageModes: TextureUsageMode DepthAttachment;
+                        aspect: TextureAspect Depth;
                         baseMipLevel: 0;
                         levelCount: 1;
                         baseArrayLayer: i;

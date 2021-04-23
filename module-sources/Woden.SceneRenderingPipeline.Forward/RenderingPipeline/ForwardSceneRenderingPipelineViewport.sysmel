@@ -165,7 +165,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let depthBufferAttachmentView := {
             let depthBufferAttachmentViewDescription mutable := renderDepthBuffer _ getFullViewDescription.
             depthBufferAttachmentViewDescription
-                format: PixelFormat D32_Float.
+                format: PixelFormat D32_Float;
+                usageMode: TextureUsageMode DepthAttachment.
             renderDepthBuffer _ createView: depthBufferAttachmentViewDescription
         }.
 
