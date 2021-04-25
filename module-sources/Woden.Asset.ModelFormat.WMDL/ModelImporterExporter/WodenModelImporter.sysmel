@@ -22,23 +22,40 @@ class WodenModelImporter definition: {
             buffer _ data reset: (Stdn malloc(content size) reinterpretCastTo: UInt8 pointer).
             Stdn memcpy(buffer _ data getPointer, content data, content size)
         } ifAbsent: {
-            object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
-                let uri := uriValue get: Stdn String.
-                let uriFileRef := parentFolder / uri asArraySlice.
-                uriFileRef exists ifTrue: {
-                    let readStream := uriFileRef binaryUnbufferedReadStream.
-                    readStream ifNil: {return: void}.
+            object at: "dataSize" asMutableString ifPresent: {:(DOM Value const ref)dataSizeValue :: Void |
+                let dataSize := DOM valueToUIntPointer(dataSizeValue).
+                buffer _ data reset: (Stdn zmalloc(dataSize) reinterpretCastTo: UInt8 pointer).
+            } ifAbsent: {
+                object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
+                    let uri := uriValue get: Stdn String.
+                    let uriFileRef := parentFolder / uri asArraySlice.
+                    uriFileRef exists ifTrue: {
+                        let readStream := uriFileRef binaryUnbufferedReadStream.
+                        readStream ifNil: {return: void}.
 
-                    buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-                    readStream _ read: buffer _ data getPointer size: buffer _ dataSize
+                        buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+                        readStream _ read: buffer _ data getPointer size: buffer _ dataSize
+                    }.
                 }.
-            }.
+            }
         }
     }.
 
     method parseBuffers: (list: DOM List ref) ::=> Void := {
         list do: {:each :: Void |
             self parseBuffer: (each get: DOM ObjectPtr) _
+        }.
+    }.
+
+    method readBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) from: (input: Stdn IO Stream ref) ::=> Void := {
+        buffer _ dataSize > 0 ifTrue: {
+            input read: buffer _ data getPointer size: buffer _ dataSize
+        }
+    }.
+
+    method readBinaryBuffersDataFrom: (input: Stdn IO Stream ref) ::=> Void := {
+        modelAsset _ buffers do: {:each :: Void |
+            self readBinaryBufferData: each from: input
         }.
     }.
 
@@ -458,11 +475,17 @@ class WodenModelImporter definition: {
         let inputReadStream mutable := fileReference binaryReadStream.
         inputReadStream ifNil: {return: ModelAssetPtr nil}.
 
-        let domValue := fileReference extension asArraySlice = "wtmdl"
+        let isReadingTextModel := fileReference extension asArraySlice = "wtmdl".
+        let domValue := isReadingTextModel
             ifTrue: { JSON ValueParser parseStream: inputReadStream getPointer }
             ifFalse: { MessagePack ValueDecoder decodeStream: inputReadStream getPointer }.
 
-        self parseTopLevel: (domValue get: DOM ObjectPtr) _.
+        let result := self parseTopLevel: (domValue get: DOM ObjectPtr) _.
+        isReadingTextModel ifFalse: {
+            self readBinaryBuffersDataFrom: inputReadStream _
+        }.
+
+        result
     }.
 }.
 

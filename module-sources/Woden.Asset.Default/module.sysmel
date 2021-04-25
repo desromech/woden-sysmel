@@ -1,5 +1,10 @@
+compileTime if: Compiler compilationTarget isDesktopPC then: {
+    Compiler importIndirectModulesNamed: #(
+        #"Woden.Asset.ModelFormat.GLTF"
+        #"Woden.Asset.ModelFormat.WaveFrontObj"
+    ).
+}.
+
 Compiler importIndirectModulesNamed: #(
-    #"Woden.Asset.ModelFormat.GLTF"
-    #"Woden.Asset.ModelFormat.WaveFrontObj"
     #"Woden.Asset.ModelFormat.WMDL"
 ).

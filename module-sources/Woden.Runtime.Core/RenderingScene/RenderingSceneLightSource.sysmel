@@ -20,9 +20,9 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
         } ifFalse: {
             let radius := self radius.
             self isSpot ifTrue: {
-                localBoundingBox := BoxF32 min: radius negated max: radius
+                localBoundingBox := BoxF32 min: radius negated max: Float32x3(radius, radius, 0)
             } ifFalse: {
-                localBoundingBox := BoxF32 min: radius negated max: Float32x3(radius negated, radius negated, 0)
+                localBoundingBox := BoxF32 min: radius negated max: radius
             }
         }.
         self transformChanged

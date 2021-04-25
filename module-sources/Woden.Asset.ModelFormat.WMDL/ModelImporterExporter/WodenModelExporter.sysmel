@@ -7,20 +7,36 @@ useNamespace: Stdn Math.
 
 class WodenModelExporter definition: {
     field modelAsset type: ModelAssetPtr.
+    field isWritingTextModel type: Boolean8.
 
     method encodeBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> DOM Value := {
         let result := DOM Object sharedNew.
         result _
-            at: "name" asMutableString put: buffer _ name;
-            at: "dataSize" asMutableString put: buffer _ dataSize.
+            at: "name" asMutableString put: buffer _ name.
 
         buffer _ data ifNotNil: {:content :: Void |
-            result _ at: "data" asMutableString put: (Stdn ByteVector()
-                addAll: (content until: buffer _ dataSize);
-                yourself)
+            isWritingTextModel ifTrue: {
+                result _ at: "data" asMutableString put: (Stdn ByteVector()
+                    addAll: (content until: buffer _ dataSize);
+                    yourself)
+            } ifFalse: {
+                result _ at: "dataSize" asMutableString put: buffer _ dataSize
+            }.
         }.
 
         result
+    }.
+
+    method encodeBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) into: (out: Stdn IO Stream ref) ::=> Void := {
+        buffer _ data ifNotNil: {
+            out write: buffer _ data getPointer size: (buffer _ dataSize castTo: UInt32)
+        }.
+    }.
+
+    method encodeBinaryBuffersDataInto: (out: Stdn IO Stream ref) ::=> Void := {
+        modelAsset _ buffers do: {:each :: Void |
+            self encodeBinaryBufferData: each into: out
+        }.
     }.
 
     method encodeBuffers => DOM Value := {
@@ -486,6 +502,8 @@ class WodenModelExporter definition: {
 
     method export: (theModelAsset: ModelAssetPtr const ref) into: (fileReference: Stdn FileReference const ref) ::=> Boolean8 := {
         modelAsset := theModelAsset.
+        isWritingTextModel := fileReference extension asArraySlice = "wtmdl".
+
         let result := self encodeModelAsset.
 
         let out mutable := fileReference binaryWriteStream.
@@ -493,10 +511,11 @@ class WodenModelExporter definition: {
             return: false
         }.
 
-        fileReference extension asArraySlice = "wtmdl" ifTrue: {
+        isWritingTextModel ifTrue: {
             JSON Writer writeValue: result onStream: out _.
         } ifFalse: {
             MessagePack Encoder encodeValue: result onStream: out _.
+            self encodeBinaryBuffersDataInto: out _.
         }.
 
         true
