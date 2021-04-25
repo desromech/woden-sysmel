@@ -22,6 +22,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         objectState := LightSourceObject sharedNew.
         objectState _ lightState
             intensity: Float32x4 ones;
+            shadowNormalBias: 0.05f;
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1;
@@ -30,9 +31,9 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
         renderingSceneObject := RenderingSceneLightSource sharedNew.
         renderingSceneObject _
-            radius: 3.0f;
             spatialObject: (objectState upCastFor: AbstractSpatialObject);
-            node: (self asWeakPointer upCastFor: SceneNode)
+            node: (self asWeakPointer upCastFor: SceneNode);
+            volumeChanged
     }.
 
     method makePoint => Void := {
@@ -41,7 +42,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1.
-        renderingSceneObject _ transformChanged.
+        renderingSceneObject _ volumeChanged.
     }.
 
     method makeDirectional => Void := {
@@ -50,7 +51,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1.
-        renderingSceneObject _ transformChanged.
+        renderingSceneObject _ volumeChanged.
     }.
 
     method makeSpot => Void := {
@@ -59,7 +60,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
             innerCosCutoff: spotInnerCutoff degreesToRadians cos;
             outerCosCutoff: spotOuterCutoff degreesToRadians cos;
             spotExponent: spotExponent.
-        renderingSceneObject _ transformChanged.
+        renderingSceneObject _ volumeChanged.
     }.
 
     method spotExponent ::=> Float32
@@ -93,7 +94,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method radius: (radius: Float32) ::=> Void := {
         objectState _ lightState radius: radius.
-        renderingSceneObject _ radius: radius.
+        renderingSceneObject _ volumeChanged.
     }.
 
     method intensity ::=> Float32x3
@@ -105,6 +106,13 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     const override method isLightSourceNode => Boolean8
         := true.
+
+    method shadowNormalBias ::=> Float32
+        := objectState _ lightState shadowNormalBias.
+
+    method shadowNormalBias: (shadowNormalBias: Float32) ::=> Void := {
+        objectState _ lightState shadowNormalBias: shadowNormalBias.
+    }.
 
     method castShadows ::=> Boolean8
         := objectState _ castShadows.

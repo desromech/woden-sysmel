@@ -14,6 +14,11 @@ struct LightSourceData definition: {
     public field spotExponent type: Float32.
     public field radius type: Float32.
 
+    public field shadowNormalBias type: Float32.
+    public field surfaceRadius type: Float32.
+    public field reserved type: Float32.
+    public field reserved2 type: Float32.
+
     public field cascadeSplitOffsets type: Float32x4.
     public field cascadeFrustumPlane type: Float32x4.
 

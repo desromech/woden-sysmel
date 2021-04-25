@@ -200,22 +200,22 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let frustum ref := viewportLayer frustum.
         sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
             let cameraDistance := (viewportLayer cameraTransform translation - each _ boundingBox center) length.
+            (each _ isVisibleInFrustum: frustum) ifTrue: {
+                each _ isLightSource ifTrue: {
+                    viewportLayer lightSources add: (ViewportLayerLightSource()
+                        cameraDistance: cameraDistance;
+                        object: (each downCastFor: RenderingSceneLightSource);
+                        yourself)
+                }.
 
-            ## TODO: Compare the light bounding box with the frustum in the case of point and spot lights.
-            each _ isLightSource ifTrue: {
-                viewportLayer lightSources add: (ViewportLayerLightSource()
-                    cameraDistance: cameraDistance;
-                    object: (each downCastFor: RenderingSceneLightSource);
-                    yourself)
-            }.
-
-            each _ isRenderable && (frustum intersectsOrContainsBox: each _ boundingBox) ifTrue: {
-                let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
-                viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
-                    priority: renderingSceneRenderable _ renderable _ renderPriority;
-                    cameraDistance: cameraDistance;
-                    object: renderingSceneRenderable;
-                    yourself)
+                each _ isRenderable ifTrue: {
+                    let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
+                    viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
+                        priority: renderingSceneRenderable _ renderable _ renderPriority;
+                        cameraDistance: cameraDistance;
+                        object: renderingSceneRenderable;
+                        yourself)
+                }.
             }.
         }.
     }.
@@ -505,8 +505,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 sceneDepthWriteMask: OverrideableBoolean True.
 
             stateTracker _
-                depthBiasConstantFactor: -4.0f;
-                depthBiasSlopeFactor: -1.5f.
+                depthBiasConstantFactor: -10.0f;
+                depthBiasSlopeFactor: -3.0f.
 
             shadowMapLayers[i] renderSceneObjectsWith: renderingContext.
 

@@ -236,7 +236,7 @@ class ForwardSceneRenderingShaderSignature; definition: {
 
                 attenuation > 0.0f && lightSource shadowMapLayer >= 0.0f ifTrue: {
                     let shadowFactor mutable := 1.0f.
-                    let cameraShadowPosition := Float32x4(P + surfaceNormal*0.01f, 1.0f).
+                    let cameraShadowPosition := Float32x4(P + surfaceNormal * lightSource shadowNormalBias, 1.0f).
 
                     let cascadeSplitOffsets := lightSource cascadeSplitOffsets.
                     let cascadeDistance := lightSource cascadeFrustumPlane dot: cameraShadowPosition.

@@ -14,10 +14,25 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     const method lightSourceObject => LightSourceObjectPtr
         := spatialObject downCastFor: LightSourceObject.
 
-    method radius: (newRadius: Float32) ::=> Void := {
-        localBoundingBox := BoxF32 min: newRadius * -0.5f max: newRadius * 0.5f.
+    method volumeChanged => Void := {
+        self isDirectional ifTrue: {
+            localBoundingBox := BoxF32 fullSpace.
+        } ifFalse: {
+            let radius := self radius.
+            self isSpot ifTrue: {
+                localBoundingBox := BoxF32 min: radius negated max: radius
+            } ifFalse: {
+                localBoundingBox := BoxF32 min: radius negated max: Float32x3(radius negated, radius negated, 0)
+            }
+        }.
         self transformChanged
     }.
+
+    const inline method isDirectional => Boolean8
+        := self lightType = LightSourceType Directional.
+
+    const inline method isSpot => Boolean8
+        := self lightType = LightSourceType Spot.
 
     const inline method castShadows => Boolean8
         := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ castShadows.
@@ -28,6 +43,16 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     const inline method position => Float32x4
         := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightState position.
 
+    const inline method radius => Float32
+        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightState radius.
+
+    const override method isVisibleInFrustum: (frustum: FrustumF32 const ref) ::=> Boolean8 := {
+        self isDirectional ifTrue: {
+            return: true
+        }.
+
+        super isVisibleInFrustum: frustum.
+    }
 }.
 
 compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource sharedPointer.

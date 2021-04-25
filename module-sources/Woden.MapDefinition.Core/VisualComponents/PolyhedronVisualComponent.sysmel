@@ -20,7 +20,7 @@ class PolyhedronVisualComponent superclass: VisualComponent2d; definition: {
 
         let meshBuilder := engine _ newGenericMeshBuilder.
         faces do: {:each :: Void |
-            each _ buildMeshFor: engine with: meshBuilder
+            each _ buildMeshFor: engine with: meshBuilder parentTransform: parentTransform
         }.
         meshBuilder _ computeTangentsBitangents.
 

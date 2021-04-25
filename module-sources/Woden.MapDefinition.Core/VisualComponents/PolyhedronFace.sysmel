@@ -13,9 +13,11 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     override method isPolyhedronFace => Boolean8
         := true.
 
-    method buildMeshFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) ::=> Void := {
+    method buildMeshFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        materialAttributes material ifNotNil: {
+            meshBuilder _ currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine)
+        }.
         meshBuilder _
-            currentMaterial:  (materialAttributes material _ getOrCreateMaterialFor: engine);
             beginTriangles.
 
     	let normalAxis := meshBuilder _ computeNormalAxis: plane normal.
@@ -24,7 +26,9 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     	let textureMatrix := materialAttributes textureTransform.
 
         vertices do: {:each :: Void |
-            let uv := Float32x2 x: (tangent dot: each) y: (bitangent dot: each).
+            let worldVertex := parentTransform transformPosition: each.
+            
+            let uv := Float32x2 x: (tangent dot: worldVertex) y: (bitangent dot: worldVertex).
             meshBuilder _ addP: each N: plane normal TC: (textureMatrix * Float32x3(uv, 1)) xy
         }.
 

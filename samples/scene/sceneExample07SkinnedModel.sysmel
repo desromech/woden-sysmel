@@ -62,6 +62,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         light _
             makeSpot;
             radius: 10.0;
+            shadowNormalBias: 0.01f;
             intensity: Float32x3(1.0f, 1.0f, 0.9f)*1.5f;
             spotOuterCutoff: 65.0f;
             spotInnerCutoff: 60.0f;
