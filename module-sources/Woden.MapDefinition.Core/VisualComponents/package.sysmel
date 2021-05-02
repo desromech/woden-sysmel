@@ -8,9 +8,12 @@ loadFileOnce: "FaceMaterialAttributes.sysmel".
 loadFileOnce: "VisualComponent.sysmel".
 loadFileOnce: "VisualComponent2d.sysmel".
 loadFileOnce: "PunctualVisualComponent.sysmel".
-loadFileOnce: "BoxVisualComponent.sysmel".
 loadFileOnce: "PolyhedronFace.sysmel".
-loadFileOnce: "PolyhedronVisualComponent.sysmel".
+loadFileOnce: "BoxVisualComponent.sysmel".
+loadFileOnce: "ConvexPolyhedronVisualComponent.sysmel".
+
+loadFileOnce: "PolygonFaceAttributes.sysmel".
+loadFileOnce: "ConvexPolygonVisualComponent.sysmel".
 loadFileOnce: "RectangleVisualComponent.sysmel".
 
 loadFileOnce: "LightSourceVisualComponent.sysmel".

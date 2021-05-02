@@ -1,4 +1,5 @@
 loadFileOnce: "CollisionShape.sysmel".
 loadFileOnce: "BoxCollisionShape.sysmel".
 loadFileOnce: "ConvexHullCollisionShape.sysmel".
+loadFileOnce: "PolygonConvexHullCollisionShape.sysmel".
 loadFileOnce: "RectangleCollisionShape.sysmel".

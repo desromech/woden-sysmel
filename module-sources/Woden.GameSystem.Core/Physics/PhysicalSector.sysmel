@@ -5,6 +5,7 @@ useNamespace: Stdn Math.
 useNamespace: Stdn Math Geometry.
 
 class PhysicalSector superclass: Stdn SharedObject; definition: {
+    compileTime constant CollisionNotStuckEpsilon := 0.01f.
     field collisionObjects type: CollisionObjects.
     public field gravity type: Float32x3.
 
@@ -168,11 +169,21 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
                             let otherRigidBodyOwner := otherRigidBody _ ownerEntity.
                         }.
 
-                        let penetrationThreshold := 0.01f.
-                        let penetrationCorrection := (penetrationDistance - penetrationThreshold max: 0.0)*massReciprocalWeight*0.2f*otherCollisionNormal.
-                        currentPosition := collisionPoint + penetrationCorrection*rigidBody massReciprocal.
-                        currentOrientation := collisionOrientation.
-                        otherRigidBody _ translateBy: penetrationCorrection negated * otherRigidBody _ massReciprocal.
+                        rigidBody massReciprocal > 0 && otherRigidBody _ massReciprocal > 0 ifTrue: {
+                            let penetrationThreshold := 0.01f.
+                            let penetrationCorrection := (penetrationDistance - penetrationThreshold max: 0.0)*massReciprocalWeight*0.2f*otherCollisionNormal.
+                            currentPosition := collisionPoint + penetrationCorrection*rigidBody massReciprocal.
+                            currentOrientation := collisionOrientation.
+                            otherRigidBody _ translateBy: penetrationCorrection negated * otherRigidBody _ massReciprocal.
+                        } ifFalse: {
+                            rigidBody massReciprocal > 0 ifTrue: {
+                                currentPosition := collisionPoint + (penetrationDistance + CollisionNotStuckEpsilon)*otherCollisionNormal.
+                                currentOrientation := collisionOrientation.
+                            } ifFalse: {
+                                Stdn assert: otherRigidBody _ massReciprocal > 0.
+                                otherRigidBody _ translateBy: (penetrationDistance + CollisionNotStuckEpsilon) * otherCollisionNormal negated.
+                            }
+                        }.
                     }.
                 }.
 

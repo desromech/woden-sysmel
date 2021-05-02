@@ -1,0 +1,89 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Woden Runtime.
+
+class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
+    public field faces type: Stdn Collections Vector(PolyhedronFacePtr).
+    public field vertices type: Stdn Collections Vector(Float32x3).
+    field boundingBox type: BoxF32.
+
+    method setContentForBox: (box: BoxF32) ::=> Void := {
+        boundingBox := box.
+
+        faces
+            reserve: 6;
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(-1, 0, 0) distance: box min x negated));
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(1, 0, 0) distance: box max x));
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(0, -1, 0) distance: box min y negated));
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(0, 1, 0) distance: box max y));
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(0, 0, -1) distance: box min z negated));
+            add: (PolyhedronFace plane: (PlaneF32 normal: Float32x3(0, 0, 1) distance: box max z)).
+
+        self computeVerticesFromPlanes
+    }.
+
+    method computeVerticesFromPlanes ::=> Void := {
+        0 until: faces size do: {:i :: Void |
+            let f1 ref := faces[i] _.
+            let p1 ref := f1 plane.
+            i + 1 until: faces size do: {:j :: Void |
+                let f2 ref := faces[j] _.
+                let p2 ref := f2 plane.
+                j + 1 until: faces size do: {:k :: Void |
+                    let f3 ref := faces[k] _.
+                    let p3 ref := f3 plane.
+                    let matrix := Float32x3x3(p1 normal, p2 normal, p3 normal) transpose.
+                    (matrix determinant closeTo: 0) ifFalse: {
+                        let intersection := matrix inverse * Float32x3(p1 distance, p2 distance, p3 distance).
+                        f1 vertices add: intersection.
+                        f2 vertices add: intersection.
+                        f3 vertices add: intersection.
+                        vertices add: intersection.
+                    }
+                }
+            }
+        }.
+
+        faces do: {:each :: Void |
+            each _ sortVerticesCounterClockwise
+        }
+    }.
+
+    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+        faces do: {:each :: Void |
+            each _ setMaterial: newMaterial
+        }
+    }.
+
+    override method boundingBox => BoxF32
+        := boundingBox.
+
+    field renderable type: RenderablePtr.
+
+    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+        renderable ifNotNil: {return: renderable}.
+
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        faces do: {:each :: Void |
+            each _ buildMeshFor: engine with: meshBuilder parentTransform: parentTransform
+        }.
+        meshBuilder _ computeTangentsBitangents.
+
+        renderable := meshBuilder _ renderable
+    }.
+
+    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
+        let node := SpatialObjectNode sharedNew.
+        node _
+            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
+        node upCastFor: SceneNode
+    }.
+}.
+
+compileTime constant ConvexPolyhedronVisualComponentPtr := ConvexPolyhedronVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

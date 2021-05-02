@@ -47,13 +47,15 @@ LevelElementDefinition extend: {
             "SectorLayer" : (SectorLayerDefinition sharedNew upCastFor: LevelElementDefinition).
             "Entity" : (EntityDefinition sharedNew upCastFor: LevelElementDefinition).
             "BoxCollisionComponent" : (BoxCollisionShape sharedNew upCastFor: LevelElementDefinition).
+            "PolygonConvexHullCollisionComponent" : (PolygonConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
             "ConvexHullCollisionComponent" : (ConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
             "PolyhedronConvexHullCollisionComponent" : (ConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
             "RectangleCollisionComponent" : (RectangleCollisionShape sharedNew upCastFor: LevelElementDefinition).
             "RectangleVisualComponent" : (RectangleVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "BoxVisualComponent" : (BoxVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "PolyhedronFace" : (PolyhedronFace sharedNew upCastFor: LevelElementDefinition).
-            "PolyhedronVisualComponent" : (PolyhedronVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "ConvexPolyhedronVisualComponent" : (ConvexPolyhedronVisualComponent sharedNew upCastFor: LevelElementDefinition).
+            "ConvexPolygonVisualComponent" : (ConvexPolygonVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
             "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
@@ -226,6 +228,21 @@ RectangleVisualComponent extend: {
     }.
 }.
 
+BoxVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject ref := (value get: DOM ObjectPtr) _.
+            box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+        }.
+
+        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        }.
+    }.
+}.
+
 BoxCollisionShape extend: {
     override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
@@ -237,6 +254,22 @@ BoxCollisionShape extend: {
             ## FIXME: support displaced boxes.
             halfExtent := box halfExtent.
         }.
+    }.
+}.
+
+PolygonConvexHullCollisionShape extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "points" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := (value get: DOM ListPtr) _.
+            points reserve: list size.
+            list do: {:each :: Void |
+                points add: DOM valueToFloat32x2(each)
+            }
+        }.
+
+        self computeBoundingRectangle
     }.
 }.
 
@@ -265,21 +298,6 @@ ConvexHullCollisionShape extend: {
     }.
 }.
 
-BoxVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
-        super loadFromDOM: domObject context: context.
-
-        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let boxObject ref := (value get: DOM ObjectPtr) _.
-            box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
-        }.
-
-        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
-        }.
-    }.
-}.
-
 PolyhedronFace extend: {
     override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
@@ -301,7 +319,7 @@ PolyhedronFace extend: {
     }.
 }.
 
-PolyhedronVisualComponent extend: {
+ConvexPolyhedronVisualComponent extend: {
     override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
@@ -327,6 +345,45 @@ PolyhedronVisualComponent extend: {
                     faces add: (each downCastFor: PolyhedronFace)
                 }
             }
+        }.
+    }.
+}.
+
+PolygonFaceAttributes extend: {
+    method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        }.
+    }.
+}.
+
+ConvexPolygonVisualComponent extend: {
+    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        super loadFromDOM: domObject context: context.
+
+        domObject at: "boundingRectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectangleObject ref := (value get: DOM ObjectPtr) _.
+            boundingRectangle := RectangleF32 min: (rectangleObject getFloat32x2: "min" asMutableString) max: (rectangleObject getFloat32x2: "max" asMutableString).
+        }.
+
+        domObject at: "vertices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := (value get: DOM ListPtr) _.
+            vertices reserve: list size.
+            list do: {:each :: Void |
+                vertices add: DOM valueToFloat32x2(each)
+            }
+        }.
+
+        domObject at: "topFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            topFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        }.
+
+        domObject at: "bottomFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            bottomFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        }.
+
+        domObject at: "sideFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            sideFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
         }.
     }.
 }.

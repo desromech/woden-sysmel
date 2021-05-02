@@ -1,0 +1,29 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+
+class PolygonConvexHullCollisionShape superclass: CollisionShape; definition: {
+    public field points type: Stdn Collections Vector(Float32x2).
+    public field halfThickness type: Float32.
+    field boundingRectangle type: RectangleF32.
+
+    override method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void := {
+        halfThickness := layerDefinition _ defaultThickness * 0.5f.
+    }.
+
+    method computeBoundingRectangle => Void := {
+        boundingRectangle := RectangleF32 empty.
+        points do: {:each :: Void |
+            boundingRectangle := boundingRectangle unionWith: each
+        }.
+    }.
+
+    override method boundingBox => BoxF32
+        := BoxF32 min: Float32x3(boundingRectangle min, halfThickness negated) max: Float32x3(boundingRectangle max, halfThickness).
+}.
+
+compileTime constant PolygonConvexHullCollisionShapePtr := PolygonConvexHullCollisionShape sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

@@ -10,8 +10,21 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     public field plane type: PlaneF32.
     public field vertices type: Stdn Collections Vector(Float32x3).
 
+    meta definition: {
+        static method plane: (plane: PlaneF32 const ref) ::=> PolyhedronFace sharedPointer := {
+            let result := InstanceType sharedNew.
+            result _
+                plane: plane.
+            result
+        }
+    }.
+
     override method isPolyhedronFace => Boolean8
         := true.
+
+    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+        materialAttributes material: newMaterial
+    }.
 
     method buildMeshFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         materialAttributes material ifNotNil: {
@@ -35,6 +48,22 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
         2 until: (vertices size castTo: UInt32) do: {:(UInt32)index :: Void |
             meshBuilder _ addI1: 0 i2: index - 1 i3: index
         }.
+    }.
+
+    method sortVerticesCounterClockwise => Void := {
+        vertices ifEmpty: {return: void}.
+
+        let centroid mutable := Float32x3 zeros.
+        vertices do: {:each :: Void |
+            centroid := centroid + each
+        }.
+        centroid := centroid / (vertices size castTo: Float32).
+
+        vertices sortWith: {:(Float32x3 const ref)a :(Float32x3 const ref)b :: Boolean8 |
+            let u := a - centroid.
+            let v := b - centroid.
+            ((u cross: v) dot: plane normal) >= 0
+        }
     }.
 }.
 

@@ -29,7 +29,7 @@ class Character superclass: Entity; definition: {
 
     override method postLoadInitialization => Void := {
         super postLoadInitialization.
-        localBoundingBox := BoxF32 center: 0 halfExtent: Float32x3(0.5f, 1.0f, 0.4).
+        localBoundingBox := BoxF32 center: 0 halfExtent: Float32x3(0.5f, 0.85f, 0.5).
     }.
 
     virtual method eyePosition => Float32x3

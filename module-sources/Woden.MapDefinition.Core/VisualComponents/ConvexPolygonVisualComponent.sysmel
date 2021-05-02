@@ -1,0 +1,122 @@
+namespace Woden definition: {
+namespace MapDefinition definition: {
+
+useNamespace: Stdn Math Geometry.
+useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Woden Runtime.
+
+class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
+    public field vertices type: Stdn Collections Vector(Float32x2).
+    public field topFaceAttributes type: PolygonFaceAttributes.
+    public field bottomFaceAttributes type: PolygonFaceAttributes.
+    public field sideFaceAttributes type: PolygonFaceAttributes.
+
+    field boundingRectangle type: RectangleF32.
+
+    override method boundingRectangle => RectangleF32
+        := boundingRectangle.
+
+    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+        topFaceAttributes setMaterial: newMaterial.
+        bottomFaceAttributes setMaterial: newMaterial.
+        sideFaceAttributes setMaterial: newMaterial.
+    }.
+
+    field renderable type: RenderablePtr.
+
+    method faceAttributesForNormal: (normal: Float32x3) ::=> PolygonFaceAttributes const ref := {
+        normal y > 0 ifTrue: {
+            return: topFaceAttributes
+        }.
+
+        normal y < 0 ifTrue: {
+            return: bottomFaceAttributes
+        }.
+
+        sideFaceAttributes
+    }.
+
+    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+        renderable ifNotNil: {return: renderable}.
+
+        let meshBuilder := engine _ newGenericMeshBuilder.
+        self generateExtrudedFacesFor: engine with: meshBuilder parentTransform: parentTransform.
+        meshBuilder _
+            computeTangentsBitangents.
+
+        renderable := meshBuilder _ renderable
+    }.
+
+    method generateExtrudedFaceVertices: (faceVertices: Float32x3 arraySlice) normal: (faceNormal: Float32x3) for: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        let faceAttributes ref := self faceAttributesForNormal: faceNormal.
+
+        faceAttributes materialAttributes material ifNotNil: {
+            meshBuilder _ currentMaterial: (faceAttributes materialAttributes material _ getOrCreateMaterialFor: engine)
+        }.
+        meshBuilder _
+            beginTriangles.
+
+        let normalAxis := meshBuilder _ computeNormalAxis: faceNormal.
+        let tangent := meshBuilder _ tangentForAxis: normalAxis.
+        let bitangent := meshBuilder _ bitangentForAxis: normalAxis.
+        let textureMatrix := faceAttributes materialAttributes textureTransform.
+
+        faceVertices do: {:each :: Void |
+            let worldVertex := parentTransform transformPosition: each.
+            
+            let uv := Float32x2 x: (tangent dot: worldVertex) y: (bitangent dot: worldVertex).
+            meshBuilder _ addP: each N: faceNormal TC: (textureMatrix * Float32x3(uv, 1)) xy
+        }.
+
+        2 until: (faceVertices size castTo: UInt32) do: {:(UInt32)index :: Void |
+            meshBuilder _ addI1: 0 i2: index - 1 i3: index
+        }.
+    }.
+
+    method generateExtrudedFacesFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+        ## Front face.
+        let frontVertices mutable type: Stdn Collections Vector(Float32x3).
+        frontVertices reserve: vertices size.
+        vertices do: {:each :: Void |
+            frontVertices add: Float32x3(each, maxZ)
+        }.
+        self generateExtrudedFaceVertices: frontVertices asArraySlice normal: Float32x3(0, 0, 1) for: engine with: meshBuilder parentTransform: parentTransform.
+
+        ## Back face.
+        let backVertices mutable type: Stdn Collections Vector(Float32x3).
+        backVertices reserve: vertices size.
+        vertices reverseDo: {:each :: Void |
+            backVertices add: Float32x3(each, minZ)
+        }.
+        self generateExtrudedFaceVertices: backVertices asArraySlice normal: Float32x3(0, 0, -1) for: engine with: meshBuilder parentTransform: parentTransform.
+
+        ## Side faces.
+        let vertexCount := frontVertices size.
+        0 until: vertexCount do: {:vs :: Void |
+            let ve := (vs + 1) % vertexCount.
+            let faceVertices mutable := Float32x3 array(
+                frontVertices[ve],
+                frontVertices[vs],
+                backVertices[vertexCount - vs - 1],
+                backVertices[vertexCount - ve - 1]
+            ).
+
+            let u := faceVertices second - faceVertices first.
+            let v := faceVertices third - faceVertices first.
+            let n := (u cross: v) normalized.
+            self generateExtrudedFaceVertices: faceVertices normal: n for: engine with: meshBuilder parentTransform: parentTransform.
+        }.
+    }.
+
+    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
+        let node := SpatialObjectNode sharedNew.
+        node _
+            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
+        node upCastFor: SceneNode
+    }.
+}.
+
+compileTime constant ConvexPolygonVisualComponentPtr := ConvexPolygonVisualComponent sharedPointer.
+
+}. ## namespace MapDefinition
+}. ## namespace Woden

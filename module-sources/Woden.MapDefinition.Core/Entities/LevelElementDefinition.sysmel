@@ -24,6 +24,8 @@ class LevelElementDefinition superclass: Stdn SharedObject; definition: {
     virtual method isMaterialDefinition => Boolean8 := false.
     virtual method isMetallicRoughnessMaterialDefinition => Boolean8 := false.
     virtual method isFileReferenceMaterialDefinition => Boolean8 := false.
+
+    virtual method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {}.
 }.
 
 compileTime constant LevelElementDefinitionPtr := LevelElementDefinition sharedPointer.
