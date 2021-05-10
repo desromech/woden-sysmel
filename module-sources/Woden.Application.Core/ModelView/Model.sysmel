@@ -14,7 +14,7 @@ class Model superclass: RenderingProcess; definition: {
     const inline method engine => EnginePtr const ref
         := engine.
 
-    virtual method initializeEngineWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    virtual method initializeEngineWithCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
         engine ifNotNil: {return: true}.
 
         let newEngine := Engine sharedNew.
@@ -30,11 +30,11 @@ class Model superclass: RenderingProcess; definition: {
         true.
     }.
 
-    virtual method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    virtual method parseCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
         true
     }.
 
-    virtual method initializeWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    virtual method initializeWithCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
         (self parseCommandLine: arguments) &&
         (self initializeEngineWithCommandLine: arguments) &&
         self initializeModel

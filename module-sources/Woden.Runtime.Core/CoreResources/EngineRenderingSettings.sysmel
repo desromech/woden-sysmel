@@ -31,9 +31,9 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
 }.
     }.
 
-    method parseFromCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    method parseFromCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
         for: (let i mutable type: UIntPointer := 0) while: (i < arguments size) do: {
-            (arguments[i] until: Stdn cstrlen(arguments[i])) selectCase: #{
+            arguments[i] selectCase: #{
                 "-no-vsync" : {
                     vsyncEnabled := false.
                 }.
@@ -45,11 +45,8 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
                         return: false
                     }.
 
-                    i := i + 1.
-                    let width := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
-
-                    i := i + 1.
-                    let height := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
+                    let width := arguments[i := i + 1] parseUInt32.
+                    let height := arguments[i := i + 1] parseUInt32.
                     resolution := UInt32x2(width, height)
                 }.
                 "-shadow-map-size" : {
@@ -57,24 +54,21 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
                         return: false
                     }.
 
-                    i := i + 1.
-                    shadowMapSize := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32.
+                    shadowMapSize := arguments[i := i + 1] parseUInt32
                 }.
                 "-msaa" : {
                     i + 1 >= arguments size ifTrue: {
                         return: false
                     }.
 
-                    i := i + 1.
-                    multiSampleCount := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32 max: 1u.
+                    multiSampleCount := arguments[i := i + 1] parseUInt32 max: 1u.
                 }.
                 "-anisotropic-quality" : {
                     i + 1 >= arguments size ifTrue: {
                         return: false
                     }.
 
-                    i := i + 1.
-                    maxAnisotropy := (arguments[i] until: Stdn cstrlen(arguments[i])) parseUInt32 max: 1u.
+                    maxAnisotropy := arguments[i := i + 1] parseUInt32 max: 1u.
                 }.
                 "-ssao-quality" : {
                     i + 1 >= arguments size ifTrue: {
@@ -82,7 +76,7 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
                     }.
 
                     i := i + 1.
-                    screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting fromString: (arguments[i] until: Stdn cstrlen(arguments[i])).
+                    screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting fromString: arguments[i := i + 1].
                 }.
                 "-profile" : {
                     profiling := true.

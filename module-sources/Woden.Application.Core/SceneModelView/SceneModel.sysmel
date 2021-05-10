@@ -29,10 +29,10 @@ class SceneModel superclass: Model; definition: {
     method stereoPresentationMode => StereoPresentationMode
         := stereoPresentationMode.
 
-    override method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8 := {
+    override method parseCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
 
         arguments do: {:arg :: Void |
-            (arg until: Stdn cstrlen(arg)) selectCase: #{
+            arg selectCase: #{
             "-stereo" : {self useStereoDisplay}.
             "-stereo-anaglyph-red-cyan" : {self useStereoAnaglyphRedCyanDisplay}.
             "-stereo-anaglyph-cyan-red" : {self useStereoAnaglyphCyanRedDisplay}.

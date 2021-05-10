@@ -65,10 +65,10 @@ class Engine superclass: Stdn SharedObject; definition: {
         renderingSettingsChanged = true.
     }.
 
-    method parseCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8
+    method parseCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8
         := renderingSettings parseFromCommandLine: arguments.
 
-    method initializeEngineWithCommandLine: (arguments: Char8 const pointer arraySlice) ::=> Boolean8
+    method initializeEngineWithCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8
         := (self parseCommandLine: arguments) && self initializeEngine.
 
     method initializeEngine => Boolean8 := {

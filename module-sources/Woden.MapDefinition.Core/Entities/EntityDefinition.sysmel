@@ -28,7 +28,7 @@ class EntityDefinition superclass: LevelElementDefinition; definition: {
         := transform scale.
 
     inline method scale: (scale: Float32x3) ::=> Void
-        := transform translation: scale.
+        := transform scale: scale.
 
     method positionForLayer: (layer: SectorLayerDefinition sharedPointer const ref) ::=> Float32x3 := {
         is2DEntity

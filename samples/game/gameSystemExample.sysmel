@@ -7,7 +7,7 @@ useNamespace: Woden MapDefinition.
 
 Stdn MainEntryPoint: {:args :: Int32 |
     args do: {:arg :: Void |
-        (arg until: Stdn cstrlen(arg)) selectCase: #{
+        arg selectCase: #{
         "-dump-entity-definitions" : {
             EntityRegistry uniqueInstance dumpEntityDefinitionsInto: Stdn stdout.
             return: 0
