@@ -13,6 +13,9 @@ struct EngineRenderingSettings definition: {
     public field shadowMapSize type: UInt32.
     public field screenSpaceAmbientOcclusionQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
     public field profiling type: Boolean8.
+    
+    public field frameDumping type: Boolean8.
+    public field frameDumpingPrefix type: Stdn String.
 
     method initialize => Void := {
         vsyncEnabled := true.
@@ -75,12 +78,21 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
                         return: false
                     }.
 
-                    i := i + 1.
                     screenSpaceAmbientOcclusionQuality := ScreenSpaceAmbientOcclusionQualitySetting fromString: arguments[i := i + 1].
                 }.
                 "-profile" : {
                     profiling := true.
+                    i + 1 >= arguments size ifTrue: {
+                        return: false
+                    }.
                 }.
+
+
+                "-frame-dump-prefix" : {
+                    frameDumpingPrefix := arguments[i := i + 1].
+                    frameDumping := true.
+                }.
+
                 _ : {}
             }.
 

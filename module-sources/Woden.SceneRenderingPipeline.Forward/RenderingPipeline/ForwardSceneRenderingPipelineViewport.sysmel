@@ -53,10 +53,20 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     public field hdrColorRenderPass type: RenderPassPtr.
     public field hdrColorBufferBinding type: ShaderResourceBindingsPtr.
 
+    protected field eyeReadbackBufferPitch type: UIntPointer.
+    protected field eyeReadbackBufferSlicePitch type: UIntPointer.
+    protected field eyeReadbackBufferSize type: UIntPointer.
+    protected field eyeReadbackBuffer type: BufferPtr.
+
+    protected field dumpFrameCount type: UIntPointer.
+
     protected field leftEyeFramebuffer type: FramebufferPtr.
-    protected field leftEyeTexture type: TextureViewPtr.
+    protected field leftEyeTexture type: TexturePtr.
+    protected field leftEyeTextureView type: TextureViewPtr.
+
     protected field rightEyeFramebuffer type: FramebufferPtr.
-    protected field rightEyeTexture type: TextureViewPtr.
+    protected field rightEyeTexture type: TexturePtr.
+    protected field rightEyeTextureView type: TextureViewPtr.
 
     protected field eyeCompositionRenderPass type: RenderPassPtr.
     protected field stereoEyeCompositionBinding type: ShaderResourceBindingsPtr.
@@ -87,6 +97,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         ssaoQuality := renderingSettings screenSpaceAmbientOcclusionQuality.
 
+        let isDumpingFrames := self engine _ renderingSettings frameDumping.
         let device := self engine _ renderingDevice.
         renderingCommandQueue ifNotNil: {
             renderingCommandQueue _ waitForIdle
@@ -301,7 +312,27 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             hdrColorRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
-        stereoPresentationMode isStereoscopic && stereoPresentationMode isMultiLayerSwapChain not ifTrue: {
+        isDumpingFrames ifTrue: {
+            eyeReadbackBufferPitch := sceneRenderingPipeline _ swapChainColorBufferFormat bytesPerPixel * requiredExtent x alignedTo: device _ minTextureDataPitchAlignment.
+            eyeReadbackBufferSlicePitch := eyeReadbackBufferPitch * requiredExtent y alignedTo: device _ minTextureDataOffsetAlignment.
+            eyeReadbackBufferSize := eyeReadbackBufferSlicePitch * FrameBufferingCount.
+            stereoPresentationMode isStereoscopic ifTrue: {
+                eyeReadbackBufferSize := eyeReadbackBufferSize * 2
+            }.
+
+            eyeReadbackBuffer := device _ createBuffer: (BufferDescription()
+                size: eyeReadbackBufferSize;
+                heapType: MemoryHeapType DeviceToHost;
+                usageModes: BufferUsageMode CopyDestinationBuffer;
+                mainUsageMode: BufferUsageMode CopyDestinationBuffer;
+                mappingFlags: BufferMappingFlags Read;
+                yourself) initialData: nil.
+        }.
+
+        isDumpingFrames || (stereoPresentationMode isStereoscopic && stereoPresentationMode isMultiLayerSwapChain not) ifTrue: {
+            let usageModes := isDumpingFrames
+                ifTrue: {TextureUsageMode Sampled | TextureUsageMode ColorAttachment | TextureUsageMode CopySource }
+                ifFalse: {TextureUsageMode Sampled | TextureUsageMode ColorAttachment}.
             let eyeTextureDescription := TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
@@ -310,7 +341,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 layers: 1;
                 miplevels: 1;
                 format: sceneRenderingPipeline _ swapChainColorBufferFormat;
-                usageModes: TextureUsageMode Sampled | TextureUsageMode ColorAttachment;
+                usageModes: usageModes;
                 mainUsageMode: TextureUsageMode Sampled;
                 heapType: MemoryHeapType DeviceLocal;
                 sampleCount: 1;
@@ -318,18 +349,23 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             ## Left eye
             {
-                let texture := device _ createTexture: eyeTextureDescription.
-                leftEyeTexture := texture _ getOrCreateFullView.
-                let colorAttachments mutable := TextureViewPtr array(leftEyeTexture).
+                leftEyeTexture := device _ createTexture: eyeTextureDescription.
+                leftEyeTextureView := leftEyeTexture _ getOrCreateFullView.
+                let colorAttachments mutable := TextureViewPtr array(leftEyeTextureView).
                 leftEyeFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
             }.
 
             ## Right eye
-            {
-                let texture := device _ createTexture: eyeTextureDescription.
-                rightEyeTexture := texture _ getOrCreateFullView.
-                let colorAttachments mutable := TextureViewPtr array(rightEyeTexture).
+            stereoPresentationMode isStereoscopic ifTrue: {
+                rightEyeTexture := device _ createTexture: eyeTextureDescription.
+                rightEyeTextureView := rightEyeTexture _ getOrCreateFullView.
+                let colorAttachments mutable := TextureViewPtr array(rightEyeTextureView).
                 rightEyeFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+            } ifFalse: {
+                rightEyeTexture := leftEyeTexture.
+                rightEyeTextureView := leftEyeTextureView.
+                rightEyeFramebuffer := leftEyeFramebuffer.
+                void.
             }.
 
             stereoEyeCompositionBinding ifNil: {
@@ -337,11 +373,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             }.
 
             self hasStereoscopicPresentationModeWithFlippedEyes ifTrue: {
-                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: rightEyeTexture.
-                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: leftEyeTexture.
+                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: rightEyeTextureView.
+                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: leftEyeTextureView.
             } ifFalse: {
-                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: leftEyeTexture.
-                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: rightEyeTexture.
+                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: leftEyeTextureView.
+                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: rightEyeTextureView.
             }.
 
             eyeCompositionRenderPass ifNil: {
@@ -522,6 +558,82 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             endRenderPass
     }.
 
+    method presentAndDumpFrame => Void := {
+        let frameBufferingIndex := dumpFrameCount % (FrameBufferingCount castTo: UIntPointer).
+        let frameOffset := frameBufferingIndex * eyeReadbackBufferSlicePitch.
+
+        dumpFrameCount >= FrameBufferingCount ifTrue: {
+            let frameCountText := Stdn String textStreamContents: {:out :: Void | out << dumpFrameCount }.
+            let paddedFrameCountText mutable := Stdn String ().
+            0 until: (5 - (frameCountText size castTo: IntPointer) max: 0) do: {:i :: Void |
+                paddedFrameCountText add: '0'
+            }.
+            paddedFrameCountText addAll: frameCountText asArraySlice.
+            let outputFilename := self engine _ renderingSettings frameDumpingPrefix -- paddedFrameCountText -- ".jpg".
+
+            let frameToSave := dumpFrameCount - FrameBufferingCount.
+            let formToSave := Form extent: currentExtent pixelFormat: sceneRenderingPipeline _ swapChainColorBufferFormat.
+            let sourceData := (eyeReadbackBuffer _ map: MappingAccessMask ReadOnly) reinterpretCastTo: UInt8 pointer.
+
+            let destRow mutable := formToSave _ pixels getPointer.
+            let destPitch := formToSave _ pitch.
+            let sourceRow mutable := sourceData + frameOffset.
+            let copySize := currentExtent x * formToSave _ pixelFormat bytesPerPixel.
+            0 until: currentExtent y do: {:y :: Void |
+                Stdn memcpy(destRow, sourceRow, copySize).
+                destRow := destRow + destPitch.
+                sourceRow := sourceRow + eyeReadbackBufferPitch.
+            }.
+
+            eyeReadbackBuffer _ unmap.
+
+            formToSave _ writeToFileNamed: outputFilename
+        }.
+        let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2).
+        let stateTracker ref := stateTrackers current _.
+
+        stateTracker
+            ## Present the frame.
+            resetState;
+            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useGraphicShaderBindings: stereoEyeCompositionBinding;
+
+            beginRenderPass: currentDisplayRenderPass on: currentBackBufferLeftEye contentOnBundle: false;
+            setViewport: viewportRectangle;
+            setScissor: viewportRectangle;
+
+            vertexShader: self screenQuadShader;
+            fragmentShader: Woden Shaders StereoscopicCompositionMaterial leftEyeOnly shaderEntryPointInfo address;
+            primitiveTopology: PrimitiveTopology Triangles;
+            drawArrays: 3 instanceCount: 1 firstVertex: 0 baseInstance: 0;
+            endRenderPass;
+            
+            ## Readback the left eye.
+            pushTexture: leftEyeTexture
+                subresourceRange: (TextureSubResourceRange()
+                    aspect: TextureAspect Color;
+                    levelCount: 1;
+                    layerCount: 1;
+                    yourself)
+                transitionBarrierFrom: TextureUsageMode Sampled into: TextureUsageMode CopySource;
+            copyFromTexture: leftEyeTexture intoBuffer: eyeReadbackBuffer
+                region: (BufferImageCopyRegion()
+                    bufferOffset: frameOffset;
+                    bufferPitch: eyeReadbackBufferPitch;
+                    bufferSlicePitch: eyeReadbackBufferSlicePitch;
+
+                    textureUsageMode: TextureUsageMode CopySource;
+                    textureSubResourceLevel: (TextureSubResourceLevel()
+                        aspect: TextureAspect Color;
+                        layerCount: 1;
+                        yourself);
+                    textureRegion: (BoxI32 min: 0 max: Int32x3(currentExtent castTo: Int32x2, 1));
+                    yourself);
+            popBufferTransitionBarrier.
+        dumpFrameCount := dumpFrameCount + 1.
+    }.
+
     override method setScene2D: (scene2D: Stdn Graphics Scene2D NodePtr const ref) ::=> Void := {
         currentScene2D := scene2D
     }.
@@ -540,8 +652,15 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         let stateTracker := stateTrackers currentReseted.
+        let isDumpingFrames := self engine _ renderingSettings frameDumping.
+
         stereoPresentationMode isMonoscopic || stereoPresentationMode isMultiLayerSwapChain ifTrue: {
-            leftEyeViewport constructCommandsOn: stateTracker displayingOn: currentBackBufferLeftEye with: currentDisplayRenderPass.
+            isDumpingFrames ifTrue: {
+                leftEyeViewport constructCommandsOn: stateTracker displayingOn: leftEyeFramebuffer with: currentDisplayRenderPass.
+                self presentAndDumpFrame
+            } ifFalse: {
+                leftEyeViewport constructCommandsOn: stateTracker displayingOn: currentBackBufferLeftEye with: currentDisplayRenderPass.
+            }.
             stereoPresentationMode isMultiLayerSwapChain && currentBackBufferRightEye isNotNil ifTrue: {
                 rightEyeViewport constructCommandsOn: stateTracker displayingOn: currentBackBufferRightEye with: currentDisplayRenderPass.
             }.
