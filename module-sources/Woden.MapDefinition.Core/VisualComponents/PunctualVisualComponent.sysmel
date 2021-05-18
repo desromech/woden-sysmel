@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 
 class PunctualVisualComponent superclass: VisualComponent; definition: {
@@ -11,7 +11,7 @@ class PunctualVisualComponent superclass: VisualComponent; definition: {
     override method isPunctualVisualComponent => Boolean8 := true.
 }.
 
-compileTime constant PunctualVisualComponentPtr := PunctualVisualComponent sharedPointer.
+compileTime constant PunctualVisualComponentPtr := PunctualVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

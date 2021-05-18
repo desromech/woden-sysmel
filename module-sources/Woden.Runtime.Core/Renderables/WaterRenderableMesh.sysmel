@@ -12,7 +12,7 @@ class WaterRenderableMesh superclass: SurfaceDeformationRenderableMesh; definiti
     }.
 }.
 
-compileTime constant WaterRenderableMeshPtr := WaterRenderableMesh sharedPointer.
+compileTime constant WaterRenderableMeshPtr := WaterRenderableMesh rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

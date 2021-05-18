@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class RectangleVisualComponent superclass: VisualComponent2d; definition: {
@@ -40,10 +40,10 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     }.
 
     override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode sharedNew.
+        let node := SpatialObjectNode rcNew.
 
         materialAttributes material ifNil: {
-            let deformedCube := SpatialObjectNode sharedNew.
+            let deformedCube := SpatialObjectNode rcNew.
             deformedCube _
                 renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);
                 transform: self boundingBox reversibleTransformToConvertUnitBoxToMe.
@@ -58,7 +58,7 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     }.
 }.
 
-compileTime constant RectangleVisualComponentPtr := RectangleVisualComponent sharedPointer.
+compileTime constant RectangleVisualComponentPtr := RectangleVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

@@ -1,15 +1,15 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a material that performs flat shading in a surface.
  *#
 class UnlitMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> UnlitMaterial sharedPointer := {
-            let result := UnlitMaterial sharedNew.
+        method for: (anEngine: EnginePtr const ref) ::=> UnlitMaterial rcPointer := {
+            let result := UnlitMaterial rcNew.
             result _ initializeWithEngine: anEngine.
             result
         }.
@@ -52,7 +52,7 @@ class UnlitMaterial superclass: Material; definition: {
         := context activateUnlitMaterial: self.
 }.
 
-compileTime constant UnlitMaterialPtr := UnlitMaterial sharedPointer.
+compileTime constant UnlitMaterialPtr := UnlitMaterial rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

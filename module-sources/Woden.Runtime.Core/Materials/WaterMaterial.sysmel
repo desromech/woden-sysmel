@@ -6,8 +6,8 @@ namespace Runtime definition: {
  *#
 class WaterMaterial superclass: MetallicRoughnessMaterial; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> WaterMaterial sharedPointer := {
-            let result := WaterMaterial sharedNew.
+        method for: (anEngine: EnginePtr const ref) ::=> WaterMaterial rcPointer := {
+            let result := WaterMaterial rcNew.
             result _ initializeWithEngine: anEngine.
             result
         }.
@@ -25,7 +25,7 @@ class WaterMaterial superclass: MetallicRoughnessMaterial; definition: {
         := context activateWaterMaterial: self.
 }.
 
-compileTime constant WaterMaterialPtr := WaterMaterial sharedPointer.
+compileTime constant WaterMaterialPtr := WaterMaterial rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

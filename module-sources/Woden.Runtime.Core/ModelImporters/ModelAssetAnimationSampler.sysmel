@@ -6,21 +6,21 @@ useNamespace: Woden Runtime.
 #**
  * I am an animation sampler
  *#
-class ModelAssetAnimationSampler definition: {
+class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
     public field index type: UIntPointer.
     public field inputAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field outputAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field interpolationMethod type: ModelAssetAnimationInterpolationMethod.
 
     method asAnimationCurve => AnimationCurvePtr := {
-        Stdn assert: inputAccessor _ format componentCount = 1.
+        Std assert: inputAccessor _ format componentCount = 1.
 
         let startTime := inputAccessor _ minValue x castTo: Float32.
         let endTime := inputAccessor _ maxValue x castTo: Float32.
 
         outputAccessor _ format componentCount selectCase: #{
         1 : {
-            let result := InterpolatedAnimationCurveFloat32 sharedNew.
+            let result := InterpolatedAnimationCurveFloat32 rcNew.
             result _
                 startTime: startTime;
                 endTime: endTime;
@@ -30,7 +30,7 @@ class ModelAssetAnimationSampler definition: {
             result upCastFor: AnimationCurve
         }.
         2 : {
-            let result := InterpolatedAnimationCurveFloat32x2 sharedNew.
+            let result := InterpolatedAnimationCurveFloat32x2 rcNew.
             result _
                 startTime: startTime;
                 endTime: endTime;
@@ -40,7 +40,7 @@ class ModelAssetAnimationSampler definition: {
             result upCastFor: AnimationCurve
         }.
         3 : {
-            let result := InterpolatedAnimationCurveFloat32x3 sharedNew.
+            let result := InterpolatedAnimationCurveFloat32x3 rcNew.
             result _
                 startTime: startTime;
                 endTime: endTime;
@@ -50,7 +50,7 @@ class ModelAssetAnimationSampler definition: {
             result upCastFor: AnimationCurve
         }.
         4 : {
-            let result := InterpolatedAnimationCurveFloat32x4 sharedNew.
+            let result := InterpolatedAnimationCurveFloat32x4 rcNew.
             result _
                 startTime: startTime;
                 endTime: endTime;
@@ -63,7 +63,7 @@ class ModelAssetAnimationSampler definition: {
     }.
 }.
 
-compileTime constant ModelAssetAnimationSamplerPtr := ModelAssetAnimationSampler sharedPointer.
+compileTime constant ModelAssetAnimationSamplerPtr := ModelAssetAnimationSampler rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

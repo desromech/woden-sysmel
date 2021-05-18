@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 
 class SpotLightSourceVisualComponent superclass: PointLightSourceVisualComponent; definition: {
@@ -27,7 +27,7 @@ class SpotLightSourceVisualComponent superclass: PointLightSourceVisualComponent
     }.
 }.
 
-compileTime constant SpotLightSourceVisualComponentPtr := SpotLightSourceVisualComponent sharedPointer.
+compileTime constant SpotLightSourceVisualComponentPtr := SpotLightSourceVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

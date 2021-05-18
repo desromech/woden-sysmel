@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 class Player superclass: Character; definition: {
     SelfType registerWithClassName: "Player".
@@ -115,12 +115,12 @@ class Player superclass: Character; definition: {
     virtual method onInputAction: (action: Char8 const arraySlice) triggerState: (state: Float32) ::=> Void := {}.
 }.
 
-compileTime constant PlayerPtr := Player sharedPointer.
+compileTime constant PlayerPtr := Player rcPointer.
 
 class PlayerStartPoint superclass: MetadataEntity; definition: {
     SelfType registerWithClassName: "PlayerStartPoint".
 
-    override method classDescription => Stdn ImmutableString
+    override method classDescription => Std ImmutableString
         := "The point where the player is going to be spawn.".
 
     override method isAvailableInEditor => Boolean8

@@ -1,12 +1,12 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * An abstract pipeline for rendering a scene.
  *#
-class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
+class SceneRenderingPipeline superclass: Std RCObject; definition: {
     protected field engine type: EnginePtr.
 
     const inline method engine => EnginePtr const ref
@@ -34,11 +34,11 @@ class SceneRenderingPipeline superclass: Stdn SharedObject; definition: {
     abstract method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr.
 
     ## Allow the scene rendering pipeline to override the view window class.
-    virtual method newViewWindowInstance => Stdn SharedObject sharedPointer
-        := Stdn SharedObject sharedPointer nil.
+    virtual method newViewWindowInstance => Std RCObject rcPointer
+        := Std RCObject rcPointer nil.
 }.
 
-compileTime constant SceneRenderingPipelinePtr := SceneRenderingPipeline sharedPointer.
+compileTime constant SceneRenderingPipelinePtr := SceneRenderingPipeline rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -3,7 +3,7 @@ namespace Runtime definition: {
 
 ResourceCache extend: {
 
-    method solveMaterialFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+    method solveMaterialFileReference: (fileReference: Std FileReference const ref) ::=> Std FileReference := {
         let extensions mutable := Char8 const arraySlice array(
             "wmat",
             "wtmat"
@@ -12,7 +12,7 @@ ResourceCache extend: {
         self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
-    method loadMaterialFrom: (fileReference: Stdn FileReference const ref) ::=> MaterialPtr := {
+    method loadMaterialFrom: (fileReference: Std FileReference const ref) ::=> MaterialPtr := {
         let solvedFileReference := self solveMaterialFileReference: fileReference.
         solvedFileReference exists ifFalse: {
             return: self defaultMaterial

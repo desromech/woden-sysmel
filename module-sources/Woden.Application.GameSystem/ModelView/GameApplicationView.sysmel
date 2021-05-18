@@ -3,8 +3,8 @@ namespace GameSystem definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Woden Application.
-useNamespace: Stdn Graphics GUI.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics GUI.
+useNamespace: Std Math LinearAlgebra.
 
 class GameApplicationView superclass: SceneView; definition: {
     method gameModel => GameApplicationModelPtr

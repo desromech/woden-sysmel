@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 class RigidBody superclass: CollisionObject; definition: {
     public field linearDamping type: Float32x3.
@@ -34,7 +34,7 @@ class RigidBody superclass: CollisionObject; definition: {
         := massReciprocal.
 
     const inline method mass: (newMass: Float32) ::=> Void := {
-        Stdn assert: newMass >= 0.
+        Std assert: newMass >= 0.
         mass := newMass.
         massReciprocal := newMass = 0 ifTrue: { 0 } ifFalse: { 1.0f / mass }.
     }.
@@ -78,7 +78,7 @@ class RigidBody superclass: CollisionObject; definition: {
     }.
 }.
 
-compileTime constant RigidBodyPtr := RigidBody sharedPointer.
+compileTime constant RigidBodyPtr := RigidBody rcPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

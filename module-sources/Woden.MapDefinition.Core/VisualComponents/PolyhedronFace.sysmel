@@ -1,18 +1,18 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class PolyhedronFace superclass: LevelElementDefinition; definition: {
     public field materialAttributes type: FaceMaterialAttributes.
     public field plane type: PlaneF32.
-    public field vertices type: Stdn Collections Vector(Float32x3).
+    public field vertices type: Std Collections Vector(Float32x3).
 
     meta definition: {
-        static method plane: (plane: PlaneF32 const ref) ::=> PolyhedronFace sharedPointer := {
-            let result := InstanceType sharedNew.
+        static method plane: (plane: PlaneF32 const ref) ::=> PolyhedronFace rcPointer := {
+            let result := InstanceType rcNew.
             result _
                 plane: plane.
             result
@@ -67,7 +67,7 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     }.
 }.
 
-compileTime constant PolyhedronFacePtr := PolyhedronFace sharedPointer.
+compileTime constant PolyhedronFacePtr := PolyhedronFace rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

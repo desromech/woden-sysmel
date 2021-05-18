@@ -4,12 +4,12 @@ namespace Application definition: {
 #**
  * I am an a scene model presentation mode.
  *#
-class SceneModelPresentationMode superclass: Stdn SharedObject; definition: {
+class SceneModelPresentationMode superclass: Std RCObject; definition: {
     meta definition: {
 
         compileTime if: Compiler compilationTarget isDesktopPC || Compiler compilationTarget isWebAssembly || Compiler compilationTarget isWindowsStore then: {
-            static method default => SceneModelPresentationMode sharedPointer
-                := SingleViewSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+            static method default => SceneModelPresentationMode rcPointer
+                := SingleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
         }.
     }.
 
@@ -18,7 +18,7 @@ class SceneModelPresentationMode superclass: Stdn SharedObject; definition: {
     abstract method openApplicationForModel: (model: SceneModel ref) ::=> Boolean8.
 }.
 
-compileTime constant SceneModelPresentationModePtr := SceneModelPresentationMode sharedPointer.
+compileTime constant SceneModelPresentationModePtr := SceneModelPresentationMode rcPointer.
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

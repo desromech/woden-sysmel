@@ -14,7 +14,7 @@ class Wall superclass: Entity; definition: {
 
     override method buildCollisionObjectWithShape: (collisionShape: CollisionShapePtr const ref) ::=> Void := {
         collisionObject := CollisionObject staticRigidBodyFor: collisionShape.
-        collisionObject _ ownerEntity: (self asSharedPointer upCastFor: Entity)
+        collisionObject _ ownerEntity: (self asRCPointer upCastFor: Entity)
     }.
 }.
 

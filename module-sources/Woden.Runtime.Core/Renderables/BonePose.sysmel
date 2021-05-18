@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math.
+useNamespace: Std Math.
 
 #**
  * I am a specific pose of a bone.

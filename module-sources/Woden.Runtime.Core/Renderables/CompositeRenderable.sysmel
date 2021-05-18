@@ -1,13 +1,13 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 #**
  * I am a renderable with additional deformation state.
  *#
 class CompositeRenderable superclass: MutableRenderable; definition: {
-    public field components type: Stdn Collections Vector(RenderablePtr).
+    public field components type: Std Collections Vector(RenderablePtr).
 
     method addComponent: (component: RenderablePtr const ref) ::=> Void := {
         components add: component
@@ -20,7 +20,7 @@ class CompositeRenderable superclass: MutableRenderable; definition: {
         }.
     }.
 
-    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Stdn Collections Vector(RenderingSceneObject sharedPointer) := {
+    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Std Collections Vector(RenderingSceneObject rcPointer) := {
         let result mutable := RenderingSceneObjectList().
         components do: {:each :: Void |
             let renderingSceneObjects := each _ createRenderingSceneObjectsFor: spatialObject.
@@ -32,7 +32,7 @@ class CompositeRenderable superclass: MutableRenderable; definition: {
 
 }.
 
-compileTime constant CompositeRenderablePtr := CompositeRenderable sharedPointer.
+compileTime constant CompositeRenderablePtr := CompositeRenderable rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

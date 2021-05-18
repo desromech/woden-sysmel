@@ -2,8 +2,8 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
 
 compileTime constant VertexAttributeLocation := Woden GpuStructures VertexAttributeLocation.
 
@@ -15,7 +15,7 @@ struct ModelAssetMeshPrimitiveAttribute definition: {
     const method = (o: SelfType const ref) ::=> Boolean8
         := accessor = o accessor && location = o location.
 
-    const method hash ::=> Stdn Hash
+    const method hash ::=> Std Hash
         := accessor hash ^ location hash.
 
     const method < (o: SelfType const ref) ::=> Boolean8 := {
@@ -27,17 +27,17 @@ struct ModelAssetMeshPrimitiveAttribute definition: {
     }.
 }.
 
-compileTime constant ModelAssetMeshPrimitiveAttributeList := Stdn Collections Vector(ModelAssetMeshPrimitiveAttribute).
+compileTime constant ModelAssetMeshPrimitiveAttributeList := Std Collections Vector(ModelAssetMeshPrimitiveAttribute).
 
 struct ModelAssetPrimitiveAttributesBindingDescription definition: {
     public field vertexLayout type: VertexLayoutPtr.
-    public field buffers type: Stdn Collections Vector(BufferPtr).
-    public field offsets type: Stdn Collections Vector(UInt32).
+    public field buffers type: Std Collections Vector(BufferPtr).
+    public field offsets type: Std Collections Vector(UInt32).
 
     const method = (o: SelfType const ref) ::=> Boolean8
         := vertexLayout = o vertexLayout && buffers = o buffers && offsets = o offsets.
 
-    const method hash => Stdn Hash
+    const method hash => Std Hash
         := vertexLayout hash ^ buffers hash ^ offsets hash.
 }.
 
@@ -169,7 +169,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
     }.
 }.
 
-compileTime constant ModelAssetMeshPrimitiveAttributesPtr := ModelAssetMeshPrimitiveAttributes sharedPointer.
+compileTime constant ModelAssetMeshPrimitiveAttributesPtr := ModelAssetMeshPrimitiveAttributes rcPointer.
 
 Woden GpuStructures GenericVertex extend: {
     meta definition: {

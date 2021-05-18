@@ -4,7 +4,7 @@ namespace GameSystem definition: {
 useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
-class Sector superclass: Stdn SharedObject; definition: {
+class Sector superclass: Std RCObject; definition: {
     field engine type: EnginePtr.
     field scene type: ScenePtr.
 
@@ -17,7 +17,7 @@ class Sector superclass: Stdn SharedObject; definition: {
 
     meta definition: {
         method for: (engine: EnginePtr const ref) ::=> SectorPtr := {
-            let result := Sector sharedNew.
+            let result := Sector rcNew.
             result _ initializeWithEngine: engine.
             result
         }
@@ -35,8 +35,8 @@ class Sector superclass: Stdn SharedObject; definition: {
     method loadFromDefinition: (definition: SectorDefinitionPtr const ref) ::=> Void := {
         isSector2D := definition _ isSector2D.
         physicalSector := isSector2D
-            ifTrue: { PhysicalSector2D sharedNew upCastFor: PhysicalSector }
-            ifFalse: { PhysicalSector3D sharedNew upCastFor: PhysicalSector }.
+            ifTrue: { PhysicalSector2D rcNew upCastFor: PhysicalSector }
+            ifFalse: { PhysicalSector3D rcNew upCastFor: PhysicalSector }.
         physicalSector _
             gravity: Float32x3(0, -9.8f, 0).
 
@@ -171,7 +171,7 @@ class Sector superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant SectorPtr := Sector sharedPointer.
+compileTime constant SectorPtr := Sector rcPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

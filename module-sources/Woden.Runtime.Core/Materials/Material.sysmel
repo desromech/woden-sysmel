@@ -6,7 +6,7 @@ class SceneRenderingContext.
 #**
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#
-class Material superclass: Stdn SharedObject; definition: {
+class Material superclass: Std RCObject; definition: {
     protected field engine type: EnginePtr.
 
     const inline method engine => EnginePtr const ref
@@ -19,7 +19,7 @@ class Material superclass: Stdn SharedObject; definition: {
     abstract method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8.
 }.
 
-compileTime constant MaterialPtr := Material sharedPointer.
+compileTime constant MaterialPtr := Material rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

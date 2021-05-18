@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 
 class VisualComponent2d superclass: VisualComponent; definition: {
@@ -26,7 +26,7 @@ class VisualComponent2d superclass: VisualComponent; definition: {
     }.
 }.
 
-compileTime constant VisualComponent2dPtr := VisualComponent2d sharedPointer.
+compileTime constant VisualComponent2dPtr := VisualComponent2d rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

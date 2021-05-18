@@ -2,10 +2,10 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * An abstract pipeline for rendering a null scene.
@@ -74,7 +74,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     protected field currentBackBufferLeftEye type: FramebufferPtr.
     protected field currentBackBufferRightEye type: FramebufferPtr.
     public field currentDisplayRenderPass type: RenderPassPtr.
-    public field currentScene2D type: Stdn Graphics Scene2D NodePtr.
+    public field currentScene2D type: Std Graphics Scene2D NodePtr.
 
     const inline method engine => EnginePtr
         := sceneRenderingPipeline _ engine.
@@ -563,8 +563,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let frameOffset := frameBufferingIndex * eyeReadbackBufferSlicePitch.
 
         dumpFrameCount >= FrameBufferingCount ifTrue: {
-            let frameCountText := Stdn String textStreamContents: {:out :: Void | out << dumpFrameCount }.
-            let paddedFrameCountText mutable := Stdn String ().
+            let frameCountText := Std String textStreamContents: {:out :: Void | out << dumpFrameCount }.
+            let paddedFrameCountText mutable := Std String ().
             0 until: (5 - (frameCountText size castTo: IntPointer) max: 0) do: {:i :: Void |
                 paddedFrameCountText add: '0'
             }.
@@ -580,7 +580,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let sourceRow mutable := sourceData + frameOffset.
             let copySize := currentExtent x * formToSave _ pixelFormat bytesPerPixel.
             0 until: currentExtent y do: {:y :: Void |
-                Stdn memcpy(destRow, sourceRow, copySize).
+                Std memcpy(destRow, sourceRow, copySize).
                 destRow := destRow + destPitch.
                 sourceRow := sourceRow + eyeReadbackBufferPitch.
             }.
@@ -634,11 +634,11 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         dumpFrameCount := dumpFrameCount + 1.
     }.
 
-    override method setScene2D: (scene2D: Stdn Graphics Scene2D NodePtr const ref) ::=> Void := {
+    override method setScene2D: (scene2D: Std Graphics Scene2D NodePtr const ref) ::=> Void := {
         currentScene2D := scene2D
     }.
 
-    override method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
+    override method scene2DBuilder => Std Graphics Scene2D BuilderPtr
         := self engine _ renderingDevice _ createScene2DBuilder.
 
     override method constructAndEnqueueCommandList => Void := {

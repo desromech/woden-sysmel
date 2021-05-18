@@ -1,14 +1,14 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I am a mesh whose geometry data never changes in the GPU.
  *#
-class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
+class GenericMeshBuilder superclass: Std RCObject; definition: {
     compileTime constant VertexType := GpuStructures GenericVertex.
     compileTime constant SubmeshType := GenericSubmesh.
     compileTime constant IndexType := LargestSupportedIndexType.
@@ -23,13 +23,13 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     protected field vertexLayout type: VertexLayoutPtr.
     protected field vertexBinding type: VertexBindingPtr.
 
-    protected field vertices type: Stdn Collections Vector(VertexType).
-    protected field indices type: Stdn Collections Vector(IndexType).
-    protected field submeshes type: Stdn Collections Vector(SubmeshType).
+    protected field vertices type: Std Collections Vector(VertexType).
+    protected field indices type: Std Collections Vector(IndexType).
+    protected field submeshes type: Std Collections Vector(SubmeshType).
 
     meta definition: {
-        method for: (anEngine: EnginePtr) ::=> GenericMeshBuilder sharedPointer := {
-            let result := GenericMeshBuilder sharedNew.
+        method for: (anEngine: EnginePtr) ::=> GenericMeshBuilder rcPointer := {
+            let result := GenericMeshBuilder rcNew.
             result _ initializeWithEngine: anEngine.
             result
         }
@@ -259,7 +259,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
 
     method renderable => RenderablePtr := {
         submeshes isEmpty || vertices isEmpty || indices isEmpty ifTrue: {
-            return: (NullRenderable sharedNew upCastFor: Renderable)
+            return: (NullRenderable rcNew upCastFor: Renderable)
         }.
 
         self finishLastSubmesh.
@@ -300,7 +300,7 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
             boundingBox := boundingBox unionWith: eachVertex position.
         }.
 
-        let result := GenericMeshRenderable sharedNew.
+        let result := GenericMeshRenderable rcNew.
         result _
             localBoundingBox: boundingBox;
             submeshes: submeshes.
@@ -342,8 +342,8 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     method computeTangentsBitangents => Void := {
         self finishLastSubmesh.
 
-        let tangents mutable type: Stdn Collections Vector(Float32x3).
-        let bitangents mutable type: Stdn Collections Vector(Float32x3).
+        let tangents mutable type: Std Collections Vector(Float32x3).
+        let bitangents mutable type: Std Collections Vector(Float32x3).
         tangents resizeTo: vertices size.
         bitangents resizeTo: vertices size.
         submeshes do: {:each :: Void |
@@ -366,8 +366,8 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
     }.
 
     method computeTangentsBitangentsFor: (submesh: SubmeshType ref)
-        tangents: (tangents: Stdn Collections Vector(Float32x3) ref)
-        bitangents: (bitangents: Stdn Collections Vector(Float32x3) ref) ::=> Void := {
+        tangents: (tangents: Std Collections Vector(Float32x3) ref)
+        bitangents: (bitangents: Std Collections Vector(Float32x3) ref) ::=> Void := {
         submesh primitiveTopology = PrimitiveTopology Triangles ifFalse: {
             return: void
         }.
@@ -467,12 +467,12 @@ class GenericMeshBuilder superclass: Stdn SharedObject; definition: {
         := AxisVectors[axis + 4].
 }.
 
-compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder sharedPointer.
+compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder rcPointer.
 
 
 Engine extend: {
     inline method newGenericMeshBuilder => GenericMeshBuilderPtr
-        := GenericMeshBuilder for: self asSharedPointer.
+        := GenericMeshBuilder for: self asRCPointer.
 }.
 
 }. ## End of namespace Runtime

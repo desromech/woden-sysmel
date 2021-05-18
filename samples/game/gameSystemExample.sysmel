@@ -5,11 +5,11 @@ Compiler importModulesNamed: #(
 useNamespace: Woden GameSystem.
 useNamespace: Woden MapDefinition.
 
-Stdn MainEntryPoint: {:args :: Int32 |
+Std MainEntryPoint: {:args :: Int32 |
     args do: {:arg :: Void |
         arg selectCase: #{
         "-dump-entity-definitions" : {
-            EntityRegistry uniqueInstance dumpEntityDefinitionsInto: Stdn stdout.
+            EntityRegistry uniqueInstance dumpEntityDefinitionsInto: Std stdout.
             return: 0
         }.
         _ : {}
@@ -17,7 +17,7 @@ Stdn MainEntryPoint: {:args :: Int32 |
     }.
 
     ## Create the scene model and initialize with the C arguments.
-    let gameModel mutable := SampleGameApplicationModel sharedNew.
+    let gameModel mutable := SampleGameApplicationModel rcNew.
     (gameModel _ initializeWithCommandLine: args) ifFalse: {
         return: 1
     }.

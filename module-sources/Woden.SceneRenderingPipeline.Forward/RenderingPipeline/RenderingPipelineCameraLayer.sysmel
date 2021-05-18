@@ -2,9 +2,9 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 class RenderingPipelineCameraLayer definition: {
     public field cameraTransform type: ReversibleAffineTransform3dF32.
@@ -12,7 +12,7 @@ class RenderingPipelineCameraLayer definition: {
     public field frustum type: FrustumF32.
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
-    public field renderableSceneObjects type: Stdn Collections Vector(ViewportLayerRenderableObject).
+    public field renderableSceneObjects type: Std Collections Vector(ViewportLayerRenderableObject).
 
     public field cameraStateBuffers type: FrameBufferedBuffer.
     public field cameraStateBindings type: FrameBufferedShaderResourcesBindings.

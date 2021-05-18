@@ -4,7 +4,7 @@ namespace Runtime definition: {
 #**
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
-class ResourceCache superclass: Stdn SharedObject; definition: {
+class ResourceCache superclass: Std RCObject; definition: {
     private field unitCubeRenderable type: RenderablePtr.
 
     inline method unitCubeRenderable => RenderablePtr const ref := {

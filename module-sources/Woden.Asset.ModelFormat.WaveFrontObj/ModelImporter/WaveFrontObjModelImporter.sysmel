@@ -2,9 +2,9 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math LinearAlgebra.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math LinearAlgebra.
+useNamespace: Std Math Geometry.
 
 struct WaveFrontFaceVertexIndices definition: {
     public field positionIndex type: UInt32.
@@ -14,7 +14,7 @@ struct WaveFrontFaceVertexIndices definition: {
     const method = (other: SelfType const ref) ::=> Boolean8
         := positionIndex = other positionIndex && texcoordIndex = other texcoordIndex && normalIndex = other normalIndex.
 
-    const method hash => Stdn Hash
+    const method hash => Std Hash
         := positionIndex hash ^ texcoordIndex hash ^ normalIndex hash.
 }.
 
@@ -22,18 +22,18 @@ class WaveFrontObjModelImporter definition: {
     compileTime constant VertexType := GpuStructures GenericVertex.
     compileTime constant IndexType := LargestSupportedIndexType.
 
-    field rawPositions type: Stdn Collections Vector(Float32x3).
-    field rawTexcoords type: Stdn Collections Vector(Float32x2).
-    field rawNormals type: Stdn Collections Vector(Float32x3).
+    field rawPositions type: Std Collections Vector(Float32x3).
+    field rawTexcoords type: Std Collections Vector(Float32x2).
+    field rawNormals type: Std Collections Vector(Float32x3).
 
-    field currentFaceIndices type: Stdn Collections Vector(UInt32).
+    field currentFaceIndices type: Std Collections Vector(UInt32).
 
-    field vertexBufferContent type: Stdn Collections Vector(VertexType).
-    field indexBufferContent type: Stdn Collections Vector(IndexType).
+    field vertexBufferContent type: Std Collections Vector(VertexType).
+    field indexBufferContent type: Std Collections Vector(IndexType).
 
-    field faceVerticesDictionary type: Stdn Collections Dictionary(WaveFrontFaceVertexIndices, UInt32).
+    field faceVerticesDictionary type: Std Collections Dictionary(WaveFrontFaceVertexIndices, UInt32).
 
-    field parsedMaterials type: Stdn Collections Dictionary(Stdn String, ModelAssetMaterialPtr).
+    field parsedMaterials type: Std Collections Dictionary(Std String, ModelAssetMaterialPtr).
 
     field modelAsset type: ModelAssetPtr.
     field currentMesh type: ModelAssetMeshPtr.
@@ -45,9 +45,9 @@ class WaveFrontObjModelImporter definition: {
     field currentMeshPrimitive type: ModelAssetMeshPrimitivePtr.
     field currentMeshPrimitiveFirstIndex type: UIntPointer.
 
-    field textureNameDictiory type: Stdn Collections Dictionary(Stdn String, ModelAssetTexturePtr).
+    field textureNameDictiory type: Std Collections Dictionary(Std String, ModelAssetTexturePtr).
 
-    method parseFaceVertex: (faceVertex: Stdn String const ref) ::=> WaveFrontFaceVertexIndices := {
+    method parseFaceVertex: (faceVertex: Std String const ref) ::=> WaveFrontFaceVertexIndices := {
         let positionIndex mutable type: UInt32.
         let texcoordIndex mutable type: UInt32.
         let normalIndex mutable type: UInt32.
@@ -119,10 +119,10 @@ class WaveFrontObjModelImporter definition: {
     }.
 
     method startFirstMesh => Void := {
-        self startNewMeshNamed: Stdn String().
+        self startNewMeshNamed: Std String().
     }.
 
-    method startNewMeshNamed: (meshName: Stdn String const ref) ::=> Void := {
+    method startNewMeshNamed: (meshName: Std String const ref) ::=> Void := {
         ## If this is the first mesh, then just set its name.
         modelAsset _ meshes size = 1 && modelAsset _ meshes first _ name isEmpty ifTrue: {
             modelAsset _ meshes first _ name: meshName.
@@ -169,7 +169,7 @@ class WaveFrontObjModelImporter definition: {
         vertexAttributeAccessors _ boundingBox: boundingBox.
     }.
 
-    method beginSubmeshWithMaterialNamed: (materialName: Stdn String const ref) ::=> Void := {
+    method beginSubmeshWithMaterialNamed: (materialName: Std String const ref) ::=> Void := {
         let material := parsedMaterials at: materialName ifAbsent: ModelAssetMaterialPtr nil.
         currentMeshPrimitive isNotNil && currentMeshPrimitive _ material = material ifTrue: {return: void}.
         self finishLastSubmesh.
@@ -184,7 +184,7 @@ class WaveFrontObjModelImporter definition: {
             }).
 
         currentMeshPrimitiveFirstIndex := indexBufferContent size.
-        currentMeshPrimitive := ModelAssetMeshPrimitive sharedNew.
+        currentMeshPrimitive := ModelAssetMeshPrimitive rcNew.
         currentMeshPrimitive _
             attributes: vertexAttributeAccessors;
             indices: indexBufferAccessor;
@@ -195,7 +195,7 @@ class WaveFrontObjModelImporter definition: {
 
     method ensureValidSubmesh ::=> Void := {
         currentMeshPrimitive ifNil: {
-            self beginSubmeshWithMaterialNamed: Stdn String().
+            self beginSubmeshWithMaterialNamed: Std String().
         }
     }.
 
@@ -205,26 +205,26 @@ class WaveFrontObjModelImporter definition: {
         let binaryBufferByteSize := vertexBufferByteSize + indexBufferByteSize.
 
         let binaryBuffer := modelAsset _ newBuffer.
-        binaryBuffer _ data reset: (Stdn malloc(binaryBufferByteSize) reinterpretCastTo: UInt8 pointer).
+        binaryBuffer _ data reset: (Std malloc(binaryBufferByteSize) reinterpretCastTo: UInt8 pointer).
         binaryBuffer _ dataSize: binaryBufferByteSize.
 
         let bufferData := binaryBuffer _ data getPointer.
         vertexBufferByteSize > 0 ifTrue: {
-            Stdn memcpy(bufferData, vertexBufferContent data, vertexBufferByteSize).
+            Std memcpy(bufferData, vertexBufferContent data, vertexBufferByteSize).
         }.
         vertexBufferView _
             buffer: binaryBuffer;
             offset: 0.
 
         indexBufferByteSize > 0 ifTrue: {
-            Stdn memcpy(bufferData + vertexBufferByteSize, indexBufferContent data, indexBufferByteSize).
+            Std memcpy(bufferData + vertexBufferByteSize, indexBufferContent data, indexBufferByteSize).
         }.
         indexBufferView _
             buffer: binaryBuffer;
             offset: vertexBufferByteSize.
     }.
 
-    method getOrCreateTextureNamed: (name: Stdn String const ref) ::=> ModelAssetTexturePtr := {
+    method getOrCreateTextureNamed: (name: Std String const ref) ::=> ModelAssetTexturePtr := {
         textureNameDictiory at: name ifAbsentPut: { :: ModelAssetTexturePtr |
             let image := modelAsset _ newImage.
             image _ uri: name.
@@ -235,11 +235,11 @@ class WaveFrontObjModelImporter definition: {
         }
     }.
 
-    method loadMaterialLibFromFileReference:(fileReference: Stdn FileReference const ref) ::=> Void := {
+    method loadMaterialLibFromFileReference:(fileReference: Std FileReference const ref) ::=> Void := {
         let inStream := fileReference binaryReadStream.
         inStream ifNil: {return: void}.
 
-        let inTextReader mutable := Stdn IO TextStreamReader for: inStream getPointer.
+        let inTextReader mutable := Std IO TextStreamReader for: inStream getPointer.
         let currentMaterial mutable := ModelAssetMetallicRoughnessMaterialPtr nil.
         inTextReader linesDo: {:each :: Void |
             let commandString := each copyUpTo: '#'.
@@ -291,16 +291,16 @@ class WaveFrontObjModelImporter definition: {
         }.
     }.
 
-    method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         let inStream := fileReference binaryReadStream.
         inStream ifNil: {return: ModelAssetPtr nil}.
 
-        modelAsset := ModelAsset sharedNew.
+        modelAsset := ModelAsset rcNew.
         modelAsset _ parentFolder := fileReference parent.
         self createBufferViewsAndAccessors.
         self startFirstMesh.
 
-        let inTextReader mutable := Stdn IO TextStreamReader for: inStream getPointer.
+        let inTextReader mutable := Std IO TextStreamReader for: inStream getPointer.
         inTextReader linesDo: {:each :: Void |
             let commandString := each copyUpTo: '#'.
             let commandReader mutable := commandString textStreamReader.
@@ -358,7 +358,7 @@ class WaveFrontObjModelImporter definition: {
             }.
             _ : {
                 command ifNotEmpty: {
-                    Stdn stdout << "Unsupported obj command '" << command << "' lines: " << commandString; nl.
+                    Std stdout << "Unsupported obj command '" << command << "' lines: " << commandString; nl.
                 }.
             }.
             }
@@ -376,7 +376,7 @@ class WaveFrontObjModelImporterExporter superclass: ModelImporterExporter; defin
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := extension = "obj".
 
-    const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    const override method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         let importer mutable := WaveFrontObjModelImporter().
         importer importFromFileReference: fileReference.
     }.

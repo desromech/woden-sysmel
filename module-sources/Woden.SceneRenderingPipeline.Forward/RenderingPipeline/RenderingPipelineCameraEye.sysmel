@@ -2,9 +2,9 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 class RenderingPipelineCameraEye definition: {
     public field owner type: SceneRenderingPipelineViewport pointer.

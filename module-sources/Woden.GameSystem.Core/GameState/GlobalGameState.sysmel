@@ -1,11 +1,11 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
-class GlobalGameState superclass: Stdn SharedObject; definition: {
+class GlobalGameState superclass: Std RCObject; definition: {
     field engine type: EnginePtr.
     field animationScheduler type: AnimationSchedulerPtr.
     field activeSector type: SectorPtr.
@@ -18,7 +18,7 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
 
     method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
         engine := anEngine.
-        animationScheduler := AnimationScheduler sharedNew.
+        animationScheduler := AnimationScheduler rcNew.
     }.
 
     method update: (delta: Float32) ::=> Void := {
@@ -64,10 +64,10 @@ class GlobalGameState superclass: Stdn SharedObject; definition: {
     }.
 
     virtual method newPlayerEntity => PlayerPtr
-        := Player sharedNew.
+        := Player rcNew.
 }.
 
-compileTime constant GlobalGameStatePtr := GlobalGameState sharedPointer.
+compileTime constant GlobalGameStatePtr := GlobalGameState rcPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

@@ -3,10 +3,10 @@ namespace GameSystem definition: {
 
 class SampleGlobalGameState superclass: GlobalGameState; definition: {
     override method newPlayerEntity => PlayerPtr
-        := SamplePlayer sharedNew upCastFor: Player.
+        := SamplePlayer rcNew upCastFor: Player.
 }.
 
-compileTime constant SampleGlobalGameStatePtr := SampleGlobalGameState sharedPointer.
+compileTime constant SampleGlobalGameStatePtr := SampleGlobalGameState rcPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

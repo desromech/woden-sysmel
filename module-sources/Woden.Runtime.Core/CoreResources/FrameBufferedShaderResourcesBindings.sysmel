@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I keep track of a state tracker and its corresponding command list allocator in a per frame basis.

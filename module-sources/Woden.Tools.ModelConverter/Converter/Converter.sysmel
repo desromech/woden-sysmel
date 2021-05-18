@@ -13,20 +13,20 @@ class Converter definition: {
     method validTargetProfile => Sysmel Tools TextureConverter TextureConversionProfilePtr := {
         targetProfile ifNil: {
             targetProfile := Sysmel Tools TextureConverter TextureConversionProfileRegistry uniqueInstance findNamed: parameters targetProfileName asArraySlice default:
-                (Sysmel Tools TextureConverter PCTextureConversionProfile sharedNew upCastFor: Sysmel Tools TextureConverter TextureConversionProfile)
+                (Sysmel Tools TextureConverter PCTextureConversionProfile rcNew upCastFor: Sysmel Tools TextureConverter TextureConversionProfile)
         }.
         targetProfile
     }.
 
-    method processModel: (modelAsset: Woden Assets ModelAssetPtr const ref) image: (image: Woden Assets ModelAssetImagePtr const ref) ontoDirectory: (outputDirectory: Stdn FileReference const ref) ::=> Boolean8 := {
+    method processModel: (modelAsset: Woden Assets ModelAssetPtr const ref) image: (image: Woden Assets ModelAssetImagePtr const ref) ontoDirectory: (outputDirectory: Std FileReference const ref) ::=> Boolean8 := {
         ## Load the model texture data.
         let textureData := image _ asOfflineTextureData.
         textureData ifNil: {
-            Stdn stderr << "Failed to load model image " << image _ name.
+            Std stderr << "Failed to load model image " << image _ name.
             image _ uri ifNotEmpty: {
-                Stdn stderr << " uri: " << image _ uri.
+                Std stderr << " uri: " << image _ uri.
             }.
-            Stdn stderr nl.
+            Std stderr nl.
             return: false
         }.
 
@@ -57,8 +57,8 @@ class Converter definition: {
         }.
 
         image _ uri isEmpty || parameters embedTextures ifTrue: {
-            let memoryStream mutable := Stdn IO MemoryStream().
-            let imageReadWriter := Stdn Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
+            let memoryStream mutable := Std IO MemoryStream().
+            let imageReadWriter := Std Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
             imageReadWriter _ putTextureData: convertedTextureData _  onStream: memoryStream.
 
             let buffer := modelAsset _ newBuffer.
@@ -82,7 +82,7 @@ class Converter definition: {
         true
     }.
 
-    method convertModelFromFileNamed: (inputFileName: Stdn String const ref) into: (outputFileName: Stdn String const ref) ::=> Boolean8 := {
+    method convertModelFromFileNamed: (inputFileName: Std String const ref) into: (outputFileName: Std String const ref) ::=> Boolean8 := {
         parameters
             inputFileName: inputFileName;
             outputFileName: outputFileName.

@@ -1,17 +1,17 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
 
 
 #**
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
-class ResourceCache superclass: Stdn SharedObject; definition: {
+class ResourceCache superclass: Std RCObject; definition: {
     private field engine type: EnginePtr.
-    private field assetLocations type: Stdn Collections Vector(Stdn FileReference).
-    private field lazyResourceCreationMutex type: Stdn Mutex.
+    private field assetLocations type: Std Collections Vector(Std FileReference).
+    private field lazyResourceCreationMutex type: Std Mutex.
 
     const inline method engine => EnginePtr const ref
         := engine.
@@ -65,7 +65,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         engine := anEngine.
 
         assetLocations
-            add: Stdn FileSystem resourcesDirectory / "woden-assets".
+            add: Std FileSystem resourcesDirectory / "woden-assets".
 
         whiteTexture := self createTextureWithSolidColor: UInt8x4(255, 255, 255, 255) format: PixelFormat R8G8B8A8_UNorm.
         blackTexture := self createTextureWithSolidColor: UInt8x4(0, 0, 0, 255) format: PixelFormat R8G8B8A8_UNorm.
@@ -83,7 +83,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    method solveResourceFileReference: (fileReference: Stdn FileReference const ref) withExtensions: (extensions: Char8 const arraySlice arraySlice) ::=> Stdn FileReference := {
+    method solveResourceFileReference: (fileReference: Std FileReference const ref) withExtensions: (extensions: Char8 const arraySlice arraySlice) ::=> Std FileReference := {
         fileReference exists ifTrue: {
             return: fileReference
         }.
@@ -114,7 +114,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         fileReference
     }.
 
-    method solveTextureFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+    method solveTextureFileReference: (fileReference: Std FileReference const ref) ::=> Std FileReference := {
         ## FIXME: Retrieve the list of available extensions during the runtime.
         let extensions mutable := Char8 const arraySlice array(
             "stx",
@@ -207,7 +207,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadColorTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: checkboardTexture}.
 
@@ -226,7 +226,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadNormalTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadNormalTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
 
@@ -245,7 +245,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadNonColorTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadNonColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
 
@@ -264,7 +264,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
         texture _ asTextureWithView
     }.
 
-    method loadColorCubeTextureFrom: (fileReference: Stdn FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadColorCubeTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
 
@@ -278,7 +278,7 @@ class ResourceCache superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant ResourceCachePtr := ResourceCache sharedPointer.
+compileTime constant ResourceCachePtr := ResourceCache rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -1,14 +1,14 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Serialization.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Serialization.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
 
 class LevelLoadingContext definition: {
-    field textures type: Stdn Collections Vector(TextureDefinitionPtr).
-    field materials type: Stdn Collections Vector(MaterialDefinitionPtr).
+    field textures type: Std Collections Vector(TextureDefinitionPtr).
+    field materials type: Std Collections Vector(MaterialDefinitionPtr).
 
     method addTexture: (texture: TextureDefinitionPtr const ref) ::=> Void := {
         textures add: texture
@@ -39,28 +39,28 @@ class LevelLoadingContext definition: {
 
 LevelElementDefinition extend: {
     meta definition: {
-        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition sharedPointer := {
+        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition rcPointer := {
             let typeName := domObject getString: "type" asMutableString default: "" asMutableString.
             let resultInstance := typeName asArraySlice selectCase: #{
-            "Level" : (LevelDefinition sharedNew upCastFor: LevelElementDefinition).
-            "Sector" : (SectorDefinition sharedNew upCastFor: LevelElementDefinition).
-            "SectorLayer" : (SectorLayerDefinition sharedNew upCastFor: LevelElementDefinition).
-            "Entity" : (EntityDefinition sharedNew upCastFor: LevelElementDefinition).
-            "BoxCollisionComponent" : (BoxCollisionShape sharedNew upCastFor: LevelElementDefinition).
-            "PolygonConvexHullCollisionComponent" : (PolygonConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
-            "ConvexHullCollisionComponent" : (ConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
-            "PolyhedronConvexHullCollisionComponent" : (ConvexHullCollisionShape sharedNew upCastFor: LevelElementDefinition).
-            "RectangleCollisionComponent" : (RectangleCollisionShape sharedNew upCastFor: LevelElementDefinition).
-            "RectangleVisualComponent" : (RectangleVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "BoxVisualComponent" : (BoxVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "PolyhedronFace" : (PolyhedronFace sharedNew upCastFor: LevelElementDefinition).
-            "ConvexPolyhedronVisualComponent" : (ConvexPolyhedronVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "ConvexPolygonVisualComponent" : (ConvexPolygonVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent sharedNew upCastFor: LevelElementDefinition).
-            "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition sharedNew upCastFor: LevelElementDefinition).
-            "FileReferenceMaterial" : (FileReferenceMaterialDefinition sharedNew upCastFor: LevelElementDefinition).
+            "Level" : (LevelDefinition rcNew upCastFor: LevelElementDefinition).
+            "Sector" : (SectorDefinition rcNew upCastFor: LevelElementDefinition).
+            "SectorLayer" : (SectorLayerDefinition rcNew upCastFor: LevelElementDefinition).
+            "Entity" : (EntityDefinition rcNew upCastFor: LevelElementDefinition).
+            "BoxCollisionComponent" : (BoxCollisionShape rcNew upCastFor: LevelElementDefinition).
+            "PolygonConvexHullCollisionComponent" : (PolygonConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
+            "ConvexHullCollisionComponent" : (ConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
+            "PolyhedronConvexHullCollisionComponent" : (ConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
+            "RectangleCollisionComponent" : (RectangleCollisionShape rcNew upCastFor: LevelElementDefinition).
+            "RectangleVisualComponent" : (RectangleVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "BoxVisualComponent" : (BoxVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "PolyhedronFace" : (PolyhedronFace rcNew upCastFor: LevelElementDefinition).
+            "ConvexPolyhedronVisualComponent" : (ConvexPolyhedronVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "ConvexPolygonVisualComponent" : (ConvexPolygonVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
+            "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition rcNew upCastFor: LevelElementDefinition).
+            "FileReferenceMaterial" : (FileReferenceMaterialDefinition rcNew upCastFor: LevelElementDefinition).
             _ : LevelElementDefinitionPtr nil
             }.
 
@@ -79,7 +79,7 @@ LevelElementDefinition extend: {
 
 LevelDefinition extend: {
     meta extend: {
-        static method loadFromFile: (fileReference: Stdn FileReference const ref) ::=> LevelDefinition sharedPointer := {
+        static method loadFromFile: (fileReference: Std FileReference const ref) ::=> LevelDefinition rcPointer := {
             let context mutable type: LevelLoadingContext.
             let extension := fileReference extension.
             extension = "wlevel" || extension = "wtlevel" ifTrue: {

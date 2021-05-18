@@ -31,7 +31,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Add the moon light
     {
-        let moonLight := LightSourceNode sharedNew.
+        let moonLight := LightSourceNode rcNew.
         moonLight _
             makeDirectional;
             intensity: (Float32x3 x: 1.0f y: 1.0f z: 0.8f) normalized * 1.5f;
@@ -48,7 +48,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
             Float32x3 x: -4.95f y: 1.3f z: -1.72f
         ).
         torchLightPositions do: {:position :: Void |
-            let light := LightSourceNode sharedNew.
+            let light := LightSourceNode rcNew.
             light _
                 makePoint;
                 radius: 20.0f;

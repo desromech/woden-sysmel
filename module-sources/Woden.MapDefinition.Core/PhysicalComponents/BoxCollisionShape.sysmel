@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 class BoxCollisionShape superclass: CollisionShape; definition: {
     public field halfExtent type: Float32x3.
@@ -10,7 +10,7 @@ class BoxCollisionShape superclass: CollisionShape; definition: {
         := BoxF32 center: 0 halfExtent: halfExtent.
 }.
 
-compileTime constant BoxCollisionShapePtr := BoxCollisionShape sharedPointer.
+compileTime constant BoxCollisionShapePtr := BoxCollisionShape rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

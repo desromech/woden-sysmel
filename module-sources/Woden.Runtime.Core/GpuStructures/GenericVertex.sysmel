@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace GpuStructures definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 struct GenericVertex definition: {
     public field positionData type: CompactFloat32x3; location: VertexAttributeLocation Position value.

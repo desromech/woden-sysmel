@@ -1,15 +1,15 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a material that performs flat shading in a surface.
  *#
 class SkyMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> SkyMaterial sharedPointer := {
-            let result := SkyMaterial sharedNew.
+        method for: (anEngine: EnginePtr const ref) ::=> SkyMaterial rcPointer := {
+            let result := SkyMaterial rcNew.
             result _ initializeWithEngine: anEngine.
             result
         }.
@@ -31,7 +31,7 @@ class SkyMaterial superclass: Material; definition: {
         := context activateSkyMaterial: self.
 }.
 
-compileTime constant SkyMaterialPtr := SkyMaterial sharedPointer.
+compileTime constant SkyMaterialPtr := SkyMaterial rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

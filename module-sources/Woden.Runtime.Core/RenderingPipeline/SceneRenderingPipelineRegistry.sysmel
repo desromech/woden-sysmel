@@ -25,7 +25,7 @@ class SceneRenderingPipelineFactory definition: {
 class SceneRenderingPipelineRegistry definition: {
     meta definition: {
         let singleton mutable type: SceneRenderingPipelineRegistry uniquePointer.
-        let singletonOnceCreation mutable type: Stdn OnceFlag.
+        let singletonOnceCreation mutable type: Std OnceFlag.
 
         method uniqueInstance => SceneRenderingPipelineRegistry ref := {
             singletonOnceCreation do: {
@@ -37,8 +37,8 @@ class SceneRenderingPipelineRegistry definition: {
     }.
 
 
-    private field mutex type: Stdn Mutex.
-    private field registeredSceneRenderingPipelineFactories type: Stdn Collections Vector(SceneRenderingPipelineFactory pointer).
+    private field mutex type: Std Mutex.
+    private field registeredSceneRenderingPipelineFactories type: Std Collections Vector(SceneRenderingPipelineFactory pointer).
 
     method registerFactory: (factory: SceneRenderingPipelineFactory pointer) ::=> Void := {
         mutex withLock: {
@@ -53,7 +53,7 @@ class SceneRenderingPipelineRegistry definition: {
             result := factory _ createPipeline.
         }.
         result ifNil: {
-            result := NullSceneRenderingPipeline sharedNew upCastFor: SceneRenderingPipeline.
+            result := NullSceneRenderingPipeline rcNew upCastFor: SceneRenderingPipeline.
         }.
 
         result _ initializeForEngine: engine.

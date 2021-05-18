@@ -1,13 +1,13 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I represent a 3D scene with rendering only objects.
  *#
-class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
+class AbstractSpatialObject superclass: Std RCObject; definition: {
     public field state type: Woden Shaders ObjectStateData.
     public field currentTransform type: ReversibleAffineTransform3dF32.
 
@@ -49,7 +49,7 @@ class AbstractSpatialObject superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant AbstractSpatialObjectPtr := AbstractSpatialObject sharedPointer.
+compileTime constant AbstractSpatialObjectPtr := AbstractSpatialObject rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
 useNamespace: Woden MapDefinition.
 
 class Character superclass: Entity; definition: {
@@ -16,10 +16,10 @@ class Character superclass: Entity; definition: {
     field turningAngularVelocity type: Float32x3.
     field headAngularVelocity type: Float32x3.
 
-    override method classDescription => Stdn ImmutableString
+    override method classDescription => Std ImmutableString
         := "Generic Character".
 
-    override method editorCategory => Stdn ImmutableString
+    override method editorCategory => Std ImmutableString
         := "NPC".
 
     override method initialize => Void := {
@@ -109,9 +109,9 @@ class Character superclass: Entity; definition: {
         := self terminalVelocity / self terminalVelocityAchivementTime.
 
     virtual method buildCollisionObject => Void := {
-        rigidBody := RigidBody sharedNew.
+        rigidBody := RigidBody rcNew.
         rigidBody _
-            ownerEntity: (self asSharedPointer upCastFor: Entity);
+            ownerEntity: (self asRCPointer upCastFor: Entity);
             collisionShape: (CollisionShape boxWithHalfExtent: localBoundingBox halfExtent);
             coefficientOfRestitution: 0.2f;
             mass: 70.0f;

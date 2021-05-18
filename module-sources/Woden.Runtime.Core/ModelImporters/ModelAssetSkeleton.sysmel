@@ -2,15 +2,15 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Math Geometry.
+useNamespace: Std Graphics Core.
 
 #**
  * I represent a skeleton which is composed of a hierarchy of unions.
  *#
 class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     public field inverseBindMatricesAccessor type: ModelAssetBinaryBufferAccessorPtr.
-    public field joints type: Stdn Collections Vector(ModelAssetNodePtr).
+    public field joints type: Std Collections Vector(ModelAssetNodePtr).
     public field rootJoint type: ModelAssetNodePtr.
 
     method cleanupSkeleton => Void := {
@@ -28,7 +28,7 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
         joints do: {:each :: Void |
             nextJointIndex := self cleanUpJoint: each parentIndex: -1 joinIndex: nextJointIndex.
         }.
-        Stdn assert: nextJointIndex = joints size.
+        Std assert: nextJointIndex = joints size.
     }.
 
     method cleanUpJoint: (joint: ModelAssetNodePtr const ref) parentIndex: (parentIndex: IntPointer) joinIndex: (nextJointIndex: UIntPointer) ::=> UIntPointer := {
@@ -104,13 +104,13 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
 
         let boneCount := joints size.
         let inverseBindMatrices := inverseBindMatricesAccessor _ decodeAsVectorOfFloat32x4x4.
-        Stdn assert: inverseBindMatrices size = boneCount.
+        Std assert: inverseBindMatrices size = boneCount.
 
-        skeleton := Skeleton sharedNew.
+        skeleton := Skeleton rcNew.
         skeleton _ bones resizeTo: boneCount.
         joints doWithIndex: {:joint :index :: Void |
             let jointSortedIndex := joint _ jointIndex.
-            Stdn assert: jointSortedIndex < boneCount && joint _ hasValidJointIndex.
+            Std assert: jointSortedIndex < boneCount && joint _ hasValidJointIndex.
 
             skeleton _ bones[jointSortedIndex]
                 parentIndex: joint _ parentJointIndex;
@@ -126,7 +126,7 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetSkeletonPtr := ModelAssetSkeleton sharedPointer.
+compileTime constant ModelAssetSkeletonPtr := ModelAssetSkeleton rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

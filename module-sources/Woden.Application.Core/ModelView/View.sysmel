@@ -3,8 +3,8 @@ namespace Application definition: {
 
 useNamespace: Woden Runtime.
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
 
 #**
  * I am the model that lies underlying a Woden application.
@@ -47,11 +47,11 @@ class View superclass: EventHandler; definition: {
     }.
 
     virtual method newViewWindowInstance => ViewWindowPtr
-        := GenericViewWindow sharedNew upCastFor: ViewWindow.
+        := GenericViewWindow rcNew upCastFor: ViewWindow.
 
     virtual method open ::=> Boolean8 := {
         let newViewWindow := self newViewWindowInstance.
-        (newViewWindow _ openForView: self asSharedPointer) ifFalse: {
+        (newViewWindow _ openForView: self asRCPointer) ifFalse: {
             return: false.
         }.
 
@@ -64,7 +64,7 @@ class View superclass: EventHandler; definition: {
 
     method viewWindowDestroyed => Void := {
         viewWindow reset.
-        model _ viewDestroyed: self asSharedPointer
+        model _ viewDestroyed: self asRCPointer
     }.
 
     virtual method close => Void := {
@@ -102,7 +102,7 @@ class View superclass: EventHandler; definition: {
     }.
 }.
 
-compileTime constant ViewPtr := View sharedPointer
+compileTime constant ViewPtr := View rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

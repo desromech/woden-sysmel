@@ -3,22 +3,22 @@ namespace GameSystem definition: {
 
 useNamespace: Woden MapDefinition.
 
-useNamespace: Stdn Math.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
-class CollisionObject superclass: Stdn SharedObject; definition: {
+class CollisionObject superclass: Std RCObject; definition: {
     meta definition: {
-        method staticRigidBodyFor: (collisionShape: CollisionShapePtr const ref) ::=> CollisionObject sharedPointer := {
-            let body := RigidBody sharedNew.
+        method staticRigidBodyFor: (collisionShape: CollisionShapePtr const ref) ::=> CollisionObject rcPointer := {
+            let body := RigidBody rcNew.
             body _
                 collisionShape: collisionShape;
                 makeStatic.
             body upCastFor: CollisionObject
         }.
 
-        method rigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject sharedPointer := {
-            let body := RigidBody sharedNew.
+        method rigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject rcPointer := {
+            let body := RigidBody rcNew.
             body _
                 collisionShape: collisionShape;
                 mass: mass;
@@ -26,8 +26,8 @@ class CollisionObject superclass: Stdn SharedObject; definition: {
             body upCastFor: CollisionObject
         }.
 
-        method nonRotationalRigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject sharedPointer := {
-            let body := RigidBody sharedNew.
+        method nonRotationalRigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject rcPointer := {
+            let body := RigidBody rcNew.
             body _
                 collisionShape: collisionShape;
                 mass: mass.
@@ -35,7 +35,7 @@ class CollisionObject superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    field physicalSector type: PhysicalSector weakPointer.
+    field physicalSector type: PhysicalSector weakRCPointer.
     field position type: Float32x3.
     public field linearVelocity type: Float32x3.
 
@@ -69,12 +69,12 @@ class CollisionObject superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    field ownerEntity type: Entity weakPointer.
+    field ownerEntity type: Entity weakRCPointer.
 
-    inline method ownerEntity => Entity sharedPointer
+    inline method ownerEntity => Entity rcPointer
         := ownerEntity lock.
 
-    inline method ownerEntity: (anEntity: Entity sharedPointer const ref) ::=> Void := {
+    inline method ownerEntity: (anEntity: Entity rcPointer const ref) ::=> Void := {
         ownerEntity := anEntity
     }.
 
@@ -151,18 +151,18 @@ class CollisionObject superclass: Stdn SharedObject; definition: {
         collisionGroupFilter := CollisionGroup None.
     }.
 
-    method physicalSector => PhysicalSector sharedPointer
+    method physicalSector => PhysicalSector rcPointer
         := physicalSector lock.
 
     method removeFromPhysicalSector => Void := {
         let sector := self physicalSector.
         sector ifNotNil:{
-            sector _ removeCollisionObject: self asSharedPointer
+            sector _ removeCollisionObject: self asRCPointer
         }
     }.
 
     virtual method addedToPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
-        physicalSector := sector asWeakPointer
+        physicalSector := sector asWeakRCPointer
     }.
 
     virtual method removedFromPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
@@ -176,8 +176,8 @@ class CollisionObject superclass: Stdn SharedObject; definition: {
     virtual method simulateMovementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {}.
 }.
 
-compileTime constant CollisionObjectPtr := CollisionObject sharedPointer.
-compileTime constant CollisionObjects := Stdn Collections Vector(CollisionObjectPtr).
+compileTime constant CollisionObjectPtr := CollisionObject rcPointer.
+compileTime constant CollisionObjects := Std Collections Vector(CollisionObjectPtr).
 
 }. ## namespace GameSystem
 }. ## namespace Woden

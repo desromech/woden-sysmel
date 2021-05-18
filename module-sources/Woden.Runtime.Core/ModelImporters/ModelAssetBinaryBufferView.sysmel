@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
@@ -23,14 +23,14 @@ class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
     method asGpuBufferOffset => UIntPointer
         := offset.
 
-    method asFixedMemoryStream => Stdn IO FixedMemoryStream
-        := Stdn IO FixedMemoryStream for: buffer _ data getPointer + offset withSize: size.
+    method asFixedMemoryStream => Std IO FixedMemoryStream
+        := Std IO FixedMemoryStream for: buffer _ data getPointer + offset withSize: size.
 
     method asCPUBufferPointer => UInt8 pointer
         := buffer _ data getPointer + offset.
 }.
 
-compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView sharedPointer.
+compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

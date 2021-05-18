@@ -5,7 +5,7 @@ useNamespace: Woden Runtime.
 
 class ForwardSceneRenderingPipelineFactory superclass: SceneRenderingPipelineFactory; definition: {
     override method createPipeline => SceneRenderingPipelinePtr
-        := ForwardSceneRenderingPipeline sharedNew upCastFor: SceneRenderingPipeline.
+        := ForwardSceneRenderingPipeline rcNew upCastFor: SceneRenderingPipeline.
 
     override method priority => UInt32
         := 10.

@@ -1,17 +1,17 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
-useNamespace: Stdn Serialization.
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
+useNamespace: Std Serialization.
 useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
-class Entity superclass: Stdn SharedObject; definition: {
+class Entity superclass: Std RCObject; definition: {
     public field parentSector type: Sector pointer.
-    public field className type: Stdn String.
-    public field name type: Stdn String.
+    public field className type: Std String.
+    public field name type: Std String.
 
     field previousTransform type: DecomposedTransform3dF32.
     field transform type: DecomposedTransform3dF32.
@@ -187,13 +187,13 @@ class Entity superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    virtual method classDescription => Stdn ImmutableString
+    virtual method classDescription => Std ImmutableString
         := "Generic Entity".
 
-    virtual method editorCategory => Stdn ImmutableString
+    virtual method editorCategory => Std ImmutableString
         := "Generic".
 
-    virtual method editorPreviewModel => Stdn ImmutableString
+    virtual method editorPreviewModel => Std ImmutableString
         := "".
 
     virtual method editorBoundingBox => BoxF32
@@ -210,9 +210,9 @@ class Entity superclass: Stdn SharedObject; definition: {
 
     virtual method writeDescriptionOnto: (descriptionObject: DOM Object ref) ::=> Void := {
         let editorBoundingBox := self editorBoundingBox.
-        let boundingBoxObject := DOM Object sharedNew.
+        let boundingBoxObject := DOM Object rcNew.
         {
-            let value := DOM List sharedNew.
+            let value := DOM List rcNew.
             value _
                 add: editorBoundingBox min x;
                 add: editorBoundingBox min y;
@@ -222,7 +222,7 @@ class Entity superclass: Stdn SharedObject; definition: {
         }.
 
         {
-            let value := DOM List sharedNew.
+            let value := DOM List rcNew.
             value _
                 add: editorBoundingBox max x;
                 add: editorBoundingBox max y;
@@ -231,7 +231,7 @@ class Entity superclass: Stdn SharedObject; definition: {
                 at: "max" asMutableString put: value.
         }.
 
-        let descriptionProperties := DOM Object sharedNew.
+        let descriptionProperties := DOM Object rcNew.
         self writeDescriptionPropertiesOnto: descriptionProperties _.
 
         descriptionObject
@@ -252,9 +252,9 @@ class Entity superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant EntityPtr := Entity sharedPointer.
-compileTime constant EntityWeakPtr := Entity weakPointer.
-compileTime constant Entities := Stdn Collections Vector(EntityPtr).
+compileTime constant EntityPtr := Entity rcPointer.
+compileTime constant EntityWeakPtr := Entity weakRCPointer.
+compileTime constant Entities := Std Collections Vector(EntityPtr).
 
 }. ## namespace GameSystem
 }. ## namespace Woden

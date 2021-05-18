@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics GUI.
 
 #**
  * I am the model that lies underlying a Woden application.
@@ -29,7 +29,7 @@ class SceneModel superclass: Model; definition: {
     method stereoPresentationMode => StereoPresentationMode
         := stereoPresentationMode.
 
-    override method parseCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
+    override method parseCommandLine: (arguments: Std ImmutableString const arraySlice) ::=> Boolean8 := {
 
         arguments do: {:arg :: Void |
             arg selectCase: #{
@@ -58,20 +58,20 @@ class SceneModel superclass: Model; definition: {
 
         super initializeModel ifFalse: {return: false}.
 
-        scene := Scene sharedNew.
+        scene := Scene rcNew.
         true.
     }.
 
     override method createNewView => ViewPtr
-        := SceneView sharedNew upCastFor: View.
+        := SceneView rcNew upCastFor: View.
 
     override method createNewSecondaryView => ViewPtr
         := self createNewView.
 
     virtual method newScene => ScenePtr := {
-        let newScene := Scene sharedNew.
+        let newScene := Scene rcNew.
         newScene _ engine: self engine.
-        let newCamera := Camera sharedNew.
+        let newCamera := Camera rcNew.
 
         mainCamera := newCamera.
         newScene _ add: (mainCamera upCastFor: SceneNode).
@@ -132,16 +132,16 @@ class SceneModel superclass: Model; definition: {
     }.
 
     method useSingleViewPresentationMode => Void := {
-        presentationMode := SingleViewSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+        presentationMode := SingleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
     }.
 
     method useDoubleViewPresentationMode => Void := {
-        presentationMode := DoubleViewSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+        presentationMode := DoubleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
     }.
 
     method useVRPresentationMode => Void := {
         stereoPresentationMode := StereoPresentationMode VR.
-        presentationMode := VRSceneModelPresentationMode sharedNew upCastFor: SceneModelPresentationMode
+        presentationMode := VRSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
     }.
 
     method sceneRenderingPipeline => SceneRenderingPipelinePtr const ref := {
@@ -165,7 +165,7 @@ class SceneModel superclass: Model; definition: {
     }.
 }.
 
-compileTime constant SceneModelPtr := SceneModel sharedPointer
+compileTime constant SceneModelPtr := SceneModel rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

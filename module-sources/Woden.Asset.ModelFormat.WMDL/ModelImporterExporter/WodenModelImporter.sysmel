@@ -1,12 +1,12 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
-useNamespace: Stdn Serialization.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math.
+useNamespace: Std Serialization.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math.
 
 class WodenModelImporter definition: {
-    field parentFolder type: Stdn FileReference.
+    field parentFolder type: Std FileReference.
     field modelAsset type: ModelAssetPtr.
 
     method parseBuffer: (object: DOM Object const ref) ::=> Void := {
@@ -17,23 +17,23 @@ class WodenModelImporter definition: {
 
         object at: "data" asMutableString ifPresent: {:(DOM Value const ref)dataValue :: Void |
             let content := DOM valueToByteArray(dataValue).
-            Stdn assert: content size = buffer _ dataSize.
+            Std assert: content size = buffer _ dataSize.
 
-            buffer _ data reset: (Stdn malloc(content size) reinterpretCastTo: UInt8 pointer).
-            Stdn memcpy(buffer _ data getPointer, content data, content size)
+            buffer _ data reset: (Std malloc(content size) reinterpretCastTo: UInt8 pointer).
+            Std memcpy(buffer _ data getPointer, content data, content size)
         } ifAbsent: {
             object at: "dataSize" asMutableString ifPresent: {:(DOM Value const ref)dataSizeValue :: Void |
                 let dataSize := DOM valueToUIntPointer(dataSizeValue).
-                buffer _ data reset: (Stdn zmalloc(dataSize) reinterpretCastTo: UInt8 pointer).
+                buffer _ data reset: (Std zmalloc(dataSize) reinterpretCastTo: UInt8 pointer).
             } ifAbsent: {
                 object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
-                    let uri := uriValue get: Stdn String.
+                    let uri := uriValue get: Std String.
                     let uriFileRef := parentFolder / uri asArraySlice.
                     uriFileRef exists ifTrue: {
                         let readStream := uriFileRef binaryUnbufferedReadStream.
                         readStream ifNil: {return: void}.
 
-                        buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+                        buffer _ data reset: (Std zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
                         readStream _ read: buffer _ data getPointer size: buffer _ dataSize
                     }.
                 }.
@@ -47,13 +47,13 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method readBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) from: (input: Stdn IO Stream ref) ::=> Void := {
+    method readBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) from: (input: Std IO Stream ref) ::=> Void := {
         buffer _ dataSize > 0 ifTrue: {
             input read: buffer _ data getPointer size: buffer _ dataSize
         }
     }.
 
-    method readBinaryBuffersDataFrom: (input: Stdn IO Stream ref) ::=> Void := {
+    method readBinaryBuffersDataFrom: (input: Std IO Stream ref) ::=> Void := {
         modelAsset _ buffers do: {:each :: Void |
             self readBinaryBufferData: each from: input
         }.
@@ -117,7 +117,7 @@ class WodenModelImporter definition: {
         let sampler := modelAsset _ newSampler.
         sampler _
             name: (object getString: "name" asMutableString default: "" asMutableString).
-        ##Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
+        ##Std stdout << "TODO: parseSampler " << sampler _ name; nl.
     }.
 
     method parseSamplers: (list: DOM List const ref) ::=> Void := {
@@ -224,7 +224,7 @@ class WodenModelImporter definition: {
 
     method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: DOM Object const ref) ::=> Void := {
 
-        let primitive := ModelAssetMeshPrimitive sharedNew.
+        let primitive := ModelAssetMeshPrimitive rcNew.
         mesh _ primitives add: primitive.
 
         primitive _
@@ -327,11 +327,11 @@ class WodenModelImporter definition: {
 
         object at: "matrix" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let matrix := DOM valueToFloat32x4x4(value, Float32x4x4 identity).
-            Stdn stdout << "TODO: parse node matrix "; nl.
-            Stdn stdout << matrix firstRow; nl.
-            Stdn stdout << matrix secondRow; nl.
-            Stdn stdout << matrix thirdRow; nl.
-            Stdn stdout << matrix fourthRow; nl.
+            Std stdout << "TODO: parse node matrix "; nl.
+            Std stdout << matrix firstRow; nl.
+            Std stdout << matrix secondRow; nl.
+            Std stdout << matrix thirdRow; nl.
+            Std stdout << matrix fourthRow; nl.
         }.
 
     }.
@@ -377,7 +377,7 @@ class WodenModelImporter definition: {
     }.
 
     method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: DOM Object const ref) ::=> Void := {
-        let sampler := ModelAssetAnimationSampler sharedNew.
+        let sampler := ModelAssetAnimationSampler rcNew.
         sampler _
             index: animation _ samplers size;
             inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "inputAccessor" asMutableString]);
@@ -387,7 +387,7 @@ class WodenModelImporter definition: {
     }.
 
     method parseAnimation: (animation: ModelAssetAnimationPtr const ref) channel: (object: DOM Object const ref) ::=> Void := {
-        let channel := ModelAssetAnimationChannel sharedNew.
+        let channel := ModelAssetAnimationChannel rcNew.
         channel _
             sampler: (animation _ samplers[object getUIntPointer: "sampler" asMutableString]);
             targetProperty: ((object getUInt32: "targetProperty" asMutableString) castTo: ModelAssetAnimationTargetProperty).
@@ -424,7 +424,7 @@ class WodenModelImporter definition: {
     }.
 
     method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetPtr := {
-        modelAsset := ModelAsset sharedNew.
+        modelAsset := ModelAsset rcNew.
         modelAsset _ parentFolder: parentFolder.
         object at: "buffers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             self parseBuffers: (value get: DOM ListPtr) _
@@ -469,7 +469,7 @@ class WodenModelImporter definition: {
         modelAsset
     }.
 
-    method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         parentFolder := fileReference parent.
 
         let inputReadStream mutable := fileReference binaryReadStream.

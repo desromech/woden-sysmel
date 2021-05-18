@@ -2,19 +2,19 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 #**
  * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
  *#
 class ModelAssetMesh superclass: ModelAssetElement; definition: {
-    compileTime constant Primitives := Stdn Collections Vector(ModelAssetMeshPrimitivePtr).
-    public field primitives type: Stdn Collections Vector(ModelAssetMeshPrimitivePtr).
+    compileTime constant Primitives := Std Collections Vector(ModelAssetMeshPrimitivePtr).
+    public field primitives type: Std Collections Vector(ModelAssetMeshPrimitivePtr).
 
     public field renderable type: RenderablePtr.
 
     method createRenderableWithPrimitives: (primitives: Primitives const ref) for: (engine: EnginePtr const ref) ::=> RenderablePtr := {
-        let meshRenderable := GenericMeshRenderable sharedNew.
+        let meshRenderable := GenericMeshRenderable rcNew.
         meshRenderable _ submeshes reserve: primitives size.
         let boundingBox mutable := BoxF32 empty.
         primitives do: {:each :: Void |
@@ -43,7 +43,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
         }.
 
         primitives ifEmpty: {
-            renderable := NullRenderable sharedNew upCastFor: Renderable.
+            renderable := NullRenderable rcNew upCastFor: Renderable.
             void.
         } ifNotEmpty: {
             let opaquePrimitiveCount mutable type: UIntPointer.
@@ -74,7 +74,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
                     }
                 }.
 
-                let compositeRenderable := CompositeRenderable sharedNew.
+                let compositeRenderable := CompositeRenderable rcNew.
                 compositeRenderable _
                     addComponent: (self createRenderableWithPrimitives: opaquePrimitives for: engine);
                     addComponent: (self createRenderableWithPrimitives: translucentPrimitives for: engine);
@@ -88,7 +88,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetMeshPtr := ModelAssetMesh sharedPointer.
+compileTime constant ModelAssetMeshPtr := ModelAssetMesh rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

@@ -1,14 +1,14 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 class PolygonConvexHullCollisionShape superclass: CollisionShape; definition: {
-    public field points type: Stdn Collections Vector(Float32x2).
+    public field points type: Std Collections Vector(Float32x2).
     public field halfThickness type: Float32.
     field boundingRectangle type: RectangleF32.
 
-    override method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void := {
+    override method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void := {
         halfThickness := layerDefinition _ defaultThickness * 0.5f.
     }.
 
@@ -23,7 +23,7 @@ class PolygonConvexHullCollisionShape superclass: CollisionShape; definition: {
         := BoxF32 min: Float32x3(boundingRectangle min, halfThickness negated) max: Float32x3(boundingRectangle max, halfThickness).
 }.
 
-compileTime constant PolygonConvexHullCollisionShapePtr := PolygonConvexHullCollisionShape sharedPointer.
+compileTime constant PolygonConvexHullCollisionShapePtr := PolygonConvexHullCollisionShape rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

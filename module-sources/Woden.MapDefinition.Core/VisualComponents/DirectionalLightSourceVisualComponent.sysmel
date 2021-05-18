@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 
 class DirectionalLightSourceVisualComponent superclass: LightSourceVisualComponent; definition: {
@@ -14,7 +14,7 @@ class DirectionalLightSourceVisualComponent superclass: LightSourceVisualCompone
     }.
 }.
 
-compileTime constant DirectionalLightSourceVisualComponentPtr := DirectionalLightSourceVisualComponent sharedPointer.
+compileTime constant DirectionalLightSourceVisualComponentPtr := DirectionalLightSourceVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

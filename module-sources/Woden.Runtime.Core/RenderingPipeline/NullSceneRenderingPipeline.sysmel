@@ -6,7 +6,7 @@ namespace Runtime definition: {
  *#
 class NullSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
     override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr
-        := NullSceneRenderingPipelineViewport sharedNew upCastFor: SceneRenderingPipelineViewport.
+        := NullSceneRenderingPipelineViewport rcNew upCastFor: SceneRenderingPipelineViewport.
 
 }.
 

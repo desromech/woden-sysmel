@@ -63,7 +63,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
         let renderable := meshBuilder _ renderable.
 
-        let floor := SpatialObjectNode sharedNew.
+        let floor := SpatialObjectNode rcNew.
         floor _ renderable: renderable.
         scene _ add: (floor upCastFor: SceneNode).
     }.
@@ -74,7 +74,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
         meshBuilder _ addCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
         let renderable := meshBuilder _ renderable.
 
-        let cube := SpatialObjectNode sharedNew.
+        let cube := SpatialObjectNode rcNew.
         cube _
             renderable: renderable;
             translateByX: 4.5f y: 0.5f z: 0.0f.
@@ -88,7 +88,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
             currentMaterial: (engine _ resourceCache _ loadMaterialFrom: "materials/water/pool/pool" asNativeFileReference);
             addGridWithSize: 5.0f subdivisions: 64.
 
-        let renderable := WaterRenderableMesh sharedNew.
+        let renderable := WaterRenderableMesh rcNew.
         renderable _
             mesh: meshBuilder _ renderable.
         renderable _ mesh _ withoutDepthWrite.
@@ -98,7 +98,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
             harmonicAt: 1 amplitude: 0.02f frequency: 2.23f direction: Float32x2(0, -1);
             harmonicAt: 2 amplitude: 0.015f frequency: 1.80f direction: Float32x2(1, 0).
 
-        let water := SpatialObjectNode sharedNew.
+        let water := SpatialObjectNode rcNew.
 
         water _
             renderable: (renderable upCastFor: Renderable);
@@ -108,7 +108,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     ## Add the light source.
     {
-        let sunLight := LightSourceNode sharedNew.
+        let sunLight := LightSourceNode rcNew.
         sunLight _
             makeDirectional;
             castShadows: true;
@@ -128,7 +128,7 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
         let renderable := meshBuilder _ renderable.
         renderable _ withoutDepth.
 
-        let cube := SpatialObjectNode sharedNew.
+        let cube := SpatialObjectNode rcNew.
         cube _
             renderable: renderable.
         scene _ backgroundLayer _ addChild: (cube upCastFor: SceneNode).

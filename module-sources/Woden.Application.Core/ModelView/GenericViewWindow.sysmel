@@ -3,14 +3,14 @@ namespace Application definition: {
 
 useNamespace: Woden Runtime.
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
 
 #**
  * I am the model that lies underlying a Woden application.
  *#
 class GenericViewWindow superclass: ViewWindow; definition: {
-    protected field window type: Window sharedPointer.
+    protected field window type: WindowPtr.
     protected field swapChain type: SwapChainPtr.
     protected field currentSwapChainExtent type: UInt32x2.
     protected field displayRenderPass type: RenderPassPtr.
@@ -73,7 +73,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
         ## Create the event handler.
 	    {
-	        let eventHandler := GenericViewEventHandler sharedNew.
+	        let eventHandler := GenericViewEventHandler rcNew.
 			eventHandler _ viewWindow: self address.
 	        window _ eventHandler: (eventHandler upCastFor: EventHandler)
 	    }.
@@ -161,7 +161,7 @@ class GenericViewEventHandler superclass: EventHandler; definition: {
     }.
 }.
 
-compileTime constant GenericViewWindowPtr := GenericViewWindow sharedPointer
+compileTime constant GenericViewWindowPtr := GenericViewWindow rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

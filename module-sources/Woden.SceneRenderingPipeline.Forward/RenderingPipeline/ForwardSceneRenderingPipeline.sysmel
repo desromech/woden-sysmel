@@ -2,8 +2,8 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
 
 #**
  * An abstract pipeline for rendering a null scene.
@@ -288,8 +288,8 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     }.
 
     override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr := {
-        let result := ForwardSceneRenderingPipelineViewport sharedNew.
-        result _ initializeWithSceneRenderingPipeline: self asSharedPointer.
+        let result := ForwardSceneRenderingPipelineViewport rcNew.
+        result _ initializeWithSceneRenderingPipeline: self asRCPointer.
         result upCastFor: SceneRenderingPipelineViewport
     }.
 
@@ -340,7 +340,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     }.
 }.
 
-compileTime constant ForwardSceneRenderingPipelinePtr := ForwardSceneRenderingPipeline sharedPointer.
+compileTime constant ForwardSceneRenderingPipelinePtr := ForwardSceneRenderingPipeline rcPointer.
 
 }. ## End of namespace ForwardRenderer
 }. ## End of namespace Woden

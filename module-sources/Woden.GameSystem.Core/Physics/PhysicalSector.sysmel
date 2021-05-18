@@ -1,10 +1,10 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
 
-class PhysicalSector superclass: Stdn SharedObject; definition: {
+class PhysicalSector superclass: Std RCObject; definition: {
     compileTime constant CollisionNotStuckEpsilon := 0.01f.
     field collisionObjects type: CollisionObjects.
     public field gravity type: Float32x3.
@@ -148,7 +148,7 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
 
                 let (let otherCollisionNormal, let penetrationDistance) := sweepTestResult collidingBox computePenetrationNormalAndDistanceForPoint: collisionPoint.
                 let collidingObject := sweepTestResult collidingObject.
-                Stdn assert: collidingObject isNotNil.
+                Std assert: collidingObject isNotNil.
 
                 sweepTestResult addExcludedObject: collidingObject.
                 collidingObject _ isRigidBody ifTrue: {
@@ -180,7 +180,7 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
                                 currentPosition := collisionPoint + (penetrationDistance + CollisionNotStuckEpsilon)*otherCollisionNormal.
                                 currentOrientation := collisionOrientation.
                             } ifFalse: {
-                                Stdn assert: otherRigidBody _ massReciprocal > 0.
+                                Std assert: otherRigidBody _ massReciprocal > 0.
                                 otherRigidBody _ translateBy: (penetrationDistance + CollisionNotStuckEpsilon) * otherCollisionNormal negated.
                             }
                         }.
@@ -211,8 +211,8 @@ class PhysicalSector superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant PhysicalSectorPtr := PhysicalSector sharedPointer.
-compileTime constant PhysicalSectorWeakPtr := PhysicalSector weakPointer.
+compileTime constant PhysicalSectorPtr := PhysicalSector rcPointer.
+compileTime constant PhysicalSectorWeakPtr := PhysicalSector weakRCPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

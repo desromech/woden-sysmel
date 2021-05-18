@@ -1,22 +1,22 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math.
 
 #**
  * I am a specific pose of a skeleton in a skinned mesh. I am typically
  * converted into a list of matrices that is uploaded onto the GPU.
  *#
-class SkeletonPose superclass: Stdn SharedObject; definition: {
+class SkeletonPose superclass: Std RCObject; definition: {
     public field skeleton type: SkeletonPtr.
-    public field bonePoses type: Stdn Collections Vector(BonePose).
-    public field skinningMatrices type: Stdn Collections Vector(Float32x4x4).
+    public field bonePoses type: Std Collections Vector(BonePose).
+    public field skinningMatrices type: Std Collections Vector(Float32x4x4).
     field skinningMatricesValidated type: Boolean8.
 
     meta definition: {
-        method for: (skeleton: SkeletonPtr const ref) ::=> SkeletonPose sharedPointer := {
-            let result := SkeletonPose sharedNew.
+        method for: (skeleton: SkeletonPtr const ref) ::=> SkeletonPose rcPointer := {
+            let result := SkeletonPose rcNew.
             result _ initializeWithSkeleton: skeleton.
             result
         }.
@@ -31,7 +31,7 @@ class SkeletonPose superclass: Stdn SharedObject; definition: {
     }.
 
     method resetToRestPose => Void := {
-        Stdn assert: bonePoses size = skeleton _ bones size.
+        Std assert: bonePoses size = skeleton _ bones size.
         let poseData := bonePoses data.
         skeleton _ bones doWithIndex: {:each :index :: Void |
             poseData[index] := each restPose
@@ -41,7 +41,7 @@ class SkeletonPose superclass: Stdn SharedObject; definition: {
     method validateSkinningMatrices => Void := {
         skinningMatricesValidated ifTrue: {return: void}.
 
-        Stdn assert: bonePoses size = skeleton _ bones size.
+        Std assert: bonePoses size = skeleton _ bones size.
         let boneData := skeleton _ bones data.
         let poseData := bonePoses data.
         let skinningData := skinningMatrices data.
@@ -83,7 +83,7 @@ class SkeletonPose superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant SkeletonPosePtr := SkeletonPose sharedPointer.
+compileTime constant SkeletonPosePtr := SkeletonPose rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

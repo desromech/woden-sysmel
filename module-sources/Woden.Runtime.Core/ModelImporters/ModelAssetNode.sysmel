@@ -2,17 +2,17 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Math.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I am a scene node in a model asset.
  *#
 class ModelAssetNode superclass: ModelAssetElement; definition: {
-    public field children type: Stdn Collections Vector(ModelAssetNode sharedPointer).
+    public field children type: Std Collections Vector(ModelAssetNode rcPointer).
     public field mesh type: ModelAssetMeshPtr.
 
-    public field skeleton type: ModelAssetSkeleton sharedPointer.
+    public field skeleton type: ModelAssetSkeleton rcPointer.
 
     public field isJoint type: Boolean8.
     public field hasValidJointIndex type: Boolean8.
@@ -31,12 +31,12 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
     }.
 
     method asSceneNodeFor: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode sharedNew.
+        let node := SpatialObjectNode rcNew.
         mesh ifNotNil: {
             node _ renderable: (mesh _ asRenderableFor: engine).
 
             skeleton ifNotNil: {
-                let skinnedMesh := SkinnedRenderableMesh sharedNew.
+                let skinnedMesh := SkinnedRenderableMesh rcNew.
                 skinnedMesh _
                     mesh: node _ renderable;
                     skeleton: (skeleton _ asSkeleton);
@@ -57,7 +57,7 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetNodePtr := ModelAssetNode sharedPointer.
+compileTime constant ModelAssetNodePtr := ModelAssetNode rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a mesh whose geometry data never changes in the GPU.

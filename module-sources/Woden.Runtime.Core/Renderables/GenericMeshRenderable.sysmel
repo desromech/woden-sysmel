@@ -1,13 +1,13 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
-    public field submeshes type: Stdn Collections Vector(GenericSubmesh).
+    public field submeshes type: Std Collections Vector(GenericSubmesh).
 
     override method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
         submeshes ifEmpty: {return: void}.
@@ -18,8 +18,8 @@ class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
         }
     }.
 
-    override method copy => Renderable sharedPointer := {
-        let result := GenericMeshRenderable sharedNew.
+    override method copy => Renderable rcPointer := {
+        let result := GenericMeshRenderable rcNew.
         result _ := self.
         result upCastFor: Renderable
     }.
@@ -31,7 +31,7 @@ class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
     }.
 }.
 
-compileTime constant GenericMeshRenderablePtr := GenericMeshRenderable sharedPointer.
+compileTime constant GenericMeshRenderablePtr := GenericMeshRenderable rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -17,7 +17,7 @@ class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; defini
 
     meta definition: {
         static method baseColorFactor: (baseColorFactor: Float32x4) ::=> MaterialDefinitionPtr := {
-            let material := MetallicRoughnessMaterialDefinition sharedNew.
+            let material := MetallicRoughnessMaterialDefinition rcNew.
             material _ baseColorFactor: baseColorFactor.
             material upCastFor: MaterialDefinition
         }.
@@ -65,7 +65,7 @@ class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; defini
     }.
 }.
 
-compileTime constant MetallicRoughnessMaterialDefinitionPtr := MetallicRoughnessMaterialDefinition sharedPointer.
+compileTime constant MetallicRoughnessMaterialDefinitionPtr := MetallicRoughnessMaterialDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

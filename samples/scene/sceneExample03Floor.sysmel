@@ -25,14 +25,14 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     		computeTangentsBitangents.
         let renderable := meshBuilder _ renderable.
 
-        let cube := SpatialObjectNode sharedNew.
+        let cube := SpatialObjectNode rcNew.
         cube _ renderable: renderable.
         scene _ add: (cube upCastFor: SceneNode).
     }.
 
     ## Add the light source.
     {
-        let light := LightSourceNode sharedNew.
+        let light := LightSourceNode rcNew.
         light _
             makePoint;
             radius: 4.0;

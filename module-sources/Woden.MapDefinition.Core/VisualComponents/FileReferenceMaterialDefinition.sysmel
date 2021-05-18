@@ -4,11 +4,11 @@ namespace MapDefinition definition: {
 useNamespace: Woden Runtime.
 
 class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition: {
-    public field path type: Stdn String.
+    public field path type: Std String.
 
     meta definition: {
-        static method path: (path: Stdn String) ::=> MaterialDefinitionPtr := {
-            let material := FileReferenceMaterialDefinition sharedNew.
+        static method path: (path: Std String) ::=> MaterialDefinitionPtr := {
+            let material := FileReferenceMaterialDefinition rcNew.
             material _ path: path.
             material upCastFor: MaterialDefinition
         }.
@@ -31,7 +31,7 @@ class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition
     }.
 }.
 
-compileTime constant FileReferenceMaterialDefinitionPtr := FileReferenceMaterialDefinition sharedPointer.
+compileTime constant FileReferenceMaterialDefinitionPtr := FileReferenceMaterialDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

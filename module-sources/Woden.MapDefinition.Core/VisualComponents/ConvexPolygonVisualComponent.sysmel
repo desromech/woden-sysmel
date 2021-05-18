@@ -1,12 +1,12 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
-    public field vertices type: Stdn Collections Vector(Float32x2).
+    public field vertices type: Std Collections Vector(Float32x2).
     public field topFaceAttributes type: PolygonFaceAttributes.
     public field bottomFaceAttributes type: PolygonFaceAttributes.
     public field sideFaceAttributes type: PolygonFaceAttributes.
@@ -75,7 +75,7 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
 
     method generateExtrudedFacesFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         ## Front face.
-        let frontVertices mutable type: Stdn Collections Vector(Float32x3).
+        let frontVertices mutable type: Std Collections Vector(Float32x3).
         frontVertices reserve: vertices size.
         vertices do: {:each :: Void |
             frontVertices add: Float32x3(each, maxZ)
@@ -83,7 +83,7 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
         self generateExtrudedFaceVertices: frontVertices asArraySlice normal: Float32x3(0, 0, 1) for: engine with: meshBuilder parentTransform: parentTransform.
 
         ## Back face.
-        let backVertices mutable type: Stdn Collections Vector(Float32x3).
+        let backVertices mutable type: Std Collections Vector(Float32x3).
         backVertices reserve: vertices size.
         vertices reverseDo: {:each :: Void |
             backVertices add: Float32x3(each, minZ)
@@ -109,14 +109,14 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
     }.
 
     override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode sharedNew.
+        let node := SpatialObjectNode rcNew.
         node _
             renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
         node upCastFor: SceneNode
     }.
 }.
 
-compileTime constant ConvexPolygonVisualComponentPtr := ConvexPolygonVisualComponent sharedPointer.
+compileTime constant ConvexPolygonVisualComponentPtr := ConvexPolygonVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

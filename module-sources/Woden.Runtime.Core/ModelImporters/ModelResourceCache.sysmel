@@ -5,7 +5,7 @@ useNamespace: Woden Runtime.
 
 ResourceCache extend: {
 
-    method solveModelAssetFileReference: (fileReference: Stdn FileReference const ref) ::=> Stdn FileReference := {
+    method solveModelAssetFileReference: (fileReference: Std FileReference const ref) ::=> Std FileReference := {
         let extensions mutable := Char8 const arraySlice array(
             "wmdl",
             "wtmdl",
@@ -17,7 +17,7 @@ ResourceCache extend: {
         self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
-    method loadModelAssetFrom: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    method loadModelAssetFrom: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         let solvedFileReference := self solveModelAssetFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: ModelAssetPtr nil}.
 

@@ -4,10 +4,10 @@ namespace Application definition: {
 macro method sampleSceneMainWith: modelInitializationBlock := {
     let sceneModel := __astBuilder gensym: #sceneModel.
 
-    ``(Stdn MainEntryPoint: {:args :: Int32 |
+    ``(Std MainEntryPoint: {:args :: Int32 |
 
         ## Create the scene model and initialize with the C arguments.
-        let `,sceneModel mutable := Woden Application SampleSceneModel sharedNew.
+        let `,sceneModel mutable := Woden Application SampleSceneModel rcNew.
         (`,sceneModel _ initializeWithCommandLine: args) ifFalse: {
             return: 1
         }.

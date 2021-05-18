@@ -8,9 +8,9 @@ namespace ModelConverter definition: {
 struct Parameters definition: {
     public field embedTextures type: Boolean8.
     public field generateMipmaps type: Boolean8.
-    public field targetProfileName type: Stdn String.
-    public field inputFileName type: Stdn String.
-    public field outputFileName type: Stdn String.
+    public field targetProfileName type: Std String.
+    public field inputFileName type: Std String.
+    public field outputFileName type: Std String.
     public field minMipLevelExtent type: UInt32x3.
     public field maxMipLevelExtent type: UInt32x3.
 
@@ -20,7 +20,7 @@ struct Parameters definition: {
         maxMipLevelExtent := UInt32x3 infinityOrMaxValue.
     }.
 
-    method printHelpOnto: (out: Stdn IO TextStreamWriter ref) ::=> Void := {
+    method printHelpOnto: (out: Std IO TextStreamWriter ref) ::=> Void := {
         out << "Woden.Tools.ModelConverter <options>"; nl.
         out << "-h[elp] Print this message"; nl.
         out << "-i The input file name."; nl.
@@ -46,15 +46,15 @@ struct Parameters definition: {
         }.
     }.
 
-    method parseFromCommandLine: (args: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
+    method parseFromCommandLine: (args: Std ImmutableString const arraySlice) ::=> Boolean8 := {
         for: (let i mutable type: UIntPointer := 0) while: (i < args size) do: {
             args[i] selectCase: #{
                 "-h" : {
-                    self printHelpOnto: Stdn stdout.
+                    self printHelpOnto: Std stdout.
                     return: false
                 }.
                 "-help" : {
-                    self printHelpOnto: Stdn stdout.
+                    self printHelpOnto: Std stdout.
                     return: false
                 }.
 

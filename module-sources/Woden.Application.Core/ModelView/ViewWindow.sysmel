@@ -2,12 +2,12 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a generic interface for a window that is used by a view.
  *#
-class ViewWindow superclass: Stdn SharedObject; definition: {
+class ViewWindow superclass: Std RCObject; definition: {
     protected field view type: ViewPtr.
 
     const inline method engine => EnginePtr const ref
@@ -66,7 +66,7 @@ class ViewWindow superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant ViewWindowPtr := ViewWindow sharedPointer
+compileTime constant ViewWindowPtr := ViewWindow rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

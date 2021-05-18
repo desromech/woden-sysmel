@@ -30,7 +30,7 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
         := alphaMode ~= ModelAssetMaterialAlphaMode Blend.
 }.
 
-compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial sharedPointer.
+compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial rcPointer.
 
 
 } ## End of namespace Assets

@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 #**
  * I am a node that poses a local coordinate system that is associated with a model matrix in the GPU.
@@ -12,7 +12,7 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
     protected field renderingSceneObjects type: RenderingSceneObjectList.
 
     override method initialize => Void := {
-        objectState := SpatialObject sharedNew.
+        objectState := SpatialObject rcNew.
     }.
 
     override method localInternalBoundingBox => BoxF32
@@ -55,7 +55,7 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
         renderable ifNotNil: {
             renderingSceneObjects := renderable _ createRenderingSceneObjectsFor: (objectState upCastFor: AbstractSpatialObject).
             renderingSceneObjects do: {:each :: Void |
-                each _ node: (self asWeakPointer upCastFor: SceneNode)
+                each _ node: (self asWeakRCPointer upCastFor: SceneNode)
             }.
 
             layer ifNotNil: {
@@ -85,7 +85,7 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
     }.
 }.
 
-compileTime constant SpatialObjectNodePtr := SpatialObjectNode sharedPointer.
+compileTime constant SpatialObjectNodePtr := SpatialObjectNode rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

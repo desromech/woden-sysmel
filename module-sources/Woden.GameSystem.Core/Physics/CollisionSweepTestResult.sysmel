@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 struct CollisionSweepTestResult definition: {
     compileTime constant ExclusionSet := FixedVector(CollisionObject pointer, 10).

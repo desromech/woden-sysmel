@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 class Bullet superclass: DynamicProjectile; definition: {
     public field damage type: Float32.

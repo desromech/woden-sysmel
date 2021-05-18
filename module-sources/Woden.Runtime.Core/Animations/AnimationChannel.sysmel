@@ -1,11 +1,11 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-class AnimationChannel superclass: Stdn SharedObject; definition: {
+class AnimationChannel superclass: Std RCObject; definition: {
     virtual method applyChannelState: (state: MultiChannelAnimationState ref) atTime: (time: Float32) ::=> Void := {}.
 }.
 
-compileTime constant AnimationChannelPtr := AnimationChannel sharedPointer.
+compileTime constant AnimationChannelPtr := AnimationChannel rcPointer.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

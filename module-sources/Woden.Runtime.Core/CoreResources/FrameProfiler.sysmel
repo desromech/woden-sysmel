@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * Engine rendering settings.
@@ -9,13 +9,13 @@ useNamespace: Stdn Math LinearAlgebra.
 class FrameProfiler definition: {
     public field engine type: Engine pointer.
     public field currentFrameSample type: FrameProfilingLogSample.
-    field frameStartTime type: Stdn Chrono Time.
-    field logFile type: Stdn IO Stream uniquePointer.
-    field logFileWriter type: Stdn IO TextStreamWriter.
+    field frameStartTime type: Std Chrono Time.
+    field logFile type: Std IO Stream uniquePointer.
+    field logFileWriter type: Std IO TextStreamWriter.
 
     method beginFrame => Void := {
-        let nextFrameTime := Stdn Chrono now().
-        currentFrameSample frameTime: Stdn Chrono ticksToFloatSeconds(nextFrameTime - frameStartTime).
+        let nextFrameTime := Std Chrono now().
+        currentFrameSample frameTime: Std Chrono ticksToFloatSeconds(nextFrameTime - frameStartTime).
         frameStartTime = 0 ifTrue: {
             self createProfileLogFile
         } ifFalse: {
@@ -27,7 +27,7 @@ class FrameProfiler definition: {
     }.
 
     method endFrame => Void := {
-        currentFrameSample frameProcessingTime: Stdn Chrono ticksToFloatSeconds(Stdn Chrono now() - frameStartTime).
+        currentFrameSample frameProcessingTime: Std Chrono ticksToFloatSeconds(Std Chrono now() - frameStartTime).
     }.
 
     method createProfileLogFile => Void := {
@@ -36,7 +36,7 @@ class FrameProfiler definition: {
         }.
 
         logFile swapWith: "profile-log.csv" asNativeFileReference binaryWriteStream.
-        logFileWriter := Stdn IO TextStreamWriter for: logFile getPointer.
+        logFileWriter := Std IO TextStreamWriter for: logFile getPointer.
         currentFrameSample writeHeaderOn: logFileWriter for: engine _.
     }.
 

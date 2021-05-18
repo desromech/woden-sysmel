@@ -27,7 +27,7 @@ class SkinnedRenderableMesh superclass: MeshWithExtraDeformationRenderable; defi
     }.
 }.
 
-compileTime constant SkinnedRenderableMeshPtr := SkinnedRenderableMesh sharedPointer.
+compileTime constant SkinnedRenderableMeshPtr := SkinnedRenderableMesh rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

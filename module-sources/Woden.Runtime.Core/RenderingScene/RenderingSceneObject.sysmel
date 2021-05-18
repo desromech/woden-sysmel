@@ -1,17 +1,17 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I represent a 3D scene with rendering only objects.
  *#
-class RenderingSceneObject superclass: Stdn SharedObject; definition: {
+class RenderingSceneObject superclass: Std RCObject; definition: {
     public field spatialObject type: AbstractSpatialObjectPtr.
     public field localBoundingBox type: BoxF32.
     public field boundingBox type: BoxF32.
-    public field node type: SceneNode weakPointer.
+    public field node type: SceneNode weakRCPointer.
     protected field transformValidated type: Boolean8.
 
     const virtual method isLightSource => Boolean8
@@ -44,10 +44,10 @@ class RenderingSceneObject superclass: Stdn SharedObject; definition: {
         := frustum intersectsOrContainsBox: boundingBox.
 }.
 
-compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject sharedPointer const ref) => Void) nativeBlockClosure.
-compileTime constant RenderingSceneObjectList := Stdn Collections Vector(RenderingSceneObject sharedPointer).
+compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject rcPointer const ref) => Void) nativeBlockClosure.
+compileTime constant RenderingSceneObjectList := Std Collections Vector(RenderingSceneObject rcPointer).
 
-compileTime constant RenderingSceneObjectPtr := RenderingSceneObject sharedPointer.
+compileTime constant RenderingSceneObjectPtr := RenderingSceneObject rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

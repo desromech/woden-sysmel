@@ -15,7 +15,7 @@ class AnimationJointChannelWithCurve superclass: AnimationChannelWithCurve; defi
     }.
 }.
 
-compileTime constant AnimationJointChannelWithCurvePtr := AnimationJointChannelWithCurve sharedPointer.
+compileTime constant AnimationJointChannelWithCurvePtr := AnimationJointChannelWithCurve rcPointer.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

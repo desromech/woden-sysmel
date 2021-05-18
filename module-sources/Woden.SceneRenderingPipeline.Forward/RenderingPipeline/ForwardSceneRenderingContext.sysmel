@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * An abstract pipeline for rendering a null scene.

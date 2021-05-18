@@ -19,7 +19,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         spotInnerCutoff := DefaultSpotInnerCutoff.
         spotExponent := 1.0f.
 
-        objectState := LightSourceObject sharedNew.
+        objectState := LightSourceObject rcNew.
         objectState _ lightState
             intensity: Float32x4 ones;
             shadowNormalBias: 0.05f;
@@ -29,10 +29,10 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
             radius: 3.0f.
         objectState _ spotOuterCutoff: spotOuterCutoff.
 
-        renderingSceneObject := RenderingSceneLightSource sharedNew.
+        renderingSceneObject := RenderingSceneLightSource rcNew.
         renderingSceneObject _
             spatialObject: (objectState upCastFor: AbstractSpatialObject);
-            node: (self asWeakPointer upCastFor: SceneNode);
+            node: (self asWeakRCPointer upCastFor: SceneNode);
             volumeChanged
     }.
 
@@ -135,7 +135,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
     }.
 }.
 
-compileTime constant LightSourceNodePtr := LightSourceNode sharedPointer.
+compileTime constant LightSourceNodePtr := LightSourceNode rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

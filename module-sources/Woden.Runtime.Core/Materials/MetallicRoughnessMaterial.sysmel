@@ -1,15 +1,15 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I represent an abstract renderable, which is any 3D object that may be rendered by using a state tracker.
  *#
 class MetallicRoughnessMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> MetallicRoughnessMaterial sharedPointer := {
-            let result := MetallicRoughnessMaterial sharedNew.
+        method for: (anEngine: EnginePtr const ref) ::=> MetallicRoughnessMaterial rcPointer := {
+            let result := MetallicRoughnessMaterial rcNew.
             result _ initializeWithEngine: anEngine.
             result
         }.
@@ -105,7 +105,7 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     }.
 }.
 
-compileTime constant MetallicRoughnessMaterialPtr := MetallicRoughnessMaterial sharedPointer.
+compileTime constant MetallicRoughnessMaterialPtr := MetallicRoughnessMaterial rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

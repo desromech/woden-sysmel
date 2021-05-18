@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 useNamespace: Woden Runtime.
 
 class TextureDefinition superclass: LevelElementDefinition; definition: {
@@ -11,7 +11,7 @@ class TextureDefinition superclass: LevelElementDefinition; definition: {
         := TextureWithViewPtr nil.
 }.
 
-compileTime constant TextureDefinitionPtr := TextureDefinition sharedPointer.
+compileTime constant TextureDefinitionPtr := TextureDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

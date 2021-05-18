@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math.
+useNamespace: Std Math.
 
 class AnimationTargetSceneNode superclass: AnimationTarget; definition: {
     field sceneNode type: SceneNodePtr.
@@ -117,12 +117,12 @@ class AnimationTargetSceneNode superclass: AnimationTarget; definition: {
     }.
 }.
 
-compileTime constant AnimationTargetSceneNodePtr := AnimationTargetSceneNode sharedPointer.
+compileTime constant AnimationTargetSceneNodePtr := AnimationTargetSceneNode rcPointer.
 
 AnimationTarget extend: {
     meta definition: {
-        method forSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationTarget sharedPointer := {
-            let result := AnimationTargetSceneNode sharedNew.
+        method forSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationTarget rcPointer := {
+            let result := AnimationTargetSceneNode rcNew.
             result _ initializeWithSceneNode: sceneNode.
             result upCastFor: AnimationTarget
         }

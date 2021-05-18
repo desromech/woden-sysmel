@@ -1,10 +1,10 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 
 class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
-    public field entities type: Stdn Collections Vector(EntityDefinitionPtr).
+    public field entities type: Std Collections Vector(EntityDefinitionPtr).
     public field layerMinZ type: Float32.
     public field layerMaxZ type: Float32.
 
@@ -32,7 +32,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     }.
 
     method addPlayerStartPoint: (position: Float32x2) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             is2DEntity: true;
             className: "PlayerStartPoint";
@@ -41,7 +41,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     }.
 
     method addPlayerStartPoint: (position: Float32x3) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             className: "PlayerStartPoint";
             position: position.
@@ -49,7 +49,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     }.
 
     method addEnemyAt: (position: Float32x2) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             is2DEntity: true;
             className: "Enemy";
@@ -58,7 +58,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     }.
 
     method addEnemyAt: (position: Float32x3) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             className: "Enemy";
             position: position.
@@ -67,7 +67,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
 
     method addPointLightAt: (position: Float32x2) color: (color: Float32x3)
         intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             is2DEntity: true;
             className: "PointLight";
@@ -78,7 +78,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
 
     method addPointLightAt: (position: Float32x3) color: (color: Float32x3)
         intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void := {
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             className: "PointLight";
             addVisualComponent: (VisualComponent pointLightSourceWithColor: color intensity: intensity radius: radius castShadows: castShadows);
@@ -91,7 +91,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingRectangle center.
 
         let localRectangle := boundingRectangle translatedBy: center negated.
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             is2DEntity: true;
             className: "Wall";
@@ -107,7 +107,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingBox center.
 
         let localBox := boundingBox translatedBy: center negated.
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             className: "Wall";
             position: center;
@@ -122,7 +122,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingRectangle center.
 
         let localRectangle := boundingRectangle translatedBy: center negated.
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             is2DEntity: true;
             className: "Wall";
@@ -137,7 +137,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingBox center.
 
         let localBox := boundingBox translatedBy: center negated.
-        let definition := EntityDefinition sharedNew.
+        let definition := EntityDefinition rcNew.
         definition _
             className: "Wall";
             position: center;
@@ -147,7 +147,7 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
     }.
 }.
 
-compileTime constant SectorLayerDefinitionPtr := SectorLayerDefinition sharedPointer.
+compileTime constant SectorLayerDefinitionPtr := SectorLayerDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

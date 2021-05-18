@@ -1,9 +1,9 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
-useNamespace: Stdn Serialization.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math.
+useNamespace: Std Serialization.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math.
 
 enum GLTFAccessorComponentType valueType: UInt32; values: #{
     Byte: 5120.
@@ -36,18 +36,18 @@ enum GLTFPrimitiveMode valueType: UInt8; values: #{
 }.
 
 class GLTFModelImporter definition: {
-    field parentFolder type: Stdn FileReference.
+    field parentFolder type: Std FileReference.
     field modelAsset type: ModelAssetPtr.
 
     field embeddedBinaryBufferData type: UInt8 uniquePointer.
     field embeddedBinaryBufferSize type: UIntPointer.
 
-    method importFromBinaryFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromBinaryFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         parentFolder := fileReference parent.
         let readStream := fileReference binaryReadStream.
         readStream ifNil: {return: ModelAssetPtr nil}.
 
-        let binaryReader mutable := Stdn IO BinaryDataStreamReader for: readStream getPointer.
+        let binaryReader mutable := Std IO BinaryDataStreamReader for: readStream getPointer.
         binaryReader setForLittleEndian.
 
         let glbMagic := binaryReader nextUInt32.
@@ -84,7 +84,7 @@ class GLTFModelImporter definition: {
             let chunkType := binaryReader nextUInt32.
 
             chunkType = 16r004E4942 ifTrue: {
-                embeddedBinaryBufferData reset: (Stdn zmalloc(chunkLength) reinterpretCastTo: UInt8 pointer).
+                embeddedBinaryBufferData reset: (Std zmalloc(chunkLength) reinterpretCastTo: UInt8 pointer).
                 embeddedBinaryBufferSize := chunkLength.
                 (readStream _ read: embeddedBinaryBufferData getPointer size: embeddedBinaryBufferSize) = (chunkLength castTo: IntPointer) ifFalse: {
                     return: ModelAssetPtr nil
@@ -102,13 +102,13 @@ class GLTFModelImporter definition: {
             dataSize: (object getUIntPointer: "byteLength" asMutableString).
 
         object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
-            let uri := uriValue get: Stdn String.
+            let uri := uriValue get: Std String.
             let uriFileRef := parentFolder / uri asArraySlice.
             uriFileRef exists ifTrue: {
                 let readStream := uriFileRef binaryUnbufferedReadStream.
                 readStream ifNil: {return: void}.
 
-                buffer _ data reset: (Stdn zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+                buffer _ data reset: (Std zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
                 readStream _ read: buffer _ data getPointer size: buffer _ dataSize
             }.
         } ifAbsent: {
@@ -262,7 +262,7 @@ class GLTFModelImporter definition: {
         let sampler := modelAsset _ newSampler.
         sampler _
             name: (object getString: "name" asMutableString default: "" asMutableString).
-        ##Stdn stdout << "TODO: parseSampler " << sampler _ name; nl.
+        ##Std stdout << "TODO: parseSampler " << sampler _ name; nl.
     }.
 
     method parseSamplers: (list: DOM List const ref) ::=> Void := {
@@ -303,7 +303,7 @@ class GLTFModelImporter definition: {
         let material := modelAsset _ newMetallicRoughnessMaterial.
 
         material _
-            baseColorFactor: Stdn Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
+            baseColorFactor: Std Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
             roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
         object at: "baseColorTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
@@ -330,7 +330,7 @@ class GLTFModelImporter definition: {
 
         material _
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            emissionFactor: Stdn Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" asMutableString default: 0, 0)) rgb;
+            emissionFactor: Std Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" asMutableString default: 0, 0)) rgb;
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
 
@@ -366,7 +366,7 @@ class GLTFModelImporter definition: {
     method parseMeshPrimitiveAttributes: (object: DOM Object const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
         let attributeList mutable := ModelAssetMeshPrimitiveAttributeList().
 
-        object keysAndValuesDo: {:(Stdn String const ref)key :(DOM Value const ref)value :: Void |
+        object keysAndValuesDo: {:(Std String const ref)key :(DOM Value const ref)value :: Void |
             let location := key asArraySlice selectCase: #{
             "POSITION" : VertexAttributeLocation Position.
             "NORMAL" : VertexAttributeLocation Normal.
@@ -397,7 +397,7 @@ class GLTFModelImporter definition: {
 
     method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: DOM Object const ref) ::=> Void := {
 
-        let primitive := ModelAssetMeshPrimitive sharedNew.
+        let primitive := ModelAssetMeshPrimitive rcNew.
         mesh _ primitives add: primitive.
 
         primitive _
@@ -496,11 +496,11 @@ class GLTFModelImporter definition: {
 
         object at: "matrix" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let matrix := DOM valueToFloat32x4x4(value, Float32x4x4 identity).
-            Stdn stdout << "TODO: parse node matrix "; nl.
-            Stdn stdout << matrix firstRow; nl.
-            Stdn stdout << matrix secondRow; nl.
-            Stdn stdout << matrix thirdRow; nl.
-            Stdn stdout << matrix fourthRow; nl.
+            Std stdout << "TODO: parse node matrix "; nl.
+            Std stdout << matrix firstRow; nl.
+            Std stdout << matrix secondRow; nl.
+            Std stdout << matrix thirdRow; nl.
+            Std stdout << matrix fourthRow; nl.
         }.
 
     }.
@@ -546,7 +546,7 @@ class GLTFModelImporter definition: {
     }.
 
     method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: DOM Object const ref) ::=> Void := {
-        let sampler := ModelAssetAnimationSampler sharedNew.
+        let sampler := ModelAssetAnimationSampler rcNew.
         sampler _
             index: animation _ samplers size;
             inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "input" asMutableString]);
@@ -563,7 +563,7 @@ class GLTFModelImporter definition: {
     }.
 
     method parseAnimation: (animation: ModelAssetAnimationPtr const ref) channel: (object: DOM Object const ref) ::=> Void := {
-        let channel := ModelAssetAnimationChannel sharedNew.
+        let channel := ModelAssetAnimationChannel rcNew.
         channel _ sampler: (animation _ samplers[object getUIntPointer: "sampler" asMutableString]).
 
         let target := object getObject: "target" asMutableString.
@@ -607,7 +607,7 @@ class GLTFModelImporter definition: {
     }.
 
     method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetPtr := {
-        modelAsset := ModelAsset sharedNew.
+        modelAsset := ModelAsset rcNew.
         modelAsset _ parentFolder: parentFolder.
         object at: "buffers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             self parseBuffers: (value get: DOM ListPtr) _
@@ -655,7 +655,7 @@ class GLTFModelImporter definition: {
         modelAsset
     }.
 
-    method importFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         parentFolder := fileReference parent.
 
         let jsonReadStream := fileReference binaryReadStream.
@@ -670,7 +670,7 @@ class GLTFModelImporterExporter superclass: ModelImporterExporter; definition: {
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := extension = "gltf" || extension = "glb".
 
-    const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    const override method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         let importer mutable := GLTFModelImporter().
         fileReference extension = "glb" ifTrue: {
             importer importFromBinaryFileReference: fileReference

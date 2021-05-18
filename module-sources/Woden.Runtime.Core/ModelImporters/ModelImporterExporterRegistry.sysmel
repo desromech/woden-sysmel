@@ -4,7 +4,7 @@ namespace Assets definition: {
 class ModelImporterExporterRegistry definition: {
     meta definition: {
         let singleton mutable type: ModelImporterExporterRegistry uniquePointer.
-        let singletonOnceCreation mutable type: Stdn OnceFlag.
+        let singletonOnceCreation mutable type: Std OnceFlag.
 
         method uniqueInstance => ModelImporterExporterRegistry ref := {
             singletonOnceCreation do: {
@@ -15,16 +15,16 @@ class ModelImporterExporterRegistry definition: {
         }.
     }.
 
-    private field mutex type: Stdn Mutex.
-    private field registeredModelImporterExporters type: Stdn Collections Vector(ModelImporterExporter sharedPointer).
+    private field mutex type: Std Mutex.
+    private field registeredModelImporterExporters type: Std Collections Vector(ModelImporterExporter rcPointer).
 
-    method addModelImporterExporter: (modelImporterExporter: ModelImporterExporter sharedPointer) ::=> Void := {
+    method addModelImporterExporter: (modelImporterExporter: ModelImporterExporter rcPointer) ::=> Void := {
         mutex withLock: {
             registeredModelImporterExporters add: modelImporterExporter
         }
     }.
 
-    method findForFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelImporterExporter pointer
+    method findForFileReference: (fileReference: Std FileReference const ref) ::=> ModelImporterExporter pointer
         := self findWithExtension: fileReference extension.
 
     method findWithExtension: (extension: Char8 const arraySlice) ::=> ModelImporterExporter pointer := {
@@ -44,7 +44,7 @@ template ModelImporterExporterRegisterer(T: Type)
     := class definition: {
 
     method initialize => Void := {
-        ModelImporterExporterRegistry uniqueInstance addModelImporterExporter: (T sharedNew upCastFor: ModelImporterExporter)
+        ModelImporterExporterRegistry uniqueInstance addModelImporterExporter: (T rcNew upCastFor: ModelImporterExporter)
     }.
 }.
 

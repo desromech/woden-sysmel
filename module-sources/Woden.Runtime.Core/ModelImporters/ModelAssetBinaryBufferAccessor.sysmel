@@ -2,8 +2,8 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
 
 #**
  * I am an accessor for structured data in a binary buffer view.
@@ -37,8 +37,8 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     method asCPUBufferPointer => UInt8 pointer
         := bufferView _ asCPUBufferPointer + offset.
 
-    method decodeAsVectorOfFloat32 => Stdn Collections Vector(Float32) := {
-        let result mutable type: Stdn Collections Vector(Float32).
+    method decodeAsVectorOfFloat32 => Std Collections Vector(Float32) := {
+        let result mutable type: Std Collections Vector(Float32).
         bufferView ifNil: {return: result asMoveReference}.
 
         let bufferPointer := self asCPUBufferPointer.
@@ -62,8 +62,8 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
         result asMoveReference
     }.
 
-    method decodeAsVectorOfFloat32x2 => Stdn Collections Vector(Float32x2) := {
-        let result mutable type: Stdn Collections Vector(Float32x2).
+    method decodeAsVectorOfFloat32x2 => Std Collections Vector(Float32x2) := {
+        let result mutable type: Std Collections Vector(Float32x2).
         bufferView ifNil: {return: result asMoveReference}.
 
         let bufferPointer := self asCPUBufferPointer.
@@ -87,8 +87,8 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
         result asMoveReference
     }.
 
-    method decodeAsVectorOfFloat32x3 => Stdn Collections Vector(Float32x3) := {
-        let result mutable type: Stdn Collections Vector(Float32x3).
+    method decodeAsVectorOfFloat32x3 => Std Collections Vector(Float32x3) := {
+        let result mutable type: Std Collections Vector(Float32x3).
         bufferView ifNil: {return: result asMoveReference}.
 
         let bufferPointer := self asCPUBufferPointer.
@@ -112,8 +112,8 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
         result asMoveReference
     }.
 
-    method decodeAsVectorOfFloat32x4 => Stdn Collections Vector(Float32x4) := {
-        let result mutable type: Stdn Collections Vector(Float32x4).
+    method decodeAsVectorOfFloat32x4 => Std Collections Vector(Float32x4) := {
+        let result mutable type: Std Collections Vector(Float32x4).
         bufferView ifNil: {return: result asMoveReference}.
 
         let bufferPointer := self asCPUBufferPointer.
@@ -137,8 +137,8 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
         result asMoveReference
     }.
 
-    method decodeAsVectorOfFloat32x4x4 => Stdn Collections Vector(Float32x4x4) := {
-        let result mutable type: Stdn Collections Vector(Float32x4x4).
+    method decodeAsVectorOfFloat32x4x4 => Std Collections Vector(Float32x4x4) := {
+        let result mutable type: Std Collections Vector(Float32x4x4).
         columnCount ~= 4 || bufferView isNil ifTrue: {return: result asMoveReference}.
 
         let bufferPointer := self asCPUBufferPointer.
@@ -205,7 +205,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     }.
 }.
 
-compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor sharedPointer.
+compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

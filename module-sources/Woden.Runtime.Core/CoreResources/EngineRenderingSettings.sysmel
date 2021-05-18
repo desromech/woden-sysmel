@@ -15,7 +15,7 @@ struct EngineRenderingSettings definition: {
     public field profiling type: Boolean8.
     
     public field frameDumping type: Boolean8.
-    public field frameDumpingPrefix type: Stdn String.
+    public field frameDumpingPrefix type: Std String.
 
     method initialize => Void := {
         vsyncEnabled := true.
@@ -34,7 +34,7 @@ compileTime if: Compiler compilationTarget isWindowsStore then: {
 }.
     }.
 
-    method parseFromCommandLine: (arguments: Stdn ImmutableString const arraySlice) ::=> Boolean8 := {
+    method parseFromCommandLine: (arguments: Std ImmutableString const arraySlice) ::=> Boolean8 := {
         for: (let i mutable type: UIntPointer := 0) while: (i < arguments size) do: {
             arguments[i] selectCase: #{
                 "-no-vsync" : {

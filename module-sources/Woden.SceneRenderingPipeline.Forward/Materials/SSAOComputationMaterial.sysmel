@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Shaders definition: {
 
-## FIXME: Use Stdn hashForUInt32
+## FIXME: Use Std hashForUInt32
 function randomNoiseHash(v: UInt32) => UInt32 := {
 	let r mutable := v ^ (v >> 16).
     r := r * 16r7feb352d.

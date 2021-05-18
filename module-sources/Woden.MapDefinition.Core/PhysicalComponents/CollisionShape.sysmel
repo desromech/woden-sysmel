@@ -1,19 +1,19 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden Runtime.
 
 class CollisionShape superclass: EntityComponentDefinition; definition: {
     meta definition: {
-        static method boxWithHalfExtent: (halfExtent: Float32x3) ::=> CollisionShape sharedPointer := {
-            let result := BoxCollisionShape sharedNew.
+        static method boxWithHalfExtent: (halfExtent: Float32x3) ::=> CollisionShape rcPointer := {
+            let result := BoxCollisionShape rcNew.
             result _ halfExtent: halfExtent.
             result upCastFor: CollisionShape
         }.
 
-        static method rectangleWithHalfExtent: (halfExtent: Float32x2) ::=> CollisionShape sharedPointer := {
-            let result := RectangleCollisionShape sharedNew.
+        static method rectangleWithHalfExtent: (halfExtent: Float32x2) ::=> CollisionShape rcPointer := {
+            let result := RectangleCollisionShape rcNew.
             result _ halfExtent: halfExtent.
             result upCastFor: CollisionShape
         }.
@@ -21,14 +21,14 @@ class CollisionShape superclass: EntityComponentDefinition; definition: {
 
     override method isCollisionShape => Boolean8 := true.
 
-    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void
         := {}.
 
     virtual method boundingBox => BoxF32
         := BoxF32 empty.
 }.
 
-compileTime constant CollisionShapePtr := CollisionShape sharedPointer.
+compileTime constant CollisionShapePtr := CollisionShape rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

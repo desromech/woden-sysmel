@@ -38,7 +38,7 @@ class Camera superclass: SceneNode; definition: {
 
 }.
 
-compileTime constant CameraPtr := Camera sharedPointer.
+compileTime constant CameraPtr := Camera rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

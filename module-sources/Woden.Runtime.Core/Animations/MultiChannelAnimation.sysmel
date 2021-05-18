@@ -3,13 +3,13 @@ namespace Runtime definition: {
 
 class MultiChannelAnimation superclass: Animation; definition: {
     public field duration type: Float32.
-    public field curves type: Stdn Collections Vector(AnimationCurvePtr).
-    public field channels type: Stdn Collections Vector(AnimationChannelPtr).
+    public field curves type: Std Collections Vector(AnimationCurvePtr).
+    public field channels type: Std Collections Vector(AnimationChannelPtr).
 
-    override method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState sharedPointer := {
-        let result := MultiChannelAnimationState sharedNew.
+    override method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcPointer := {
+        let result := MultiChannelAnimationState rcNew.
         result _
-            initializeWithAnimation: (self asSharedPointer upCastFor: Animation) target: target;
+            initializeWithAnimation: (self asRCPointer upCastFor: Animation) target: target;
             isLooped: isLooped.
         result _ curveStates resizeTo: curves size.
         result upCastFor: AnimationState
@@ -49,7 +49,7 @@ class MultiChannelAnimation superclass: Animation; definition: {
     }.
 }.
 
-compileTime constant MultiChannelAnimationPtr := MultiChannelAnimation sharedPointer.
+compileTime constant MultiChannelAnimationPtr := MultiChannelAnimation rcPointer.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

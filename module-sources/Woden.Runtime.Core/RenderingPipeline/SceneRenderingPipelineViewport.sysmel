@@ -1,12 +1,12 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * An abstract pipeline for rendering a scene.
  *#
-class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: {
+class SceneRenderingPipelineViewport superclass: Std RCObject; definition: {
     public field timeSinceLastFrame type: Float32.
 
     protected field camera type: CameraPtr.
@@ -48,10 +48,10 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
     virtual method getLastFrameVisibleObjectCount => UIntPointer
         := 0.
 
-    virtual method scene2DBuilder => Stdn Graphics Scene2D BuilderPtr
-        := Stdn Graphics Scene2D BuilderPtr nil.
+    virtual method scene2DBuilder => Std Graphics Scene2D BuilderPtr
+        := Std Graphics Scene2D BuilderPtr nil.
 
-    virtual method setScene2D: (scene2D: Stdn Graphics Scene2D NodePtr const ref) ::=> Void := {
+    virtual method setScene2D: (scene2D: Std Graphics Scene2D NodePtr const ref) ::=> Void := {
 
     }.
 
@@ -64,7 +64,7 @@ class SceneRenderingPipelineViewport superclass: Stdn SharedObject; definition: 
     }.
 }.
 
-compileTime constant SceneRenderingPipelineViewportPtr := SceneRenderingPipelineViewport sharedPointer.
+compileTime constant SceneRenderingPipelineViewportPtr := SceneRenderingPipelineViewport rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

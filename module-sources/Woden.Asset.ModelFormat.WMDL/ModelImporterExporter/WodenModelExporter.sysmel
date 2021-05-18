@@ -1,22 +1,22 @@
 namespace Woden definition: {
 namespace Assets definition: {
 
-useNamespace: Stdn Serialization.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math.
+useNamespace: Std Serialization.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math.
 
 class WodenModelExporter definition: {
     field modelAsset type: ModelAssetPtr.
     field isWritingTextModel type: Boolean8.
 
     method encodeBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: buffer _ name.
 
         buffer _ data ifNotNil: {:content :: Void |
             isWritingTextModel ifTrue: {
-                result _ at: "data" asMutableString put: (Stdn ByteVector()
+                result _ at: "data" asMutableString put: (Std ByteVector()
                     addAll: (content until: buffer _ dataSize);
                     yourself)
             } ifFalse: {
@@ -27,20 +27,20 @@ class WodenModelExporter definition: {
         result
     }.
 
-    method encodeBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) into: (out: Stdn IO Stream ref) ::=> Void := {
+    method encodeBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) into: (out: Std IO Stream ref) ::=> Void := {
         buffer _ data ifNotNil: {
             out write: buffer _ data getPointer size: (buffer _ dataSize castTo: UInt32)
         }.
     }.
 
-    method encodeBinaryBuffersDataInto: (out: Stdn IO Stream ref) ::=> Void := {
+    method encodeBinaryBuffersDataInto: (out: Std IO Stream ref) ::=> Void := {
         modelAsset _ buffers do: {:each :: Void |
             self encodeBinaryBufferData: each into: out
         }.
     }.
 
     method encodeBuffers => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ buffers size.
         modelAsset _ buffers do: {:each :: Void |
             result _ add: (self encodeBuffer:  each)
@@ -49,7 +49,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeBufferView: (bufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: bufferView _ name;
             at: "buffer" asMutableString put: bufferView _ buffer _ index;
@@ -61,7 +61,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeBufferViews => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ bufferViews size.
         modelAsset _ bufferViews do: {:each :: Void |
             result _ add: (self encodeBufferView:  each)
@@ -70,7 +70,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAccessor: (accessor: ModelAssetBinaryBufferAccessorPtr const ref) ::=> DOM Value := {
-        let minValue := DOM List sharedNew.
+        let minValue := DOM List rcNew.
         minValue _
             reserve: 4;
             add: accessor _ minValue x;
@@ -78,14 +78,14 @@ class WodenModelExporter definition: {
             add: accessor _ minValue z;
             add: accessor _ minValue w.
 
-        let maxValue := DOM List sharedNew.
+        let maxValue := DOM List rcNew.
         maxValue _
             reserve: 4;
             add: accessor _ maxValue x;
             add: accessor _ maxValue y;
             add: accessor _ maxValue z;
             add: accessor _ maxValue w.
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: accessor _ name;
             at: "bufferView" asMutableString put: accessor _ bufferView _ index;
@@ -100,7 +100,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAccessors => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ bufferAccessors size.
         modelAsset _ bufferAccessors do: {:each :: Void |
             result _ add: (self encodeAccessor:  each)
@@ -109,7 +109,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeImage: (image: ModelAssetImagePtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: image _ name;
             at: "uri" asMutableString put: image _ uri;
@@ -123,7 +123,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeImages => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ images size.
         modelAsset _ images do: {:each :: Void |
             result _ add: (self encodeImage:  each)
@@ -132,7 +132,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeSampler: (sampler: ModelAssetSamplerPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: sampler _ name.
 
@@ -140,7 +140,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeSamplers => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ samplers size.
         modelAsset _ samplers do: {:each :: Void |
             result _ add: (self encodeSampler:  each)
@@ -149,7 +149,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeTexture: (texture: ModelAssetTexturePtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: texture _ name.
 
@@ -165,7 +165,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeTextures => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ textures size.
         modelAsset _ textures do: {:each :: Void |
             result _ add: (self encodeTexture:  each)
@@ -174,7 +174,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMetallicRoughnessMaterial: (material: ModelAssetMetallicRoughnessMaterialPtr const ref) ::=> DOM Value := {
-        let baseColorFactor := DOM List sharedNew.
+        let baseColorFactor := DOM List rcNew.
         baseColorFactor _
             reserve: 4;
             add: material _ baseColorFactor x;
@@ -182,7 +182,7 @@ class WodenModelExporter definition: {
             add: material _ baseColorFactor z;
             add: material _ baseColorFactor w.
 
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "baseColorFactor" asMutableString put: baseColorFactor;
             at: "metallicFactor" asMutableString put: material _ metallicFactor;
@@ -200,14 +200,14 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMaterial: (material: ModelAssetMaterialPtr const ref) ::=> DOM Value := {
-        let emissionFactor := DOM List sharedNew.
+        let emissionFactor := DOM List rcNew.
         emissionFactor _
             reserve: 3;
             add: material _ emissionFactor x;
             add: material _ emissionFactor y;
             add: material _ emissionFactor z.
 
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: material _ name;
             at: "emissionFactor" asMutableString put: emissionFactor;
@@ -235,7 +235,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMaterials => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ materials size.
         modelAsset _ materials do: {:each :: Void |
             result _ add: (self encodeMaterial:  each)
@@ -244,10 +244,10 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMeshPrimitiveAttributes: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) ::=> DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: attributes _ attributes size.
         attributes _ attributes do: {:each :: Void |
-            let attribute := DOM Object sharedNew.
+            let attribute := DOM Object rcNew.
             attribute _
                 at: "location" asMutableString put: each location value;
                 at: "accessor" asMutableString put: each accessor _ index.
@@ -259,7 +259,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMeshPrimitive: (primitive: ModelAssetMeshPrimitivePtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
 
         result _
             at: "attributes" asMutableString put: (self encodeMeshPrimitiveAttributes: primitive _ attributes);
@@ -277,7 +277,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMeshPrimitives: (mesh: ModelAssetMeshPtr const ref) ::=> DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: mesh _ primitives size.
         mesh _ primitives do: {:each :: Void |
             result _ add: (self encodeMeshPrimitive: each)
@@ -287,7 +287,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMesh: (mesh: ModelAssetMeshPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: mesh _ name;
             at: "primitives" asMutableString put: (self encodeMeshPrimitives: mesh).
@@ -296,7 +296,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeMeshes => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ meshes size.
         modelAsset _ meshes do: {:each :: Void |
             result _ add: (self encodeMesh:  each)
@@ -305,13 +305,13 @@ class WodenModelExporter definition: {
     }.
 
     method encodeSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) ::=> DOM Value := {
-        let joints := DOM List sharedNew.
+        let joints := DOM List rcNew.
         joints _ reserve: skeleton _ joints size.
         skeleton _ joints do: {:each :: Void |
             joints _ add: each _ index
         }.
 
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: skeleton _ name;
             at: "inverseBindMatrices" asMutableString put: skeleton _ inverseBindMatricesAccessor _ index;
@@ -322,7 +322,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeSkeletons => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ skeletons size.
         modelAsset _ skeletons do: {:each :: Void |
             result _ add: (self encodeSkeleton:  each)
@@ -331,21 +331,21 @@ class WodenModelExporter definition: {
     }.
 
     method encodeNode: (node: ModelAssetNodePtr const ref) ::=> DOM Value := {
-        let scale := DOM List sharedNew.
+        let scale := DOM List rcNew.
         scale _
             reserve: 3;
             add: node _ scale x;
             add: node _ scale y;
             add: node _ scale z.
 
-        let translation := DOM List sharedNew.
+        let translation := DOM List rcNew.
         translation _
             reserve: 3;
             add: node _ translation x;
             add: node _ translation y;
             add: node _ translation z.
 
-        let rotation := DOM List sharedNew.
+        let rotation := DOM List rcNew.
         rotation _
             reserve: 4;
             add: node _ rotationQuaternion x;
@@ -353,7 +353,7 @@ class WodenModelExporter definition: {
             add: node _ rotationQuaternion z;
             add: node _ rotationQuaternion w.
 
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: node _ name;
             at: "isJoint" asMutableString put: node _ isJoint;
@@ -372,7 +372,7 @@ class WodenModelExporter definition: {
         }.
 
         node _ children ifNotEmpty: {
-            let children := DOM List sharedNew.
+            let children := DOM List rcNew.
             children _ reserve: node _ children size.
             node _ children do: {:each :: Void |
                 children _ add: each _ index
@@ -385,7 +385,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeNodes => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ nodes size.
         modelAsset _ nodes do: {:each :: Void |
             result _ add: (self encodeNode:  each)
@@ -394,12 +394,12 @@ class WodenModelExporter definition: {
     }.
 
     method encodeScene: (scene: ModelAssetScenePtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: scene _ name.
 
         scene _ rootNodes ifNotEmpty: {
-            let rootNodes := DOM List sharedNew.
+            let rootNodes := DOM List rcNew.
             rootNodes _ reserve: scene _ rootNodes size.
             scene _ rootNodes do: {:each :: Void |
                 rootNodes _ add: each _ index
@@ -412,7 +412,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeScenes => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ nodes size.
         modelAsset _ scenes do: {:each :: Void |
             result _ add: (self encodeScene: each)
@@ -421,7 +421,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimationSampler: (sampler: ModelAssetAnimationSamplerPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "inputAccessor" asMutableString put: sampler _ inputAccessor _ index;
             at: "outputAccessor" asMutableString put: sampler _ outputAccessor _ index;
@@ -431,7 +431,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimationSamplers: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: animation _ samplers size.
         animation _ samplers do: {:each :: Void |
             result _ add: (self encodeAnimationSampler: each)
@@ -441,7 +441,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimationChannel: (channel: ModelAssetAnimationChannelPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "sampler" asMutableString put: channel _ sampler _ index;
             at: "targetProperty" asMutableString put: channel _ targetProperty value.
@@ -453,7 +453,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimationChannels: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: animation _ channels size.
         animation _ channels do: {:each :: Void |
             result _ add: (self encodeAnimationChannel: each)
@@ -463,7 +463,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimation: (animation: ModelAssetAnimationPtr const ref) ::=> DOM Value := {
-        let result := DOM Object sharedNew.
+        let result := DOM Object rcNew.
         result _
             at: "name" asMutableString put: animation _ name;
             at: "samplers" asMutableString put: (self encodeAnimationSamplers: animation);
@@ -473,7 +473,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeAnimations => DOM Value := {
-        let result := DOM List sharedNew.
+        let result := DOM List rcNew.
         result _ reserve: modelAsset _ animations size.
         modelAsset _ animations do: {:each :: Void |
             result _ add: (self encodeAnimation:  each)
@@ -482,7 +482,7 @@ class WodenModelExporter definition: {
     }.
 
     method encodeModelAsset => DOM Value := {
-        let object := DOM Object sharedNew.
+        let object := DOM Object rcNew.
         object _
             at: "buffers" asMutableString put: self encodeBuffers;
             at: "bufferViews" asMutableString put: self encodeBufferViews;
@@ -500,7 +500,7 @@ class WodenModelExporter definition: {
         object
     }.
 
-    method export: (theModelAsset: ModelAssetPtr const ref) into: (fileReference: Stdn FileReference const ref) ::=> Boolean8 := {
+    method export: (theModelAsset: ModelAssetPtr const ref) into: (fileReference: Std FileReference const ref) ::=> Boolean8 := {
         modelAsset := theModelAsset.
         isWritingTextModel := fileReference extension asArraySlice = "wtmdl".
 

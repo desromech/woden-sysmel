@@ -3,7 +3,7 @@ namespace GameSystem definition: {
 
 useNamespace: Woden Runtime.
 useNamespace: Woden Application.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics GUI.
 
 class GameApplicationModel superclass: SceneModel; definition: {
     field globalGameState type: GlobalGameStatePtr.
@@ -23,7 +23,7 @@ class GameApplicationModel superclass: SceneModel; definition: {
     }.
 
     virtual method newGlobalGameState => GlobalGameStatePtr
-        := GlobalGameState sharedNew.
+        := GlobalGameState rcNew.
 
     override method initializeModel => Boolean8 := {
         super initializeModel ifFalse: {return: false}.
@@ -54,11 +54,11 @@ class GameApplicationModel superclass: SceneModel; definition: {
     }.
 
     override method createNewView => ViewPtr
-        := GameApplicationView sharedNew upCastFor: View.
+        := GameApplicationView rcNew upCastFor: View.
 
 }.
 
-compileTime constant GameApplicationModelPtr := GameApplicationModel sharedPointer.
+compileTime constant GameApplicationModelPtr := GameApplicationModel rcPointer.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

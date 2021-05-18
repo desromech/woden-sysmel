@@ -2,10 +2,10 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * An abstract pipeline for rendering a null scene.
@@ -721,7 +721,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         let scene2DRenderer ref := scene2DRenderers[self engine _ frameBufferingIndex].
         scene2DRenderer ifNil: {
-            scene2DRenderer := StateTracker2DSceneRenderer sharedNew.
+            scene2DRenderer := StateTracker2DSceneRenderer rcNew.
             scene2DRenderer _
                 device: self engine _ renderingDevice.
         }.

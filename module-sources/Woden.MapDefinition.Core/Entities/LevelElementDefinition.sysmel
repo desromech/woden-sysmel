@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-class LevelElementDefinition superclass: Stdn SharedObject; definition: {
-    public field name type: Stdn String.
+class LevelElementDefinition superclass: Std RCObject; definition: {
+    public field name type: Std String.
 
     abstract method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void.
 
@@ -28,7 +28,7 @@ class LevelElementDefinition superclass: Stdn SharedObject; definition: {
     virtual method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {}.
 }.
 
-compileTime constant LevelElementDefinitionPtr := LevelElementDefinition sharedPointer.
+compileTime constant LevelElementDefinitionPtr := LevelElementDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

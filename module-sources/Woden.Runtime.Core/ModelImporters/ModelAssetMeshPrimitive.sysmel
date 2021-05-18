@@ -2,8 +2,8 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
 
 #**
  * I am a primitive in a mesh.
@@ -61,7 +61,7 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
         := material isNil || material _ isOpaque.
 }.
 
-compileTime constant ModelAssetMeshPrimitivePtr := ModelAssetMeshPrimitive sharedPointer.
+compileTime constant ModelAssetMeshPrimitivePtr := ModelAssetMeshPrimitive rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

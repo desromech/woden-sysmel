@@ -6,16 +6,16 @@ useNamespace: Woden Runtime.
 #**
  * I am an element in a model asset.
  *#
-class ModelAssetElement superclass: Stdn SharedObject; definition: {
+class ModelAssetElement superclass: Std RCObject; definition: {
     public field index type: UIntPointer.
-    public field name type: Stdn String.
-    public field modelAssetWeakPointer type: ModelAsset weakPointer.
+    public field name type: Std String.
+    public field modelAssetWeakPointer type: ModelAsset weakRCPointer.
 
-    method modelAsset => ModelAsset sharedPointer
+    method modelAsset => ModelAsset rcPointer
         := modelAssetWeakPointer lock.
 }.
 
-compileTime constant ModelAssetElementPtr := ModelAssetElement sharedPointer.
+compileTime constant ModelAssetElementPtr := ModelAssetElement rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

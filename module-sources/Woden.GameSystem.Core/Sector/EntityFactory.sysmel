@@ -14,7 +14,7 @@ template EntityFactory(T: Type, CN: _LiteralString)
         := CN.
 
     override method newInstance => EntityPtr
-        := EntityType sharedNew upCastFor: Entity.
+        := EntityType rcNew upCastFor: Entity.
 
     method initialize => Void := {
         EntityRegistry uniqueInstance registerFactory: self address

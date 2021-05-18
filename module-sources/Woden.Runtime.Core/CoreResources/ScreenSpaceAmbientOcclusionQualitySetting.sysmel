@@ -11,7 +11,7 @@ enum ScreenSpaceAmbientOcclusionQualitySetting valueType: UInt8; values: #{
     High:.
 }; definition: {
     meta definition: {
-        method fromString: (string: Stdn ImmutableString) ::=> InstanceType  := {
+        method fromString: (string: Std ImmutableString) ::=> InstanceType  := {
             string selectCase: #{
             "disabled" : Disabled.
             "low" : Low.
@@ -23,7 +23,7 @@ enum ScreenSpaceAmbientOcclusionQualitySetting valueType: UInt8; values: #{
         }.
     }.
 
-    method asString => Stdn ImmutableString := {
+    method asString => Std ImmutableString := {
         self selectCase: #{
             Disabled : (return: "disabled").
             Low : (return: "low").

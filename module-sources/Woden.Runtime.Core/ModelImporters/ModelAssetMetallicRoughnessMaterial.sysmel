@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a metallic-roughness material in a model asset.
@@ -66,7 +66,7 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
     }.
 }.
 
-compileTime constant ModelAssetMetallicRoughnessMaterialPtr := ModelAssetMetallicRoughnessMaterial sharedPointer.
+compileTime constant ModelAssetMetallicRoughnessMaterialPtr := ModelAssetMetallicRoughnessMaterial rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

@@ -5,12 +5,12 @@ class WodenModelImporterExporter superclass: ModelImporterExporter; definition: 
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := extension = "wmdl" || extension = "wtmdl".
 
-    const override method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAssetPtr := {
+    const override method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
         let importer mutable := WodenModelImporter().
         importer importFromFileReference: fileReference
     }.
 
-    const override method write: (model: ModelAssetPtr const ref) intoFileReference: (fileReference: Stdn FileReference const ref) ::=> Boolean8 := {
+    const override method write: (model: ModelAssetPtr const ref) intoFileReference: (fileReference: Std FileReference const ref) ::=> Boolean8 := {
         let exporter mutable := WodenModelExporter().
         exporter export: model into: fileReference
     }.

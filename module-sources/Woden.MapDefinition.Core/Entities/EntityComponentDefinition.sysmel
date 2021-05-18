@@ -8,7 +8,7 @@ class EntityComponentDefinition superclass: LevelElementDefinition; definition: 
     override method isEntityComponent => Boolean8 := true.
 }.
 
-compileTime constant EntityComponentDefinitionPtr := EntityComponentDefinition sharedPointer.
+compileTime constant EntityComponentDefinitionPtr := EntityComponentDefinition rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

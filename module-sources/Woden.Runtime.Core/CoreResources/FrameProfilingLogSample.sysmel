@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math.
+useNamespace: Std Math LinearAlgebra.
 #**
  * Engine rendering settings.
  *#
@@ -14,7 +14,7 @@ struct FrameProfilingLogSample definition: {
     public field commandListConstructionTime type: Float64.
     public field cameraTransform type: DecomposedTransform3dF32.
 
-    method writeHeaderOn: (output: Stdn IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
+    method writeHeaderOn: (output: Std IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
         output
             << "Platform,Rendering Platform name,Rendering Device Name"
 
@@ -38,8 +38,8 @@ struct FrameProfilingLogSample definition: {
             ; nl
     }.
 
-    method writeSampleOn: (output: Stdn IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
-        let plaform type: Stdn ImmutableString := Compiler compilationTarget operatingSystemName.
+    method writeSampleOn: (output: Std IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
+        let plaform type: Std ImmutableString := Compiler compilationTarget operatingSystemName.
         let renderingDevice ref := engine renderingDevice _.
         let renderingPlatformName ref := renderingDevice platformName.
         let renderingDeviceName ref := renderingDevice name.

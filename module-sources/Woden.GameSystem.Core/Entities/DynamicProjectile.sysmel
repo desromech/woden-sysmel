@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Math Geometry.
+useNamespace: Std Math Geometry.
 useNamespace: Woden MapDefinition.
 
 class DynamicProjectile superclass: Entity; definition: {
@@ -31,10 +31,10 @@ class DynamicProjectile superclass: Entity; definition: {
     }.
 
     virtual method buildCollisionObject => Void := {
-        rigidBody := RigidBody sharedNew.
+        rigidBody := RigidBody rcNew.
         rigidBody _
             linearVelocity: launchVelocity;
-            ownerEntity: (self asSharedPointer upCastFor: Entity);
+            ownerEntity: (self asRCPointer upCastFor: Entity);
             collisionShape: (CollisionShape boxWithHalfExtent: self halfExtent);
             coefficientOfRestitution: coefficientOfRestitution;
             mass: mass;

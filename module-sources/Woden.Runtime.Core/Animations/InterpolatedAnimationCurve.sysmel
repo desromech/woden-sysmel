@@ -3,7 +3,7 @@ namespace Runtime definition: {
 
 class InterpolatedAnimationCurve superclass: AnimationCurve; definition: {
     public field interpolationMethod type: AnimationInterpolationMethod.
-    public field timeSamples type: Stdn Collections Vector(Float32).
+    public field timeSamples type: Std Collections Vector(Float32).
 
     const inline method findKeyFrameForTime: (time: Float32) ::=> UIntPointer := {
         ## FIXME: Use a binary search here.
@@ -22,7 +22,7 @@ template InterpolatedAnimationCurveTemplate(VT: Type)
     := class superclass: InterpolatedAnimationCurve; definition: {
     compileTime constant VectorType := VT.
 
-    public field valueSamples type: Stdn Collections Vector(VectorType).
+    public field valueSamples type: Std Collections Vector(VectorType).
 
     override method computeCurveStateAtTime: (time: Float32) ::=> AnimationCurveState := {
         time <= startTime ifTrue: {return: (AnimationCurveState value: valueSamples first)}.

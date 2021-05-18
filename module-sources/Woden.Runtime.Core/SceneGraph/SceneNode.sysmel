@@ -1,16 +1,16 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I represent a 3D scene with rendering only objects.
  *#
-class SceneNode superclass: Stdn SharedObject; definition: {
-    protected field parentWeakPtr type: SceneNode weakPointer.
-    protected field sceneWeakPtr type: Scene weakPointer.
-    protected field children type: Stdn Collections Vector(SceneNodePtr).
+class SceneNode superclass: Std RCObject; definition: {
+    protected field parentWeakPtr type: SceneNode weakRCPointer.
+    protected field sceneWeakPtr type: Scene weakRCPointer.
+    protected field children type: Std Collections Vector(SceneNodePtr).
     protected field transform type: ReversibleAffineTransform3dF32.
 
     private field globalTransform type: ReversibleAffineTransform3dF32.
@@ -128,7 +128,7 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     }.
 
     virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {
-        sceneWeakPtr := aScene asWeakPointer.
+        sceneWeakPtr := aScene asWeakRCPointer.
         self sceneLayer ifNotNil: {:layer :: Void |
             self addRenderingSceneObjectsToSceneLayer: layer _
         }.
@@ -151,7 +151,7 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     }.
 
     virtual method addedToNode: (newParentNode: SceneNodePtr const ref) ::=> Void := {
-        parentWeakPtr := newParentNode asWeakPointer.
+        parentWeakPtr := newParentNode asWeakRCPointer.
         let parentScene := newParentNode _ scene.
         parentScene ifNotNil: {
             self addedToScene: parentScene
@@ -173,20 +173,20 @@ class SceneNode superclass: Stdn SharedObject; definition: {
     }.
 
     method addChild: (aChild: SceneNodePtr const ref) ::=> Void := {
-        aChild _ addedToNode: self asSharedPointer.
+        aChild _ addedToNode: self asRCPointer.
         children add: aChild.
     }.
 
     method removeChild: (aChild: SceneNodePtr const ref) ::=> Void := {
         (children includes: aChild) ifFalse: {return: void}.
         children remove: aChild.
-        aChild _ removedFromNode: self asSharedPointer.
+        aChild _ removedFromNode: self asRCPointer.
     }.
 
     method removeFromScene => Void := {
         let p := self parent.
         p ifNotNil: {
-            p _ removeChild: self asSharedPointer
+            p _ removeChild: self asRCPointer
         }
     }.
 
@@ -347,8 +347,8 @@ class SceneNode superclass: Stdn SharedObject; definition: {
 
 compileTime constant SceneNodeIterationBlock := ((SceneNode ref) => Void) nativeBlockClosure.
 
-compileTime constant SceneNodePtr := SceneNode sharedPointer.
-compileTime constant SceneNodeWeakPtr := SceneNode weakPointer.
+compileTime constant SceneNodePtr := SceneNode rcPointer.
+compileTime constant SceneNodeWeakPtr := SceneNode weakRCPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

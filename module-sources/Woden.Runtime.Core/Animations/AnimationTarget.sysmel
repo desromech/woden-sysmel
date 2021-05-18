@@ -1,9 +1,9 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Math.
+useNamespace: Std Math.
 
-class AnimationTarget superclass: Stdn SharedObject; definition: {
+class AnimationTarget superclass: Std RCObject; definition: {
     virtual method setJoint: (jointIndex: UIntPointer) scale: (scale: Float32x3) ::=> Void := {}.
     virtual method setJoint: (jointIndex: UIntPointer) rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {}.
     virtual method setJoint: (jointIndex: UIntPointer) translation: (translation: Float32x3) ::=> Void := {}.
@@ -37,7 +37,7 @@ class AnimationTarget superclass: Stdn SharedObject; definition: {
     virtual method translateToX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {}.
 }.
 
-compileTime constant AnimationTargetPtr := AnimationTarget sharedPointer.
+compileTime constant AnimationTargetPtr := AnimationTarget rcPointer.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

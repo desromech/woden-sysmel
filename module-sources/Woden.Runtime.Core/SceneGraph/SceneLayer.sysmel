@@ -39,7 +39,7 @@ class SceneLayer superclass: SceneNode; definition: {
 
 compileTime constant SceneLayerIterationBlock := ((SceneLayer ref) => Void) nativeBlockClosure.
 
-compileTime constant SceneLayerPtr := SceneLayer sharedPointer.
+compileTime constant SceneLayerPtr := SceneLayer rcPointer.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

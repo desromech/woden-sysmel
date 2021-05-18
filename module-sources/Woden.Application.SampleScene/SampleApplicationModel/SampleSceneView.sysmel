@@ -1,7 +1,7 @@
 namespace Woden definition: {
 namespace Application definition: {
 
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics GUI.
 
 class SampleSceneView superclass: SceneView; definition: {
     protected field cameraMovementDirection type: Float32x3.

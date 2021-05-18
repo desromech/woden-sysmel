@@ -10,7 +10,7 @@ enum EditorEntityType valueType: UInt32; values: #{
     SpotLight:.
     DirectionalLight:.
 }; definition: {
-    method asString => Stdn ImmutableString := {
+    method asString => Std ImmutableString := {
         self selectCase: #{
         Point : "point".
         Model : "model".

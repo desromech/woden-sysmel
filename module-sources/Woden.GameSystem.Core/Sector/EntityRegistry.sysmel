@@ -1,12 +1,12 @@
 namespace Woden definition: {
 namespace GameSystem definition: {
 
-useNamespace: Stdn Serialization.
+useNamespace: Std Serialization.
 
 class EntityRegistry definition: {
     meta definition: {
         let singleton mutable type: EntityRegistry uniquePointer.
-        let singletonOnceCreation mutable type: Stdn OnceFlag.
+        let singletonOnceCreation mutable type: Std OnceFlag.
 
         method uniqueInstance => EntityRegistry ref := {
             singletonOnceCreation do: {
@@ -17,13 +17,13 @@ class EntityRegistry definition: {
         }.
     }.
 
-    field factories type: Stdn Collections Dictionary(Stdn String, AbstractEntityFactory pointer).
+    field factories type: Std Collections Dictionary(Std String, AbstractEntityFactory pointer).
 
     method registerFactory: (factory: AbstractEntityFactory pointer) ::=> Void := {
         factories at: factory _ className asMutableString put: factory.
     }.
 
-    method createEntityWithClassName: (className: Stdn String const ref) ::=> EntityPtr := {
+    method createEntityWithClassName: (className: Std String const ref) ::=> EntityPtr := {
         let factory := factories at: className ifAbsent: {
             return: EntityPtr nil
         }.
@@ -31,12 +31,12 @@ class EntityRegistry definition: {
         factory _ newInstance
     }.
 
-    method dumpEntityDefinitionsInto: (out: Stdn IO TextStreamWriter ref) ::=> Void := {
-        let definitionObject := DOM Object sharedNew.
-        let entities := DOM Object sharedNew.
+    method dumpEntityDefinitionsInto: (out: Std IO TextStreamWriter ref) ::=> Void := {
+        let definitionObject := DOM Object rcNew.
+        let entities := DOM Object rcNew.
 
-        factories keysAndValuesDo: {:(Stdn String const ref)className :(AbstractEntityFactory pointer const ref)factory :: Void |
-            let descriptionObject := DOM Object sharedNew.
+        factories keysAndValuesDo: {:(Std String const ref)className :(AbstractEntityFactory pointer const ref)factory :: Void |
+            let descriptionObject := DOM Object rcNew.
             entities _
                 at: className put: descriptionObject.
 

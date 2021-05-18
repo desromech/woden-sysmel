@@ -24,7 +24,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
             addCubeWithWidth: 10.0 height: 0.5 depth: 10.0.
         let renderable := meshBuilder _ renderable.
 
-        let floor := SpatialObjectNode sharedNew.
+        let floor := SpatialObjectNode rcNew.
         floor _
             renderable: renderable;
             translateByY: -0.25f.
@@ -36,7 +36,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/samples/table" asNativeFileReference.
         let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
 
-        let model := SpatialObjectNode sharedNew.
+        let model := SpatialObjectNode rcNew.
         model _ renderable: meshRenderable.
         scene _ add: (model upCastFor: SceneNode).
     }.
@@ -46,7 +46,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
         let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/samples/cube" asNativeFileReference.
         let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
 
-        let model := SpatialObjectNode sharedNew.
+        let model := SpatialObjectNode rcNew.
         model _ translateByY: 1.0; translateByZ: -2.5.
         model _ renderable: meshRenderable.
         scene _ add: (model upCastFor: SceneNode).
@@ -106,7 +106,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Add the light source.
     {
-        let light := LightSourceNode sharedNew.
+        let light := LightSourceNode rcNew.
         light _
             makeSpot;
             radius: 10.0;

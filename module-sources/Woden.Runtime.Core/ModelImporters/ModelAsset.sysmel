@@ -2,19 +2,19 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I represent a parsed in memory generic model asset. My data domain model is
  * inspired in the model that is used by the glTF2 model, but with extensions
  * and facilities that are specific to Woden.
  *#
-class ModelAsset superclass: Stdn SharedObject; definition: {
+class ModelAsset superclass: Std RCObject; definition: {
     meta definition: {
-        method readFromFileNamed: (fileName: Stdn String const ref) ::=> ModelAsset sharedPointer
+        method readFromFileNamed: (fileName: Std String const ref) ::=> ModelAsset rcPointer
             := self readFromFileReference: fileName asNativeFileReference.
 
-        method readFromFileReference: (fileReference: Stdn FileReference const ref) ::=> ModelAsset sharedPointer := {
+        method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAsset rcPointer := {
             let importerExporter := ModelImporterExporterRegistry uniqueInstance findForFileReference: fileReference.
             importerExporter ifNil: {return: ModelAssetPtr nil}.
 
@@ -22,173 +22,173 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    public field parentFolder type: Stdn FileReference.
-    public field buffers type: Stdn Collections Vector(ModelAssetBinaryBufferPtr).
+    public field parentFolder type: Std FileReference.
+    public field buffers type: Std Collections Vector(ModelAssetBinaryBufferPtr).
 
     method addBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> Void := {
         buffer _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: buffers size.
         buffers add: buffer
     }.
 
     method newBuffer => ModelAssetBinaryBufferPtr := {
-        let buffer := ModelAssetBinaryBuffer sharedNew.
+        let buffer := ModelAssetBinaryBuffer rcNew.
         self addBuffer: buffer.
         buffer
     }.
 
-    public field bufferViews type: Stdn Collections Vector(ModelAssetBinaryBufferViewPtr).
+    public field bufferViews type: Std Collections Vector(ModelAssetBinaryBufferViewPtr).
 
     method addBufferView: (bufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
         bufferView _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: bufferViews size.
         bufferViews add: bufferView
     }.
 
     method newBufferView => ModelAssetBinaryBufferViewPtr := {
-        let bufferView := ModelAssetBinaryBufferView sharedNew.
+        let bufferView := ModelAssetBinaryBufferView rcNew.
         self addBufferView: bufferView.
         bufferView
     }.
 
-    public field bufferAccessors type: Stdn Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+    public field bufferAccessors type: Std Collections Vector(ModelAssetBinaryBufferAccessorPtr).
 
     method addBufferAccessor: (bufferAccesor: ModelAssetBinaryBufferAccessorPtr const ref) ::=> Void := {
         bufferAccesor _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: bufferAccessors size.
         bufferAccessors add: bufferAccesor
     }.
 
     method newBufferAccessor => ModelAssetBinaryBufferAccessorPtr := {
-        let bufferAccesor := ModelAssetBinaryBufferAccessor sharedNew.
+        let bufferAccesor := ModelAssetBinaryBufferAccessor rcNew.
         self addBufferAccessor: bufferAccesor.
         bufferAccesor
     }.
 
-    public field images type: Stdn Collections Vector(ModelAssetImagePtr).
+    public field images type: Std Collections Vector(ModelAssetImagePtr).
 
     method addImage: (image: ModelAssetImagePtr const ref) ::=> Void := {
         image _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: images size.
         images add: image
     }.
 
     method newImage => ModelAssetImagePtr := {
-        let image := ModelAssetImage sharedNew.
+        let image := ModelAssetImage rcNew.
         self addImage: image.
         image
     }.
 
-    public field samplers type: Stdn Collections Vector(ModelAssetSamplerPtr).
+    public field samplers type: Std Collections Vector(ModelAssetSamplerPtr).
 
     method addSampler: (sampler: ModelAssetSamplerPtr const ref) ::=> Void := {
         sampler _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: samplers size.
         samplers add: sampler
     }.
 
     method newSampler => ModelAssetSamplerPtr := {
-        let sampler := ModelAssetSampler sharedNew.
+        let sampler := ModelAssetSampler rcNew.
         self addSampler: sampler.
         sampler
     }.
 
-    public field textures type: Stdn Collections Vector(ModelAssetTexturePtr).
+    public field textures type: Std Collections Vector(ModelAssetTexturePtr).
 
     method addTexture: (texture: ModelAssetTexturePtr const ref) ::=> Void := {
         texture _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: textures size.
         textures add: texture
     }.
 
     method newTexture => ModelAssetTexturePtr := {
-        let texture := ModelAssetTexture sharedNew.
+        let texture := ModelAssetTexture rcNew.
         self addTexture: texture.
         texture
     }.
 
-    public field materials type: Stdn Collections Vector(ModelAssetMaterialPtr).
+    public field materials type: Std Collections Vector(ModelAssetMaterialPtr).
 
     method addMaterial: (material: ModelAssetMaterialPtr const ref) ::=> Void := {
         material _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: materials size.
         materials add: material
     }.
 
     method newMetallicRoughnessMaterial => ModelAssetMetallicRoughnessMaterialPtr := {
-        let material := ModelAssetMetallicRoughnessMaterial sharedNew.
+        let material := ModelAssetMetallicRoughnessMaterial rcNew.
         self addMaterial: (material upCastFor: ModelAssetMaterial).
         material
     }.
 
-    public field meshPrimitiveAttributes type: Stdn Collections Vector(ModelAssetMeshPrimitiveAttributesPtr).
+    public field meshPrimitiveAttributes type: Std Collections Vector(ModelAssetMeshPrimitiveAttributesPtr).
 
     method addMeshPrimitiveAttributes: (primitiveAttributes: ModelAssetMeshPrimitiveAttributesPtr const ref) ::=> Void := {
         primitiveAttributes _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: meshPrimitiveAttributes size.
         meshPrimitiveAttributes add: primitiveAttributes
     }.
 
     method newMeshPrimitiveAttributes => ModelAssetMeshPrimitiveAttributesPtr := {
-        let primitiveAttributes := ModelAssetMeshPrimitiveAttributes sharedNew.
+        let primitiveAttributes := ModelAssetMeshPrimitiveAttributes rcNew.
         self addMeshPrimitiveAttributes: primitiveAttributes.
         primitiveAttributes
     }.
 
-    public field meshes type: Stdn Collections Vector(ModelAssetMeshPtr).
+    public field meshes type: Std Collections Vector(ModelAssetMeshPtr).
 
     method addMesh: (mesh: ModelAssetMeshPtr const ref) ::=> Void := {
         mesh _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: meshes size.
         meshes add: mesh
     }.
 
     method newMesh => ModelAssetMeshPtr := {
-        let mesh := ModelAssetMesh sharedNew.
+        let mesh := ModelAssetMesh rcNew.
         self addMesh: mesh.
         mesh
     }.
 
-    public field skeletons type: Stdn Collections Vector(ModelAssetSkeletonPtr).
+    public field skeletons type: Std Collections Vector(ModelAssetSkeletonPtr).
 
     method addSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) ::=> Void := {
         skeleton _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: skeletons size.
         skeletons add: skeleton
     }.
 
     method newSkeleton => ModelAssetSkeletonPtr := {
-        let skeleton := ModelAssetSkeleton sharedNew.
+        let skeleton := ModelAssetSkeleton rcNew.
         self addSkeleton: skeleton.
         skeleton
     }.
 
-    public field nodes type: Stdn Collections Vector(ModelAssetNodePtr).
+    public field nodes type: Std Collections Vector(ModelAssetNodePtr).
 
     method addNode: (node: ModelAssetNodePtr const ref) ::=> Void := {
         node _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: nodes size.
         nodes add: node
     }.
 
     method newNode => ModelAssetNodePtr := {
-        let node := ModelAssetNode sharedNew.
+        let node := ModelAssetNode rcNew.
         self addNode: node.
         node
     }.
 
-    method getNodeNamed: (name: Stdn String const ref) ::=> ModelAssetNodePtr := {
+    method getNodeNamed: (name: Std String const ref) ::=> ModelAssetNodePtr := {
         nodes do: {:each :: Void |
             each _ name = name ifTrue: {
                 return: each
@@ -198,44 +198,44 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         ModelAssetNodePtr nil
     }.
 
-    method createSceneNodeNamed: (name: Stdn String const ref) for: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
+    method createSceneNodeNamed: (name: Std String const ref) for: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
         let node := self getNodeNamed: name.
         node ifNil: {return: SceneNodePtr nil}.
 
         node _ asSceneNodeFor: engine
     }.
 
-    public field scenes type: Stdn Collections Vector(ModelAssetScenePtr).
+    public field scenes type: Std Collections Vector(ModelAssetScenePtr).
 
     method addScene: (scene: ModelAssetScenePtr const ref) ::=> Void := {
         scene _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: scenes size.
         scenes add: scene
     }.
 
     method newScene => ModelAssetScenePtr := {
-        let scene := ModelAssetScene sharedNew.
+        let scene := ModelAssetScene rcNew.
         self addScene: scene.
         scene
     }.
 
-    public field animations type: Stdn Collections Vector(ModelAssetAnimationPtr).
+    public field animations type: Std Collections Vector(ModelAssetAnimationPtr).
 
     method addAnimation: (animation: ModelAssetAnimationPtr const ref) ::=> Void := {
         animation _
-            modelAssetWeakPointer: self asWeakPointer;
+            modelAssetWeakPointer: self asWeakRCPointer;
             index: animations size.
         animations add: animation
     }.
 
     method newAnimation => ModelAssetAnimationPtr := {
-        let animation := ModelAssetAnimation sharedNew.
+        let animation := ModelAssetAnimation rcNew.
         self addAnimation: animation.
         animation
     }.
 
-    field vertexBindingCache type: Stdn Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingPtr).
+    field vertexBindingCache type: Std Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingPtr).
 
     method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingPtr := {
         vertexBindingCache at: bindingDescription ifAbsentPut: { :: VertexBindingPtr |
@@ -245,13 +245,13 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
     }.
 
-    compileTime constant VertexDataWithPendingAttributes := Stdn Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Stdn Collections Vector(ModelAssetMeshPrimitivePtr)).
+    compileTime constant VertexDataWithPendingAttributes := Std Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Std Collections Vector(ModelAssetMeshPrimitivePtr)).
 
-    method generateNormals: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)
-        into: (encodedNormals: Stdn Collections Vector(GpuStructures CompactFloat32x3) ref) withBufferView: (normalsBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+    method generateNormals: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)
+        into: (encodedNormals: Std Collections Vector(GpuStructures CompactFloat32x3) ref) withBufferView: (normalsBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
 
         let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
-        Stdn assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Normal) isNil.
+        Std assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Normal) isNil.
         positionsAccessors isNil || positionsAccessors _ count = 0 ifTrue: {
             return: void
         }.
@@ -264,7 +264,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
             return: void
         }.
 
-        let normals mutable := Stdn Collections Vector(Float32x3)().
+        let normals mutable := Std Collections Vector(Float32x3)().
         normals resizeTo: vertexCount.
 
         ## Process all of the triangles.
@@ -308,10 +308,10 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
     }.
 
     method generateMissingNormals: (vertexDataWithSubmeshes: VertexDataWithPendingAttributes ref) ::=> Void := {
-        let normals mutable := Stdn Collections Vector(GpuStructures CompactFloat32x3)().
+        let normals mutable := Std Collections Vector(GpuStructures CompactFloat32x3)().
         let normalsBufferView mutable := self newBufferView.
 
-        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
             self generateNormals: attributes primitives: primitives into: normals withBufferView: normalsBufferView
         }.
 
@@ -319,8 +319,8 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
 
         let normalBuffer mutable := self newBuffer.
         normalBuffer _ dataSize: normals size * GpuStructures CompactFloat32x3 instanceSize.
-        normalBuffer _ data reset: (Stdn malloc(normalBuffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-        Stdn memcpy(normalBuffer _ data getPointer, normals data, normalBuffer _ dataSize).
+        normalBuffer _ data reset: (Std malloc(normalBuffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+        Std memcpy(normalBuffer _ data getPointer, normals data, normalBuffer _ dataSize).
         normalsBufferView _ buffer: normalBuffer.
     }.
 
@@ -329,7 +329,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         meshes do: {:each :: Void |
             each _ primitives do: {:eachPrimitive :: Void |
                 eachPrimitive _ attributes _ hasNormal not ifTrue: {
-                    let primitiveList ref := vertexDataToGenerateNormals at: eachPrimitive _ attributes ifAbsentPut: { :: (Stdn Collections Vector(ModelAssetMeshPrimitivePtr)) | Stdn Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+                    let primitiveList ref := vertexDataToGenerateNormals at: eachPrimitive _ attributes ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitivePtr)) | Std Collections Vector(ModelAssetMeshPrimitivePtr) () }.
                     primitiveList add: eachPrimitive
                 }.
             }.
@@ -339,13 +339,13 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         self generateMissingNormals: vertexDataToGenerateNormals
     }.
 
-    method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)
-        into: (encodedTangent4: Stdn Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+    method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)
+        into: (encodedTangent4: Std Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
 
         let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
         let normalsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Normal.
         let texcoordAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Texcoord0.
-        Stdn assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
+        Std assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
         positionsAccessors isNil || normalsAccessors isNil || texcoordAccessors isNil ||
         positionsAccessors _ count = 0 ||
         positionsAccessors _ count ~= normalsAccessors _ count || normalsAccessors _ count ~= texcoordAccessors _ count
@@ -363,8 +363,8 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
             return: void
         }.
 
-        let tangents mutable := Stdn Collections Vector(Float32x3)().
-        let bitangents mutable := Stdn Collections Vector(Float32x3)().
+        let tangents mutable := Std Collections Vector(Float32x3)().
+        let bitangents mutable := Std Collections Vector(Float32x3)().
         tangents resizeTo: vertexCount.
         bitangents resizeTo: vertexCount.
 
@@ -440,10 +440,10 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
     }.
 
     method generateMissingVertexTangentSpaceFrames: (vertexDataWithSubmeshes: VertexDataWithPendingAttributes ref) ::=> Void := {
-        let tangent4 mutable := Stdn Collections Vector(Float32x4)().
+        let tangent4 mutable := Std Collections Vector(Float32x4)().
         let tangent4BufferView mutable := self newBufferView.
 
-        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Stdn Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
             self generateVertexDataTangentSpaceFrame: attributes primitives: primitives into: tangent4 withBufferView: tangent4BufferView
         }.
 
@@ -451,8 +451,8 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
 
         let tangent4Buffer mutable := self newBuffer.
         tangent4Buffer _ dataSize: tangent4 size * Float32x4 instanceSize.
-        tangent4Buffer _ data reset: (Stdn malloc(tangent4Buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-        Stdn memcpy(tangent4Buffer _ data getPointer, tangent4 data, tangent4Buffer _ dataSize).
+        tangent4Buffer _ data reset: (Std malloc(tangent4Buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
+        Std memcpy(tangent4Buffer _ data getPointer, tangent4 data, tangent4Buffer _ dataSize).
         tangent4BufferView _ buffer: tangent4Buffer.
     }.
 
@@ -461,7 +461,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         meshes do: {:each :: Void |
             each _ primitives do: {:eachPrimitive :: Void |
                 eachPrimitive _ material isNotNil && eachPrimitive _ material _ normalTexture isNotNil && eachPrimitive _ attributes _ hasTangent4 not ifTrue: {
-                    let primitiveList ref := vertexDataToGenerateTangentSpace at: eachPrimitive _ attributes ifAbsentPut: { :: (Stdn Collections Vector(ModelAssetMeshPrimitivePtr)) | Stdn Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+                    let primitiveList ref := vertexDataToGenerateTangentSpace at: eachPrimitive _ attributes ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitivePtr)) | Std Collections Vector(ModelAssetMeshPrimitivePtr) () }.
                     primitiveList add: eachPrimitive
                 }.
             }.
@@ -483,7 +483,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
         }.
 
         ## We should permutate an accessor only one time.
-        let processedAccessors mutable type: Stdn Collections Set(ModelAssetBinaryBufferAccessorPtr).
+        let processedAccessors mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorPtr).
 
         nodes do: {:eachNode :: Void |
             eachNode _ skeleton isNotNil && eachNode _ mesh isNotNil ifTrue: {
@@ -502,9 +502,9 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
     }.
 
     method optimizeIndexBuffers => Void := {
-        let processedIndices mutable type: Stdn Collections Set(ModelAssetBinaryBufferAccessorPtr).
-        let convertedIndices mutable type: Stdn Collections Vector(UInt16).
-        let convertedIndicesAccessors mutable type: Stdn Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+        let processedIndices mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorPtr).
+        let convertedIndices mutable type: Std Collections Vector(UInt16).
+        let convertedIndicesAccessors mutable type: Std Collections Vector(ModelAssetBinaryBufferAccessorPtr).
 
         ## Create the accessors for the new index buffers.
         meshes do: {:eachMesh :: Void |
@@ -562,7 +562,7 @@ class ModelAsset superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant ModelAssetPtr := ModelAsset sharedPointer.
+compileTime constant ModelAssetPtr := ModelAsset rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

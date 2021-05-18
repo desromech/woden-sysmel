@@ -2,12 +2,12 @@ namespace Woden definition: {
 namespace ForwardRenderer definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPipelineCameraLayer; definition: {
-    public field lightSources type: Stdn Collections Vector(ViewportLayerLightSource).
+    public field lightSources type: Std Collections Vector(ViewportLayerLightSource).
 
     public field lightingStateBuffers type: FrameBufferedBuffer.
     public field lightingStateBindings type: FrameBufferedShaderResourcesBindings.

@@ -1,14 +1,14 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
 
 #**
  * I am an abstract class for a coordinated rendering process in the Woden Engine.
  * I am used for keeping track of frame buffering data.
  *#
-class RenderingProcess superclass: Stdn SharedObject; definition: {
+class RenderingProcess superclass: Std RCObject; definition: {
     const virtual method needsToRender => Boolean8
         := false.
 
@@ -31,8 +31,8 @@ class RenderingProcess superclass: Stdn SharedObject; definition: {
     }.
 }.
 
-compileTime constant RenderingProcessPtr := RenderingProcess sharedPointer.
-compileTime constant RenderingProcessWeakPtr := RenderingProcess weakPointer.
+compileTime constant RenderingProcessPtr := RenderingProcess rcPointer.
+compileTime constant RenderingProcessWeakPtr := RenderingProcess weakRCPointer.
 
 
 }. ## End of namespace Runtime

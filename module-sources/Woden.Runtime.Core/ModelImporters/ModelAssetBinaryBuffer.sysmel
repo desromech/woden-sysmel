@@ -2,7 +2,7 @@ namespace Woden definition: {
 namespace Assets definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 
 #**
  * I am a binary buffer in a model asset. I am used for holding different kinds
@@ -20,8 +20,8 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
     method setContent: (newContent: UInt8 arraySlice) ::=> Void := {
         dataSize := newContent size.
         dataSize > 0 ifTrue: {
-            data reset: (Stdn malloc(newContent size) reinterpretCastTo: UInt8 pointer).
-            Stdn memcpy(data getPointer, newContent[0] address, newContent size)
+            data reset: (Std malloc(newContent size) reinterpretCastTo: UInt8 pointer).
+            Std memcpy(data getPointer, newContent[0] address, newContent size)
         } ifFalse: {
             data reset
         }.
@@ -39,7 +39,7 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetBinaryBufferPtr := ModelAssetBinaryBuffer sharedPointer.
+compileTime constant ModelAssetBinaryBufferPtr := ModelAssetBinaryBuffer rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

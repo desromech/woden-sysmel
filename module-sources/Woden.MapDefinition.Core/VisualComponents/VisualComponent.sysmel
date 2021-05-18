@@ -1,42 +1,42 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class VisualComponent superclass: EntityComponentDefinition; definition: {
     meta definition: {
-        static method rectangle: (rectangle: RectangleF32) ::=> VisualComponent sharedPointer
+        static method rectangle: (rectangle: RectangleF32) ::=> VisualComponent rcPointer
             := self rectangle: rectangle material: MaterialDefinitionPtr nil.
 
-        static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer
+        static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent rcPointer
             := self rectangle: rectangle material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
-        static method rectangle: (rectangle: RectangleF32) material: (material: MaterialDefinitionPtr const ref)::=> VisualComponent sharedPointer := {
-            let result := RectangleVisualComponent sharedNew.
+        static method rectangle: (rectangle: RectangleF32) material: (material: MaterialDefinitionPtr const ref)::=> VisualComponent rcPointer := {
+            let result := RectangleVisualComponent rcNew.
             result _
                 rectangle: rectangle;
                 material: material.
             result upCastFor: VisualComponent
         }.
 
-        static method box: (box: BoxF32) ::=> VisualComponent sharedPointer
+        static method box: (box: BoxF32) ::=> VisualComponent rcPointer
             := self box: box material: MaterialDefinitionPtr nil.
 
-        static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent sharedPointer
+        static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent rcPointer
             := self box: box material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
-        static method box: (box: BoxF32) material: (material: MaterialDefinitionPtr const ref) ::=> VisualComponent sharedPointer := {
-            let result := BoxVisualComponent sharedNew.
+        static method box: (box: BoxF32) material: (material: MaterialDefinitionPtr const ref) ::=> VisualComponent rcPointer := {
+            let result := BoxVisualComponent rcNew.
             result _
                 box: box;
                 material: material.
             result upCastFor: VisualComponent
         }.
 
-        static method pointLightSourceWithColor: (color: Float32x3) intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> VisualComponent sharedPointer := {
-            let result := PointLightSourceVisualComponent sharedNew.
+        static method pointLightSourceWithColor: (color: Float32x3) intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> VisualComponent rcPointer := {
+            let result := PointLightSourceVisualComponent rcNew.
             result _
                 color: color;
                 intensity: intensity;
@@ -60,11 +60,11 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
     method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr
         := self createSceneNodeFor: engine parentTransform: ReversibleAffineTransform3dF32 identity.
 
-    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition sharedPointer const ref) ::=> Void
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void
         := {}.
 }.
 
-compileTime constant VisualComponentPtr := VisualComponent sharedPointer.
+compileTime constant VisualComponentPtr := VisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

@@ -1,14 +1,14 @@
 namespace Woden definition: {
 namespace Runtime definition: {
 
-useNamespace: Stdn Graphics Core.
+useNamespace: Std Graphics Core.
 useNamespace: Woden GpuStructures.
 
 #**
  * I encapsulate a specific rendering scene context. I am using for decoupling
  * material state specification from scene rendering pipeline specific data and method
  *#
-class SceneRenderingContext superclass: Stdn Object; definition: {
+class SceneRenderingContext superclass: Std Object; definition: {
     public field stateTracker type: StateTrackerPtr.
 
     public field renderPass type: SceneRenderPass.

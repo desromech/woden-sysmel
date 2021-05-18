@@ -2,10 +2,10 @@ namespace Woden definition: {
 namespace Application definition: {
 
 useNamespace: Woden Runtime.
-useNamespace: Stdn Graphics Core.
-useNamespace: Stdn Graphics GUI.
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Graphics Core.
+useNamespace: Std Graphics GUI.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 
 #**
  * I am the model that lies underlying a Woden application.
@@ -87,7 +87,7 @@ class SceneView superclass: View; definition: {
         hasValidPresentationSurfaces := viewWindow isNotNil && viewWindow _ validatePresentationSurfaces.
         hasValidPresentationSurfaces ifFalse: {return: void}.
 
-        framePreparationTime := (Stdn Chrono profileTimeToRun: {
+        framePreparationTime := (Std Chrono profileTimeToRun: {
             self ensureRenderingViewportWithExtent: viewWindow _ drawingSurfaceExtent.
             lastFrameVisibleObjectCount := sceneRenderingPipelineViewport _ getLastFrameVisibleObjectCount.
             currentBackBufferLeftEye := viewWindow _ getCurrentBackBufferLeftEye.
@@ -105,7 +105,7 @@ class SceneView superclass: View; definition: {
     override method constructRenderingCommandList => Void := {
         hasValidPresentationSurfaces ifFalse: {return: void}.
 
-        commandListConstructionTime := (Stdn Chrono profileTimeToRun: {
+        commandListConstructionTime := (Std Chrono profileTimeToRun: {
             sceneRenderingPipelineViewport _
                 setCurrentBackBufferLeftEye: currentBackBufferLeftEye rightEye: currentBackBufferRightEye renderPass: viewWindow _ getDisplayRenderPass;
                 constructAndEnqueueCommandList.
@@ -129,9 +129,9 @@ class SceneView superclass: View; definition: {
         defaultFontFaceWithSize
     }.
 
-    virtual method buildOverlayFPSDisplayWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+    virtual method buildOverlayFPSDisplayWith: (builder: Std Graphics Scene2D BuilderPtr const ref) ::=> Std Graphics Scene2D NodePtr := {
         let frameTime := self engine _ lastFrameTime.
-        let frameTimeString := Stdn String textStreamContents: {:out :: Void |
+        let frameTimeString := Std String textStreamContents: {:out :: Void |
             out << "Frame time " << (frameTime * 1000.0f) << " ms "; nl.
             out << "FPS " << (1.0 / frameTime); nl.
             out << "Preparation time " << (framePreparationTime * 1000.0f) << " ms "; nl.
@@ -139,20 +139,20 @@ class SceneView superclass: View; definition: {
             out << "Rendered objects: " << lastFrameVisibleObjectCount; nl.
         }.
 
-        let result mutable := (builder _ text: frameTimeString asArraySlice at: Float32x2(10.0f, 10.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Stdn Graphics Scene2D Node.
+        let result mutable := (builder _ text: frameTimeString asArraySlice at: Float32x2(10.0f, 10.0f) font: self defaultFontFaceWithSize color: Float32x4 green) upCastFor: Std Graphics Scene2D Node.
         result := (builder _ transform: (AffinePostTransform2dF32()
 			setIdentity;
 			scaleBy: currentExtent y / 480.0f;
-			yourself) node: result) upCastFor: Stdn Graphics Scene2D Node.
+			yourself) node: result) upCastFor: Std Graphics Scene2D Node.
         result
     }.
 
-    virtual method buildOverlayScene2DWith: (builder: Stdn Graphics Scene2D BuilderPtr const ref) ::=> Stdn Graphics Scene2D NodePtr := {
+    virtual method buildOverlayScene2DWith: (builder: Std Graphics Scene2D BuilderPtr const ref) ::=> Std Graphics Scene2D NodePtr := {
         self buildOverlayFPSDisplayWith: builder
     }.
 }.
 
-compileTime constant SceneViewPtr := SceneView sharedPointer
+compileTime constant SceneViewPtr := SceneView rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

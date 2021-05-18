@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class PolygonFaceAttributes superclass: LevelElementDefinition; definition: {

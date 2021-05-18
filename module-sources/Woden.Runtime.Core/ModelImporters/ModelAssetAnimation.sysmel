@@ -7,15 +7,15 @@ useNamespace: Woden Runtime.
  * I am an animation present in a model asset.
  *#
 class ModelAssetAnimation superclass: ModelAssetElement; definition: {
-    public field channels type: Stdn Collections Vector(ModelAssetAnimationChannelPtr).
-    public field samplers type: Stdn Collections Vector(ModelAssetAnimationSamplerPtr).
+    public field channels type: Std Collections Vector(ModelAssetAnimationChannelPtr).
+    public field samplers type: Std Collections Vector(ModelAssetAnimationSamplerPtr).
 
-    field convertedAnimation type: Animation sharedPointer.
+    field convertedAnimation type: Animation rcPointer.
 
-    method asAnimation => Animation sharedPointer := {
+    method asAnimation => Animation rcPointer := {
         convertedAnimation ifNotNil: {return: convertedAnimation}.
 
-        let multiChannelAnimation := MultiChannelAnimation sharedNew.
+        let multiChannelAnimation := MultiChannelAnimation rcNew.
         multiChannelAnimation _ duration: 0.
 
         multiChannelAnimation _ curves reserve: samplers size.
@@ -35,7 +35,7 @@ class ModelAssetAnimation superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetAnimationPtr := ModelAssetAnimation sharedPointer.
+compileTime constant ModelAssetAnimationPtr := ModelAssetAnimation rcPointer.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

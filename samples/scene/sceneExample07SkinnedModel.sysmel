@@ -31,7 +31,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
             addCubeWithWidth: 10.0 height: 0.5 depth: 10.0.
         let renderable := meshBuilder _ renderable.
 
-        let floor := SpatialObjectNode sharedNew.
+        let floor := SpatialObjectNode rcNew.
         floor _
             renderable: renderable;
             translateByY: -0.25f.
@@ -50,7 +50,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
             scene _ add: foxNode.
 
-            model animationScheduler _ activateAnimationState: (TurnTableAnimation sharedNew _ newStateForTargetSceneNode: foxNode).
+            model animationScheduler _ activateAnimationState: (TurnTableAnimation rcNew _ newStateForTargetSceneNode: foxNode).
 
             model animationScheduler _ activateAnimationState: (modelAsset _ animations first _ asAnimation _ newStateForTargetSceneNode: foxNode looped: true).
         }.
@@ -58,7 +58,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
     ## Add the light source.
     {
-        let light := LightSourceNode sharedNew.
+        let light := LightSourceNode rcNew.
         light _
             makeSpot;
             radius: 10.0;

@@ -1,8 +1,8 @@
 namespace Woden definition: {
 namespace MapDefinition definition: {
 
-useNamespace: Stdn Math Geometry.
-useNamespace: Stdn Math LinearAlgebra.
+useNamespace: Std Math Geometry.
+useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class LightSourceVisualComponent superclass: PunctualVisualComponent; definition: {
@@ -20,7 +20,7 @@ class LightSourceVisualComponent superclass: PunctualVisualComponent; definition
     override method isLightSourceVisualComponent => Boolean8 := true.
 
     virtual method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
-        let node := LightSourceNode sharedNew.
+        let node := LightSourceNode rcNew.
         node _
             intensity: color * intensity;
             castShadows: castShadows.
@@ -32,7 +32,7 @@ class LightSourceVisualComponent superclass: PunctualVisualComponent; definition
     }.
 }.
 
-compileTime constant LightSourceVisualComponentPtr := LightSourceVisualComponent sharedPointer.
+compileTime constant LightSourceVisualComponentPtr := LightSourceVisualComponent rcPointer.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden
