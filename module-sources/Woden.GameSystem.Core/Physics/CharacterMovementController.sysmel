@@ -1,0 +1,43 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class CharacterMovementController superclass: AbstractRigidBodyMovementController; definition: {
+    public field stepHeight type: Float32.
+
+    override method simulateRigidBody: (rigidBody: RigidBody ref) movementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+        let initialMotionState := rigidBody motionState.
+        initialMotionState hasVelocityCloseToZero && rigidBody massReciprocal = 0 ifTrue: {
+            return: void
+        }.
+
+        let gravityAcceleration := rigidBody gravityAccelerationForSector: sector.
+        let hasGroundDirection := gravityAcceleration length2 > 0.00001.
+        let groundDirection := hasGroundDirection
+            ifTrue: {gravityAcceleration normalized}
+            ifFalse: {Float32x3 zeros}.
+
+        ## If there is no ground direction, step height or we are not moving towards the ground, displace as a normal rigid body.
+        hasGroundDirection not || stepHeight <= 0.0f || (initialMotionState linearVelocity dot: groundDirection) <= 0 ifTrue: {
+            self displaceRigidBody: rigidBody inSector: sector from: initialMotionState deltaTime: delta.
+            return: void.
+        }.
+
+        ## Attempt to displace up along the step height.
+        let stepHeightDisplacement := groundDirection negated * stepHeight.
+        self displaceRigidBody: rigidBody inSector: sector from: initialMotionState to: (initialMotionState translatedBy: stepHeightDisplacement).
+
+        ## Move along the actual motion path, but displaced above the step height
+        let displacedInitialMotionState := rigidBody motionState.
+        self displaceRigidBody: rigidBody inSector: sector from: displacedInitialMotionState deltaTime: delta.
+
+        ## Displace downward to nullify the step height displacement effect.
+        let displacedMotionState := rigidBody motionState.
+        let displacedHeightVector := displacedInitialMotionState position - initialMotionState position.
+        self displaceRigidBody: rigidBody inSector: sector from: displacedMotionState to: (displacedMotionState translatedBy: displacedHeightVector negated).
+    }.
+}.
+
+compileTime constant CharacterMovementControllerPtr := CharacterMovementController rcPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

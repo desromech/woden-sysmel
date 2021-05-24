@@ -34,9 +34,7 @@ class Sector superclass: Std RCObject; definition: {
 
     method loadFromDefinition: (definition: SectorDefinitionPtr const ref) ::=> Void := {
         isSector2D := definition _ isSector2D.
-        physicalSector := isSector2D
-            ifTrue: { PhysicalSector2D rcNew upCastFor: PhysicalSector }
-            ifFalse: { PhysicalSector3D rcNew upCastFor: PhysicalSector }.
+        physicalSector := PhysicalSector rcNew.
         physicalSector _
             gravity: Float32x3(0, -9.8f, 0).
 

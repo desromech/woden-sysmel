@@ -1,4 +1,14 @@
 loadFileOnce: "CollisionGroup.sysmel".
+
+loadFileOnce: "MotionState.sysmel".
+
+loadFileOnce: "PhysicalMovementController.sysmel".
+loadFileOnce: "AbstractRigidBodyMovementController.sysmel".
+loadFileOnce: "RigidBodyMovementController.sysmel".
+
+loadFileOnce: "KinematicMovementController.sysmel".
+loadFileOnce: "CharacterMovementController.sysmel".
+
 loadFileOnce: "CollisionObject.sysmel".
 loadFileOnce: "RigidBody.sysmel".
 
@@ -6,5 +16,3 @@ loadFileOnce: "FixedVector.sysmel".
 loadFileOnce: "CollisionSweepTestResult.sysmel".
 
 loadFileOnce: "PhysicalSector.sysmel".
-loadFileOnce: "PhysicalSector2D.sysmel".
-loadFileOnce: "PhysicalSector3D.sysmel".

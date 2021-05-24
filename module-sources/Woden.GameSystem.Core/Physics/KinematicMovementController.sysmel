@@ -1,0 +1,15 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+class KinematicMovementController superclass: PhysicalMovementController; definition: {
+    override method simulateRigidBody: (rigidBody: RigidBody ref) impulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+    }.
+
+    override method simulateRigidBody: (rigidBody: RigidBody ref) movementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+    }.
+}.
+
+compileTime constant KinematicMovementControllerPtr := KinematicMovementController rcPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

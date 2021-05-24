@@ -12,6 +12,8 @@ class Character superclass: Entity; definition: {
     field rigidBody type: RigidBodyPtr.
     field moveDirection type: Float32x3.
 
+    field characterMovementController type: CharacterMovementControllerPtr.
+
     field headOrientation type: QuaternionF32.
     field turningAngularVelocity type: Float32x3.
     field headAngularVelocity type: Float32x3.
@@ -23,6 +25,7 @@ class Character superclass: Entity; definition: {
         := "NPC".
 
     override method initialize => Void := {
+        characterMovementController := CharacterMovementController rcNew.
         headOrientation := QuaternionF32 identity.
         hitPoints := 100.
     }.
@@ -61,6 +64,7 @@ class Character superclass: Entity; definition: {
 
         headOrientation := (headOrientation + (QuaternionF32 xyz: headAngularVelocity*0.5f*delta) * headOrientation) normalized.
 
+        characterMovementController _ stepHeight: self stepHeight.
         rigidBody _
             angularDamping: 0;
             angularVelocity: angularVelocity.
@@ -108,13 +112,20 @@ class Character superclass: Entity; definition: {
     const virtual method internalEngineAcceleration => Float32x3
         := self terminalVelocity / self terminalVelocityAchivementTime.
 
+    const virtual method mass => Float32
+        := 70.0f.
+
+    const virtual method stepHeight => Float32
+        := 0.5f.
+
     virtual method buildCollisionObject => Void := {
         rigidBody := RigidBody rcNew.
         rigidBody _
             ownerEntity: (self asRCPointer upCastFor: Entity);
             collisionShape: (CollisionShape boxWithHalfExtent: localBoundingBox halfExtent);
             coefficientOfRestitution: 0.2f;
-            mass: 70.0f;
+            mass: self mass;
+            movementController: (characterMovementController upCastFor: PhysicalMovementController);
             makeCharacter.
         collisionObject := rigidBody upCastFor: CollisionObject.
         self applyMovementParametersToRigidBody

@@ -1,0 +1,20 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+#**
+ * I am a controller for the movement of a  physical object.
+ *#
+class PhysicalMovementController superclass: Std RCObject; definition: {
+    compileTime constant CollisionNotStuckEpsilon := 0.00001f.
+
+    virtual method simulateRigidBody: (rigidBody: RigidBody ref) impulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+    }.
+
+    virtual method simulateRigidBody: (rigidBody: RigidBody ref) movementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+    }.
+}.
+
+compileTime constant PhysicalMovementControllerPtr := PhysicalMovementController rcPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

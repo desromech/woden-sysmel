@@ -3,9 +3,9 @@ namespace GameSystem definition: {
 
 useNamespace: Std Math.
 useNamespace: Std Math Geometry.
+useNamespace: Woden MapDefinition. ## For CollisionShape
 
 class PhysicalSector superclass: Std RCObject; definition: {
-    compileTime constant CollisionNotStuckEpsilon := 0.01f.
     field collisionObjects type: CollisionObjects.
     public field gravity type: Float32x3.
 
@@ -72,21 +72,31 @@ class PhysicalSector superclass: Std RCObject; definition: {
         }.
     }.
 
-    method sweepCollisionBoxWithHalfExtent: (halfExtent: Float32x3) alongRay: (ray: Ray3dF32) emittingResultInto: (result: CollisionSweepTestResult ref) ::=> Void := {
+    method sweepTest: (sweepTest: CollisionSweepTestResult ref) collisionShape: (collisionShape: CollisionShape ref) positionFrom: (startPosition: Float32x3) to: (endPosition: Float32x3) ::=> Void := {
+        sweepTest sweepRay := Ray3dF32 from: startPosition to: endPosition.
+
+        self sweepTest: sweepTest collisionBox: collisionShape boundingBox
+    }. 
+
+    method sweepTest: (sweepTest: CollisionSweepTestResult ref) collisionBox: (collisionBox: BoxF32) ::=> Void := {
+        let halfExtent := collisionBox halfExtent.
+        let center := collisionBox center.
+        sweepTest reset.
+
         collisionObjects do: {:each :: Void |
-            (result exclusionSet includes: each getPointer) not &&
-                (result collisionGroup anyMask: each _ collisionGroupFilter) &&
-                (result collisionGroupFilter anyMask: each _ collisionGroup) &&
-                (each _ collisionObjectExclusionSet includes: result collisionTestObject) not
+            (sweepTest exclusionSet includes: each getPointer) not &&
+                (sweepTest collisionGroup anyMask: each _ collisionGroupFilter) &&
+                (sweepTest collisionGroupFilter anyMask: each _ collisionGroup) &&
+                (each _ collisionObjectExclusionSet includes: sweepTest collisionTestObject) not
                 ifTrue: {
 
                 let objectBoundingBox := each _ boundingBox.
-                let testBox := BoxF32 center: objectBoundingBox center halfExtent: objectBoundingBox halfExtent + halfExtent.
-                let intersectionResult mutable := testBox intersectionWithRay: ray.
+                let testBox := BoxF32 center: objectBoundingBox center - center halfExtent: objectBoundingBox halfExtent + halfExtent.
+                let intersectionResult mutable := testBox intersectionWithRay: sweepTest sweepRay.
                 intersectionResult isPresent ifTrue: {
                     let intersectionAlpha := intersectionResult _.
-                    result hasCollision || intersectionAlpha < result collisionDistance ifTrue: {
-                        result
+                    sweepTest hasCollision not || intersectionAlpha < sweepTest collisionDistance ifTrue: {
+                        sweepTest
                             hasCollision: true;
                             collisionDistance: intersectionAlpha;
                             collidingBox: testBox;
@@ -95,119 +105,10 @@ class PhysicalSector superclass: Std RCObject; definition: {
                 }
             }
         }.
-    }.
 
-    virtual method simulateRigidBodyImpulses: (rigidBody: RigidBody ref) withDelta: (delta: Float32) ::=> Void := {
-        let bodyGravity := rigidBody hasCustomGravity
-            ifTrue: {rigidBody gravity}
-            ifFalse: {gravity}.
-        let acceleration := bodyGravity + rigidBody engineAcceleration - rigidBody linearVelocity * rigidBody linearDamping.
-        let angularAcceleration := rigidBody engineAngularAcceleration - rigidBody angularVelocity * rigidBody angularDamping.
-
-        rigidBody
-            linearVelocity: rigidBody linearVelocity + acceleration * delta;
-            angularVelocity: rigidBody angularVelocity + angularAcceleration * delta.
-    }.
-
-    virtual method simulateRigidBodyMovement: (rigidBody: RigidBody ref) withDelta: (delta: Float32) ::=> Void := {
-        let linearVelocity mutable := rigidBody linearVelocity.
-        let currentPosition mutable := rigidBody position.
-
-        let angularVelocity mutable := rigidBody angularVelocity.
-        let currentOrientation mutable := rigidBody orientation.
-        linearVelocity = 0 && rigidBody massReciprocal = 0 ifTrue: {return: void}.
-
-        let halfExtent := rigidBody boundingBox halfExtent.
-
-        let sweepTestResult mutable := CollisionSweepTestResult().
-        sweepTestResult
-            collisionTestObject: rigidBody address;
-            collisionGroup: rigidBody collisionGroup;
-            collisionGroupFilter: rigidBody collisionGroupFilter;
-            addExcludedObject: rigidBody address.
-        rigidBody collisionObjectExclusionSet do: {:each :: Void |
-            sweepTestResult addExcludedObject: each
-        }.
-
-        let remainingIterations mutable type: UInt32 := 5.
-        let remainingDeltaTime mutable := delta.
-        let rigidBodyOwner := rigidBody ownerEntity.
-        while: remainingDeltaTime > 0 && remainingIterations > 0 do: {
-
-            let targetPosition := currentPosition + linearVelocity * remainingDeltaTime.
-            let targetOrientation := (currentOrientation + (QuaternionF32 xyz: angularVelocity) * remainingDeltaTime *currentOrientation) normalized.
-            let ray := Ray3dF32 from: currentPosition to: targetPosition.
-
-            sweepTestResult reset.
-            self sweepCollisionBoxWithHalfExtent: halfExtent alongRay: ray emittingResultInto: sweepTestResult.
-
-            sweepTestResult hasCollision ifTrue: {
-                let collisionPoint := ray pointAtDistance: sweepTestResult collisionDistance.
-                let collisionTime := remainingDeltaTime * sweepTestResult collisionDistance / ray tmax.
-                let collisionOrientation := currentOrientation interpolateTo: targetOrientation at: collisionTime / remainingDeltaTime.
-
-                let (let otherCollisionNormal, let penetrationDistance) := sweepTestResult collidingBox computePenetrationNormalAndDistanceForPoint: collisionPoint.
-                let collidingObject := sweepTestResult collidingObject.
-                Std assert: collidingObject isNotNil.
-
-                sweepTestResult addExcludedObject: collidingObject.
-                collidingObject _ isRigidBody ifTrue: {
-                    let otherRigidBody := collidingObject reinterpretCastTo: RigidBody pointer.
-                    rigidBody massReciprocal > 0 || otherRigidBody _ massReciprocal > 0 ifTrue: {
-                        ## Collision resolution technique from: https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
-                        let relativeVelocity := otherRigidBody _ linearVelocity - linearVelocity.
-                        let relativeVelocityAmount := relativeVelocity dot: otherCollisionNormal.
-                        let massReciprocalWeight := 1.0f / (rigidBody massReciprocal + otherRigidBody _ massReciprocal).
-                        relativeVelocityAmount > 0 ifTrue: {
-                            let coefficientOfRestitution := rigidBody coefficientOfRestitution min: otherRigidBody _ coefficientOfRestitution.
-                            let j := ((1 + coefficientOfRestitution) * relativeVelocityAmount) * massReciprocalWeight.
-
-                            let impulse := j *otherCollisionNormal.
-                            linearVelocity := linearVelocity + rigidBody massReciprocal*impulse.
-                            otherRigidBody _ applyImpulse: impulse negated.
-
-                            let otherRigidBodyOwner := otherRigidBody _ ownerEntity.
-                        }.
-
-                        rigidBody massReciprocal > 0 && otherRigidBody _ massReciprocal > 0 ifTrue: {
-                            let penetrationThreshold := 0.01f.
-                            let penetrationCorrection := (penetrationDistance - penetrationThreshold max: 0.0)*massReciprocalWeight*0.2f*otherCollisionNormal.
-                            currentPosition := collisionPoint + penetrationCorrection*rigidBody massReciprocal.
-                            currentOrientation := collisionOrientation.
-                            otherRigidBody _ translateBy: penetrationCorrection negated * otherRigidBody _ massReciprocal.
-                        } ifFalse: {
-                            rigidBody massReciprocal > 0 ifTrue: {
-                                currentPosition := collisionPoint + (penetrationDistance + CollisionNotStuckEpsilon)*otherCollisionNormal.
-                                currentOrientation := collisionOrientation.
-                            } ifFalse: {
-                                Std assert: otherRigidBody _ massReciprocal > 0.
-                                otherRigidBody _ translateBy: (penetrationDistance + CollisionNotStuckEpsilon) * otherCollisionNormal negated.
-                            }
-                        }.
-                    }.
-                }.
-
-                collidingObject _ ownerEntity ifNotNil: {:otherOwner :: Void |
-                    otherOwner _ onPhysicsCollisionHit: rigidBody at: collisionPoint
-                }.
-                rigidBodyOwner ifNotNil: {
-                    rigidBodyOwner _ onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
-                    rigidBodyOwner _ isAlive ifFalse: {return: void}
-                }.
-
-                remainingDeltaTime := remainingDeltaTime - collisionTime
-            } ifFalse: {
-                currentPosition := targetPosition.
-                currentOrientation := targetOrientation.
-                remainingDeltaTime := 0.
-            }
-        } continueWith: {remainingIterations := remainingIterations - 1}.
-
-        rigidBody
-            linearVelocity: linearVelocity;
-            position: currentPosition;
-            orientation: currentOrientation;
-            angularVelocity: angularVelocity
+        sweepTest hasCollision ifTrue: {
+            sweepTest computeCollisionPointData
+        }
     }.
 }.
 

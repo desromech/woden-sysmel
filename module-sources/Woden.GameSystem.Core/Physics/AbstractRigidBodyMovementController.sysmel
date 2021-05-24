@@ -1,0 +1,193 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
+
+#**
+ * I am a movement controller for a generic rigid body.
+ *#
+class AbstractRigidBodyMovementController superclass: PhysicalMovementController; definition: {
+    compileTime constant DefaultMaxNumberOfIterations := 5.
+
+    override method simulateRigidBody: (rigidBody: RigidBody ref) impulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+        rigidBody mass <= 0 ifTrue: {
+            return: void
+        }.
+
+        let bodyGravity := rigidBody gravityAccelerationForSector: sector.
+        let acceleration := bodyGravity + rigidBody engineAcceleration - rigidBody linearVelocity * rigidBody linearDamping.
+        let angularAcceleration := rigidBody engineAngularAcceleration - rigidBody angularVelocity * rigidBody angularDamping.
+
+        rigidBody
+            linearVelocity: rigidBody linearVelocity + acceleration * delta;
+            angularVelocity: rigidBody angularVelocity + angularAcceleration * delta.
+    }.
+
+    method resolveCollisionOf: (rigidBody: RigidBody ref)
+        targetMotionState: (targetMotionState: MotionState) collisionMotionState: (collisionMotionState: MotionState)
+        collisionPoint: (collisionPoint: Float32x3)
+        with: (otherRigidBody: RigidBody ref) collisionNormal: (otherCollisionNormal: Float32x3) penetrationDistance: (penetrationDistance: Float32) ::=> MotionState := {
+
+        rigidBody massReciprocal > 0 || otherRigidBody massReciprocal > 0 ifTrue: {
+            ## Collision resolution technique from: https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
+            let relativeVelocity := otherRigidBody linearVelocity - collisionMotionState linearVelocity.
+            let relativeVelocityAmount := relativeVelocity dot: otherCollisionNormal.
+            let massReciprocalWeight := 1.0f / (rigidBody massReciprocal + otherRigidBody massReciprocal).
+            relativeVelocityAmount > 0 ifTrue: {
+                let coefficientOfRestitution := rigidBody coefficientOfRestitution min: otherRigidBody coefficientOfRestitution.
+                let j := ((1 + coefficientOfRestitution) * relativeVelocityAmount) * massReciprocalWeight.
+
+                let impulse := j *otherCollisionNormal.
+                collisionMotionState linearVelocity: collisionMotionState linearVelocity + rigidBody massReciprocal*impulse.
+                otherRigidBody applyImpulse: impulse negated.
+            }.
+
+            rigidBody massReciprocal > 0 && otherRigidBody massReciprocal > 0 ifTrue: {
+                let penetrationThreshold := 0.01f.
+                let penetrationCorrection := (penetrationDistance - penetrationThreshold max: 0.0)*massReciprocalWeight*0.2f*otherCollisionNormal.
+                collisionMotionState position: collisionPoint + penetrationCorrection*rigidBody massReciprocal.
+                otherRigidBody translateBy: penetrationCorrection negated * otherRigidBody massReciprocal.
+            } ifFalse: {
+                rigidBody massReciprocal > 0 ifTrue: {
+                    collisionMotionState position: collisionPoint + (penetrationDistance + CollisionNotStuckEpsilon)*otherCollisionNormal.
+                } ifFalse: {
+                    Std assert: otherRigidBody massReciprocal > 0.
+                    otherRigidBody translateBy: (penetrationDistance + CollisionNotStuckEpsilon) * otherCollisionNormal negated.
+                }
+            }.
+
+            ## If I have a mass, use the collision motion state.
+            rigidBody massReciprocal > 0 ifTrue: {
+                return: collisionMotionState
+            }
+        }.
+
+        targetMotionState
+    }.
+
+    method displaceRigidBody: (rigidBody: RigidBody ref) inSector: (sector: PhysicalSector ref)
+        from: (initialMotionState: MotionState)
+        deltaTime: (delta: Float32) maxNumberOfIteration: (maxNumberOfIteration: UInt32) ::=> Void := {
+
+        let sweepTestResult mutable := CollisionSweepTestResult().
+        sweepTestResult
+            collisionTestObject: rigidBody address;
+            collisionGroup: rigidBody collisionGroup;
+            collisionGroupFilter: rigidBody collisionGroupFilter;
+            addExcludedObject: rigidBody address.
+        rigidBody collisionObjectExclusionSet do: {:each :: Void |
+            sweepTestResult addExcludedObject: each
+        }.
+
+        let remainingIterations mutable type: UInt32 := maxNumberOfIteration.
+        let remainingDeltaTime mutable := delta.
+        let currentMotionState mutable := initialMotionState.
+        let rigidBodyOwner := rigidBody ownerEntity.
+        while: remainingDeltaTime > 0 && remainingIterations > 0 do: {
+            let targetMotionState := currentMotionState integrateVelocitiesWith: remainingDeltaTime.
+
+            sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape _
+                positionFrom: currentMotionState position to: targetMotionState position.
+
+            sweepTestResult hasCollision ifTrue: {
+                let collisionPoint := sweepTestResult collisionPoint.
+
+                let (let otherCollisionNormal, let penetrationDistance) := sweepTestResult collidingBox computePenetrationNormalAndDistanceForPoint: collisionPoint.
+                let collidingObject := sweepTestResult collidingObject.
+                Std assert: collidingObject isNotNil.
+
+                sweepTestResult addExcludedObject: collidingObject.
+                collidingObject _ isRigidBody ifTrue: {
+                    let collisionMotionState mutable := currentMotionState interpolateTo: targetMotionState at: sweepTestResult collisionTimeAlpha.
+                    let otherRigidBody := collidingObject reinterpretCastTo: RigidBody pointer.
+                    currentMotionState := self resolveCollisionOf: rigidBody
+                        targetMotionState: targetMotionState collisionMotionState: collisionMotionState collisionPoint: collisionPoint
+                        with: otherRigidBody _ collisionNormal: otherCollisionNormal penetrationDistance: penetrationDistance
+                }.
+
+                collidingObject _ ownerEntity ifNotNil: {:otherOwner :: Void |
+                    otherOwner _ onPhysicsCollisionHit: rigidBody at: collisionPoint
+                }.
+                rigidBodyOwner ifNotNil: {
+                    rigidBodyOwner _ onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
+                    rigidBodyOwner _ isAlive ifFalse: {return: void}
+                }.
+
+                remainingDeltaTime := remainingDeltaTime * (1.0f - sweepTestResult collisionTimeAlpha).
+                sweepTestResult addExcludedObject: collidingObject.
+            } ifFalse: {
+                currentMotionState := targetMotionState.
+                remainingDeltaTime := 0.
+            }
+        } continueWith: {remainingIterations := remainingIterations - 1}.
+
+        rigidBody motionState: currentMotionState
+    }.
+
+    method displaceRigidBody: (rigidBody: RigidBody ref) inSector: (sector: PhysicalSector ref)
+        from: (initialMotionState: MotionState)
+        deltaTime: (delta: Float32) ::=> Void := {
+        self displaceRigidBody: rigidBody inSector: sector
+            from: initialMotionState deltaTime: delta maxNumberOfIteration: DefaultMaxNumberOfIterations
+    }.
+
+    method displaceRigidBody: (rigidBody: RigidBody ref) inSector: (sector: PhysicalSector ref)
+        from: (initialMotionState: MotionState) to: (endMotionState: MotionState) ::=> Void := {
+
+        let sweepTestResult mutable := CollisionSweepTestResult().
+        sweepTestResult
+            collisionTestObject: rigidBody address;
+            collisionGroup: rigidBody collisionGroup;
+            collisionGroupFilter: rigidBody collisionGroupFilter;
+            addExcludedObject: rigidBody address.
+        rigidBody collisionObjectExclusionSet do: {:each :: Void |
+            sweepTestResult addExcludedObject: each
+        }.
+
+        let currentMotionState mutable := initialMotionState.
+        sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape _
+            positionFrom: currentMotionState position to: endMotionState position.
+
+        sweepTestResult hasCollision ifTrue: {
+            let collisionPoint := sweepTestResult collisionPoint.
+
+            let (let otherCollisionNormal, let penetrationDistance) := sweepTestResult collidingBox computePenetrationNormalAndDistanceForPoint: collisionPoint.
+            let collidingObject := sweepTestResult collidingObject.
+            Std assert: collidingObject isNotNil.
+
+            collidingObject _ isRigidBody ifTrue: {
+                let collisionMotionState mutable := currentMotionState interpolateTo: endMotionState at: sweepTestResult collisionTimeAlpha.
+                let otherRigidBody := collidingObject reinterpretCastTo: RigidBody pointer.
+                currentMotionState := self resolveCollisionOf: rigidBody
+                    targetMotionState: endMotionState collisionMotionState: collisionMotionState collisionPoint: collisionPoint
+                    with: otherRigidBody _ collisionNormal: otherCollisionNormal penetrationDistance: penetrationDistance
+            } ifFalse: {
+                currentMotionState := endMotionState
+            }.
+
+            collidingObject _ ownerEntity ifNotNil: {:otherOwner :: Void |
+                otherOwner _ onPhysicsCollisionHit: rigidBody at: collisionPoint
+            }.
+            rigidBody ownerEntity ifNotNil: {:owner :: Void |
+                owner _ onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
+            }.
+        } ifFalse: {
+            currentMotionState := endMotionState
+        }.
+
+        rigidBody motionState: currentMotionState
+    }.
+
+    override method simulateRigidBody: (rigidBody: RigidBody ref) movementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
+        let initialMotionState := rigidBody motionState.
+        initialMotionState hasVelocityCloseToZero && rigidBody massReciprocal = 0 ifTrue: {
+            return: void
+        }.
+        
+        self displaceRigidBody: rigidBody inSector: sector from: initialMotionState deltaTime: delta.
+    }.
+}.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

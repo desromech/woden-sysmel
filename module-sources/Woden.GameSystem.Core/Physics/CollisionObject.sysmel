@@ -36,11 +36,7 @@ class CollisionObject superclass: Std RCObject; definition: {
     }.
 
     field physicalSector type: PhysicalSector weakRCPointer.
-    field position type: Float32x3.
-    public field linearVelocity type: Float32x3.
-
-    field orientation type: QuaternionF32.
-    public field angularVelocity type: Float32x3.
+    field motionState type: MotionState.
 
     public field collisionShape type: CollisionShapePtr.
 
@@ -59,14 +55,31 @@ class CollisionObject superclass: Std RCObject; definition: {
         }
     }.
 
+    const inline method motionState => MotionState const ref
+        := motionState.
+
+    inline method motionState: (newMotionState: MotionState) ::=> Void := {
+        motionState := newMotionState.
+        (motionState hasSameTransformOf: newMotionState) ifFalse: {
+            self transformChanged
+        }
+    }.
+
     const inline method position => Float32x3
-        := position.
+        := motionState position.
 
     inline method position: (newPosition: Float32x3) ::=> Void := {
-        position = newPosition ifFalse: {
-            position := newPosition.
+        motionState position = newPosition ifFalse: {
+            motionState position: newPosition.
             self transformChanged.
         }.
+    }.
+
+    const inline method linearVelocity => Float32x3
+        := motionState linearVelocity.
+
+    inline method linearVelocity: (newVelocity: Float32x3) ::=> Void := {
+        motionState linearVelocity: newVelocity
     }.
 
     field ownerEntity type: Entity weakRCPointer.
@@ -83,11 +96,18 @@ class CollisionObject superclass: Std RCObject; definition: {
     }.
 
     const inline method orientation => QuaternionF32
-        := orientation.
+        := motionState orientation.
 
     inline method orientation: (newOrientation: QuaternionF32) ::=> Void := {
-        orientation := newOrientation.
+        motionState orientation: newOrientation.
         self transformChanged.
+    }.
+
+    const inline method angularVelocity => Float32x3
+        := motionState angularVelocity.
+
+    inline method angularVelocity: (newAngularVelocity: Float32x3) ::=> Void := {
+        motionState angularVelocity: newAngularVelocity
     }.
 
     method transformChanged => Void := {
@@ -97,9 +117,7 @@ class CollisionObject superclass: Std RCObject; definition: {
 
     method transform => ReversibleAffineTransform3dF32 := {
         transformChanged ifTrue: {
-            transform := ReversibleAffineTransform3dF32()
-                orthonormal: orientation asMatrix3x3 translation: position;
-                yourself.
+            transform := motionState asReversibleAffineTransform.
             transformChanged := false
         }.
 
@@ -116,7 +134,6 @@ class CollisionObject superclass: Std RCObject; definition: {
     }.
 
     override method initialize => Void := {
-        orientation := QuaternionF32 identity.
         transformChanged := true.
         boundingBoxChanged := true.
     }.

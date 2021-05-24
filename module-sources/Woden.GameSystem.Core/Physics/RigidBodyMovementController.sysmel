@@ -1,0 +1,27 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Std Math.
+useNamespace: Std Math Geometry.
+
+#**
+ * I am a movement controller for a generic rigid body.
+ *#
+class RigidBodyMovementController superclass: AbstractRigidBodyMovementController; definition: {
+    meta definition:{
+        let uniqueInstance mutable type: PhysicalMovementControllerPtr.
+        let uniqueInstanceCreation mutable type: Std OnceFlag.
+
+        static method uniqueInstance => PhysicalMovementControllerPtr := {
+            uniqueInstanceCreation do: {
+                uniqueInstance := self rcNew upCastFor: PhysicalMovementController
+            }.
+            uniqueInstance
+        }.
+    }.
+}.
+
+compileTime constant RigidBodyMovementControllerPtr := RigidBodyMovementController rcPointer.
+
+}. ## namespace GameSystem
+}. ## namespace Woden

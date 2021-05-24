@@ -13,6 +13,8 @@ class RigidBody superclass: CollisionObject; definition: {
     public field engineAcceleration type: Float32x3.
     public field engineAngularAcceleration type: Float32x3.
 
+    public field movementController type: PhysicalMovementControllerPtr.
+
     field mass type: Float32.
     field massReciprocal type: Float32.
 
@@ -22,6 +24,7 @@ class RigidBody superclass: CollisionObject; definition: {
     override method initialize => Void := {
         super initialize.
         coefficientOfRestitution := 0.8f.
+        movementController := RigidBodyMovementController uniqueInstance.
     }.
 
     override method isRigidBody => Boolean8
@@ -53,20 +56,25 @@ class RigidBody superclass: CollisionObject; definition: {
             ifFalse: {newInertiaTensor inverse}.
     }.
 
+    const inline method gravityAccelerationForSector: (sector: PhysicalSector ref) ::=> Float32x3
+        := hasCustomGravity
+            ifTrue: {gravity}
+            ifFalse: {sector gravity}.
+
     method computeInertiaTensor => Void := {
         ## TODO: Implement this method for when we extend to 3D.
     }.
 
     override method simulateImpulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
-        mass = 0 ifTrue: {return: void}.
-
-        sector simulateRigidBodyImpulses: self withDelta: delta
+        movementController ifNotNil: {
+            movementController _ simulateRigidBody: self impulsesInSector: sector withDelta: delta
+        }.
     }.
 
     override method simulateMovementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
-        mass = 0 ifTrue: {return: void}.
-
-        sector simulateRigidBodyMovement: self withDelta: delta
+        movementController ifNotNil: {
+            movementController _ simulateRigidBody: self movementInSector: sector withDelta: delta
+        }.
     }.
 
     method computeDampingForTerminalVelocity: (terminalVelocity: Float32x3) withMaximumAcceleration: (maxAcceleration: Float32x3) ::=> Void := {
@@ -74,7 +82,7 @@ class RigidBody superclass: CollisionObject; definition: {
     }.
 
     inline method applyImpulse: (impulse: Float32x3) ::=> Void := {
-        linearVelocity := linearVelocity + impulse * massReciprocal.
+        self linearVelocity: self linearVelocity + impulse * massReciprocal.
     }.
 }.
 

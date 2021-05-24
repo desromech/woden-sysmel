@@ -1,0 +1,66 @@
+namespace Woden definition: {
+namespace GameSystem definition: {
+
+useNamespace: Std Math.
+useNamespace: Std Math LinearAlgebra.
+
+#**
+ * I describe the motion state for an object.
+ * I am a *vector* with the (position, linearVelocity, orientation, angularVelocity) in an object.
+ *#
+struct MotionState definition: {
+    public field position type: Float32x3.
+    public field linearVelocity type: Float32x3.
+
+    public field orientation type: QuaternionF32.
+    public field angularVelocity type: Float32x3.
+
+    compileTime constant ZeroVelocityLengthThreshold := 0.00001f.
+    compileTime constant ZeroVelocityLength2Threshold := ZeroVelocityLengthThreshold*ZeroVelocityLengthThreshold.
+
+    method initialize => Void := {
+        orientation := QuaternionF32 identity.
+    }.
+
+    const method hasVelocityCloseToZero => Boolean8
+        := linearVelocity length2 < ZeroVelocityLength2Threshold &&
+            angularVelocity length2 < ZeroVelocityLength2Threshold.
+
+    const method hasSameTransformOf: (other: SelfType const ref) ::=> Boolean8
+        := position = other position && orientation = other orientation.
+
+    const method asReversibleAffineTransform => ReversibleAffineTransform3dF32
+        := ReversibleAffineTransform3dF32()
+                orthonormal: orientation asMatrix3x3 translation: position;
+                yourself.
+
+    const method translatedBy: (translation: Float32x3) ::=> MotionState
+        := MotionState()
+            position: (position + translation);
+            linearVelocity: linearVelocity;
+
+            orientation: orientation;
+            angularVelocity: angularVelocity;
+            yourself.
+
+    const method interpolateTo: (other: MotionState const ref) at: (alpha: Float32) ::=> MotionState 
+        := MotionState()
+            position: (position interpolateTo: other position at: alpha);
+            linearVelocity: (linearVelocity interpolateTo: other linearVelocity at: alpha);
+
+            orientation: (orientation interpolateTo: other orientation at: alpha) normalized;
+            angularVelocity: (angularVelocity interpolateTo: other angularVelocity at: alpha);
+            yourself.
+
+    const method integrateVelocitiesWith: (delta: Float32) ::=> MotionState
+        := MotionState()
+            position: (position + linearVelocity*delta);
+            linearVelocity: linearVelocity;
+
+            orientation: (orientation + (QuaternionF32 xyz: angularVelocity*delta)*orientation) normalized;
+            angularVelocity: angularVelocity;
+            yourself.
+}.
+
+} ## End of namespace GameSystem
+} ## End of namespace Woden

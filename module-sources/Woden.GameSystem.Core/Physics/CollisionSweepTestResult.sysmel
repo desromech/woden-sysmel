@@ -13,14 +13,21 @@ struct CollisionSweepTestResult definition: {
     method reset => Void := {
         collisionDistance := Float32 infinity.
         hasCollision := false.
-        collidingObject := nil
+        collidingObject := nil.
+        collisionPoint := Float32x3 zeros.
+        collisionTimeAlpha := 1.0
     }.
 
+    public field sweepRay type: Ray3dF32.
+    
     public field collisionTestObject type: CollisionObject pointer.
     public field collisionGroup type: CollisionGroup.
     public field collisionGroupFilter type: CollisionGroup.
 
     public field collisionDistance type: Float32.
+    public field collisionPoint type: Float32x3.
+    public field collisionTimeAlpha type: Float32.
+
     public field hasCollision type: Boolean8.
     public field collidingBox type: BoxF32.
     public field collidingObject type: CollisionObject pointer.
@@ -31,6 +38,11 @@ struct CollisionSweepTestResult definition: {
         (exclusionSet includes: object) ifFalse: {
             exclusionSet add: object
         }
+    }.
+
+    method computeCollisionPointData => Void := {
+        collisionPoint := sweepRay pointAtDistance: collisionDistance.
+        collisionTimeAlpha := collisionDistance / sweepRay tmax.
     }.
 }.
 
