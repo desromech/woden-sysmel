@@ -1,6 +1,6 @@
 Compiler importModulesNamed: #(
     #"Woden.Runtime.Core"
-    #"Sysmel.Graphics.Driver.Common" ## For the 2D scene renderer.
+    #"Std.Graphics.Driver.Common" ## For the 2D scene renderer.
 ); loadPackages: #(
     ShaderSignature
     Lighting

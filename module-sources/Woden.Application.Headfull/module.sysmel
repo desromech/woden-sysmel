@@ -3,5 +3,5 @@ Compiler importModulesNamed: #(
     #"Woden.Application.Core"
     #"Woden.Asset.Default"
     #"Woden.SceneRenderingPipeline.Default"
-    #"Sysmel.Graphics.Headfull"
+    #"Std.Graphics.Headfull"
 ).
