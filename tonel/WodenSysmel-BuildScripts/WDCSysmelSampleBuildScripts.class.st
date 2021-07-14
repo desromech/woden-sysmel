@@ -14,7 +14,8 @@ WDCSysmelSampleBuildScripts class >> buildConsoleGameSystemExample [
 			result := packageScript program: 'consoleGameSystemExample' with: [ :prog |
 				prog
 					source: 'samples/game/gameSystemExample.sysmel';
-					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials';
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaps'
 			]
 		].
 	^ result asFileReference asAbsolute canonicalize
@@ -28,7 +29,8 @@ WDCSysmelSampleBuildScripts class >> buildGameSystemExample [
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample.sysmel' with: [ :prog |
 				prog
-					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials';
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaps'
 			]
 		].
 	^ result asFileReference asAbsolute canonicalize
