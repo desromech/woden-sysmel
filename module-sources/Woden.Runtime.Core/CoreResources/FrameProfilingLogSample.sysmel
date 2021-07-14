@@ -40,7 +40,7 @@ struct FrameProfilingLogSample definition: {
 
     method writeSampleOn: (output: Std IO TextStreamWriter ref) for: (engine: Engine ref) ::=> Void := {
         let plaform type: Std ImmutableString := Compiler compilationTarget operatingSystemName.
-        let renderingDevice ref := engine renderingDevice _.
+        let renderingDevice ref := engine renderingDevice.
         let renderingPlatformName ref := renderingDevice platformName.
         let renderingDeviceName ref := renderingDevice name.
         let renderingSettings ref := engine renderingSettings.

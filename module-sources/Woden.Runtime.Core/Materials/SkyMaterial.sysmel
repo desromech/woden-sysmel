@@ -15,14 +15,14 @@ class SkyMaterial superclass: Material; definition: {
         }.
     }.
 
-    public field stateBinding type: ShaderResourceBindingsPtr.
-    public field texture type: TextureWithViewPtr.
+    public field stateBinding type: ShaderResourceBindingsRef.
+    public field texture type: TextureWithViewRef.
 
     override method initialize => Void := {
 
     }.
 
-    method validTexture => TextureWithViewPtr := {
+    method validTexture => TextureWithViewRef := {
         texture ifNil: {return: engine _ resourceCache _ whiteTextureCube}.
         texture
     }.

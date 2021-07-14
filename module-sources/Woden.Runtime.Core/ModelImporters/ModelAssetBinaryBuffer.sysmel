@@ -12,7 +12,7 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
     public field data type: UInt8 uniquePointer.
     public field dataSize type: UIntPointer.
 
-    field gpuBuffer type: BufferPtr.
+    field gpuBuffer type: BufferRef.
 
     method asArraySlice => UInt8 arraySlice
         := data getPointer until: dataSize.
@@ -27,9 +27,9 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
         }.
     }.
 
-    method asGpuBufferFor: (engine: EnginePtr const ref) ::=> BufferPtr := {
+    method asGpuBufferFor: (engine: EnginePtr const ref) ::=> BufferRef := {
         gpuBuffer ifNotNil: {return: gpuBuffer}.
-        gpuBuffer := engine _ renderingDevice _ createBuffer: (BufferDescription()
+        gpuBuffer := engine _ renderingDevice createBuffer: (BufferDescription()
             size: dataSize;
             heapType: MemoryHeapType DeviceLocal;
             usageModes: BufferUsageMode Array | BufferUsageMode ElementArray;

@@ -26,39 +26,39 @@ class ResourceCache superclass: Std RCObject; definition: {
     const inline method checkboardMaterial => MaterialPtr const ref
         := checkboardMaterial.
 
-    private field whiteTexture type: TextureWithViewPtr.
+    private field whiteTexture type: TextureWithViewRef.
 
-    const inline method whiteTexture => TextureWithViewPtr const ref
+    const inline method whiteTexture => TextureWithViewRef const ref
         := whiteTexture.
 
-    private field blackTexture type: TextureWithViewPtr.
+    private field blackTexture type: TextureWithViewRef.
 
-    const inline method blackTexture => TextureWithViewPtr const ref
+    const inline method blackTexture => TextureWithViewRef const ref
         := blackTexture.
 
-    private field transparentTexture type: TextureWithViewPtr.
+    private field transparentTexture type: TextureWithViewRef.
 
-    const inline method transparentTexture => TextureWithViewPtr const ref
+    const inline method transparentTexture => TextureWithViewRef const ref
         := transparentTexture.
 
-    private field checkboardTexture type: TextureWithViewPtr.
+    private field checkboardTexture type: TextureWithViewRef.
 
-    const inline method checkboardTexture => TextureWithViewPtr const ref
+    const inline method checkboardTexture => TextureWithViewRef const ref
         := checkboardTexture.
 
-    private field neutralNormalTexture type: TextureWithViewPtr.
+    private field neutralNormalTexture type: TextureWithViewRef.
 
-    const inline method neutralNormalTexture => TextureWithViewPtr const ref
+    const inline method neutralNormalTexture => TextureWithViewRef const ref
         := neutralNormalTexture.
 
-    private field whiteTextureCube type: TextureWithViewPtr.
+    private field whiteTextureCube type: TextureWithViewRef.
 
-    const inline method whiteTextureCube => TextureWithViewPtr const ref
+    const inline method whiteTextureCube => TextureWithViewRef const ref
         := whiteTextureCube.
 
-    private field blackTextureCube type: TextureWithViewPtr.
+    private field blackTextureCube type: TextureWithViewRef.
 
-    const inline method blackTextureCube => TextureWithViewPtr const ref
+    const inline method blackTextureCube => TextureWithViewRef const ref
         := blackTextureCube.
 
     method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
@@ -129,9 +129,9 @@ class ResourceCache superclass: Std RCObject; definition: {
         self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
-    method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewPtr := {
+    method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewRef := {
         let device := engine _ renderingDevice.
-        let texture := device _ createTexture: (TextureDescription()
+        let texture := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: 1;
             height: 1;
@@ -146,13 +146,13 @@ class ResourceCache superclass: Std RCObject; definition: {
             yourself).
 
         let data mutable := color.
-        texture _ uploadTextureLevel: 0 layer: 0 pitch: 4 slicePitch: 4 data: data address.
-        texture _ asTextureWithView
+        texture uploadTextureLevel: 0 layer: 0 pitch: 4 slicePitch: 4 data: data address.
+        texture asTextureWithView
     }.
 
-    method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewPtr := {
+    method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewRef := {
         let device := engine _ renderingDevice.
-        let texture := device _ createTexture: (TextureDescription()
+        let texture := device createTexture: (TextureDescription()
             type: TextureType TextureCube;
             width: 1;
             height: 1;
@@ -168,15 +168,15 @@ class ResourceCache superclass: Std RCObject; definition: {
 
         let data mutable := color.
         0 until: 6 do: {:i :: Void |
-            texture _ uploadTextureLevel: 0 layer: (i castTo: UIntPointer) pitch: 4 slicePitch: 4 data: data address.
+            texture uploadTextureLevel: 0 layer: (i castTo: UIntPointer) pitch: 4 slicePitch: 4 data: data address.
         }.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 
-    method createCheckboardTexture => TextureWithViewPtr := {
+    method createCheckboardTexture => TextureWithViewRef := {
         let device := engine _ renderingDevice.
-        let texture := device _ createTexture: (TextureDescription()
+        let texture := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: 64;
             height: 64;
@@ -203,11 +203,11 @@ class ResourceCache superclass: Std RCObject; definition: {
             }
         }.
 
-        texture _ uploadTextureLevel: 0 layer: 0 pitch: 4*64 slicePitch: 4*64*64 data: data address.
-        texture _ asTextureWithView
+        texture uploadTextureLevel: 0 layer: 0 pitch: 4*64 slicePitch: 4*64*64 data: data address.
+        texture asTextureWithView
     }.
 
-    method loadColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewRef := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
         solvedFileReference exists ifFalse: {return: checkboardTexture}.
 
@@ -215,66 +215,66 @@ class ResourceCache superclass: Std RCObject; definition: {
         textureData ifNil: {return: checkboardTexture}.
 
         ## Generate the miplevels if required.
-        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling ifFalse: {
-            let withMiplevels := textureData _ generateColorMiplevels.
+        textureData hasGeneratedMipmaps || textureData hasOptimalTargetSpecificTiling ifFalse: {
+            let withMiplevels := textureData generateColorMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
+        let texture := engine _ renderingDevice createColorTextureWithData: textureData.
         texture ifNil: {return: checkboardTexture}.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 
-    method loadNormalTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadNormalTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewRef := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
-        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+        solvedFileReference exists ifFalse: {return: TextureWithViewRef nil}.
 
         let textureData mutable := TextureData readFromFileReference: solvedFileReference.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
+        textureData ifNil: {return: TextureWithViewRef nil}.
 
         ## Generate the miplevels if required.
-        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling ifFalse: {
-            let withMiplevels := textureData _ generateNormalMiplevels.
+        textureData hasGeneratedMipmaps || textureData hasOptimalTargetSpecificTiling ifFalse: {
+            let withMiplevels := textureData generateNormalMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
-        texture ifNil: {return: TextureWithViewPtr nil}.
+        let texture := engine _ renderingDevice createTextureWithData: textureData.
+        texture ifNil: {return: TextureWithViewRef nil}.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 
-    method loadNonColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadNonColorTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewRef := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
-        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+        solvedFileReference exists ifFalse: {return: TextureWithViewRef nil}.
 
         let textureData mutable := TextureData readFromFileReference: solvedFileReference.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
+        textureData ifNil: {return: TextureWithViewRef nil}.
 
         ## Generate the miplevels if required.
-        textureData _ hasGeneratedMipmaps || textureData _ hasOptimalTargetSpecificTiling ifFalse: {
-            let withMiplevels := textureData _ generateMiplevels.
+        textureData hasGeneratedMipmaps || textureData hasOptimalTargetSpecificTiling ifFalse: {
+            let withMiplevels := textureData generateMiplevels.
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice _ createTextureWithData: textureData _.
-        texture ifNil: {return: TextureWithViewPtr nil}.
+        let texture := engine _ renderingDevice createTextureWithData: textureData.
+        texture ifNil: {return: TextureWithViewRef nil}.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 
-    method loadColorCubeTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewPtr := {
+    method loadColorCubeTextureFrom: (fileReference: Std FileReference const ref) ::=> TextureWithViewRef := {
         let solvedFileReference := self solveTextureFileReference: fileReference.
-        solvedFileReference exists ifFalse: {return: TextureWithViewPtr nil}.
+        solvedFileReference exists ifFalse: {return: TextureWithViewRef nil}.
 
         let textureData := TextureData readFromFileReference: solvedFileReference.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
+        textureData ifNil: {return: TextureWithViewRef nil}.
 
-        let texture := engine _ renderingDevice _ createColorTextureWithData: textureData _.
-        texture ifNil: {return: TextureWithViewPtr nil}.
+        let texture := engine _ renderingDevice createColorTextureWithData: textureData.
+        texture ifNil: {return: TextureWithViewRef nil}.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 }.
 

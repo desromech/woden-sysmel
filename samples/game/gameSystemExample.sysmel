@@ -2,8 +2,23 @@ Compiler importModulesNamed: #(
     #"Woden.Application.SampleGameSystem"
 ).
 
+useNamespace: Woden Runtime.
 useNamespace: Woden GameSystem.
 useNamespace: Woden MapDefinition.
+
+function attemptToLoadLevel(engine: EnginePtr const ref, name: Std ImmutableString) => LevelDefinitionPtr := {
+    let extensions mutable := Char8 const arraySlice array(
+        "wlevel",
+        "wtlevel"
+    ).
+
+    let loadedLevel := LevelDefinition loadFromFile: (engine _ resourceCache _ solveResourceFileReference: name asMutableString asNativeFileReference withExtensions: extensions).
+    loadedLevel isNil || loadedLevel _ sectors isEmpty ifTrue: {
+        return: LevelDefinitionPtr nil
+    }.
+
+    loadedLevel
+}.
 
 Std MainEntryPoint: {:args :: Int32 |
     args do: {:arg :: Void |
@@ -17,38 +32,43 @@ Std MainEntryPoint: {:args :: Int32 |
     }.
 
     ## Create the scene model and initialize with the C arguments.
-    let gameModel mutable := SampleGameApplicationModel rcNew.
-    (gameModel _ initializeWithCommandLine: args) ifFalse: {
+    let gameModel mutable := SampleGameApplicationModel new.
+    (gameModel initializeWithCommandLine: args) ifFalse: {
         return: 1
     }.
 
     ## Setup the camera
     {
-        let camera := gameModel _ mainCamera.
+        let camera := gameModel mainCamera.
         camera _ translateByZ: 10.0.
     }.
 
-    let levelDefinition mutable := LevelDefinition simpleSampleLevel.
+    let levelDefinition mutable := LevelDefinitionPtr nil.
     args size >= 2 ifTrue: {
-        let loadedLevel := LevelDefinition loadFromFile: args second asMutableString asNativeFileReference.
-        loadedLevel isNotNil && loadedLevel _ sectors isNotEmpty ifTrue: {
-            levelDefinition := loadedLevel
-        }
+        levelDefinition := attemptToLoadLevel(gameModel engine, args second)
+    }.
+
+    levelDefinition ifNil: {
+        levelDefinition := attemptToLoadLevel(gameModel engine, "maps/test-level")
+    }.
+
+    levelDefinition ifNil: {
+        levelDefinition := LevelDefinition simpleSampleLevel.
     }.
 
     ## Test sector definition
     {
 
-        gameModel _ globalGameState _
+        gameModel globalGameState _
             loadSectorFromDefinition: levelDefinition _ sectors first;
             startNewGame
     }.
 
     ## Open the main view.
-    (gameModel _ openApplication) ifFalse: {
+    (gameModel openApplication) ifFalse: {
         return: 1
     }.
 
     ## Enter the main loop.
-    gameModel _ runMainLoopAndShutdown.
+    gameModel runMainLoopAndShutdown.
 }.

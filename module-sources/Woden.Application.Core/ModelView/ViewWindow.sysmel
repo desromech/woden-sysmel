@@ -45,14 +45,14 @@ class ViewWindow superclass: Std RCObject; definition: {
         true
     }.
 
-    virtual method getCurrentBackBufferLeftEye => FramebufferPtr
-        := FramebufferPtr nil.
+    virtual method getCurrentBackBufferLeftEye => FramebufferRef
+        := FramebufferRef nil.
 
-    virtual method getCurrentBackBufferRightEye => FramebufferPtr
-        := FramebufferPtr nil.
+    virtual method getCurrentBackBufferRightEye => FramebufferRef
+        := FramebufferRef nil.
 
-    virtual method getDisplayRenderPass => RenderPassPtr
-        := RenderPassPtr nil.
+    virtual method getDisplayRenderPass => RenderPassRef
+        := RenderPassRef nil.
 
     virtual method toggleFullscreen => Void
         := void.

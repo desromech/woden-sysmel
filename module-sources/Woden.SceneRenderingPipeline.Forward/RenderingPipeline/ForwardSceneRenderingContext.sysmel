@@ -10,7 +10,7 @@ useNamespace: Std Graphics Core.
 class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition: {
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipeline pointer.
 
-    method device => RenderingDevicePtr const ref
+    method device => RenderingDeviceRef const ref
         := sceneRenderingPipeline _ engine _ renderingDevice.
 
     override method uploadDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
@@ -28,17 +28,17 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
 
             deformationStateCache bindings for: engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 4.
             deformationStateCache bindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: deformationStateCache buffers buffers[index]
+                each bindOn: 0 uniformBuffer: deformationStateCache buffers buffers[index]
             }.
         }.
 
-        deformationStateCache buffers current _ uploadAt: 0 size: deformationStateSize data: deformationStateData.
+        deformationStateCache buffers current uploadAt: 0 size: deformationStateSize data: deformationStateData.
         true
     }.
 
     override method uploadAndActivateDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
         (self uploadDeformationState: deformationStateData size: deformationStateSize on: deformationStateCache) && {
-            stateTracker _
+            stateTracker
                 useGraphicShaderBindings: deformationStateCache bindings current.
             true
         }
@@ -50,7 +50,7 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
 
     method validateMetallicRoughnessMaterialStateBinding: (material: MetallicRoughnessMaterial ref) ::=> Boolean8 := {
         material stateBinding ifNil: {
-            material stateBuffer := self device _ createBuffer: (BufferDescription()
+            material stateBuffer := self device createBuffer: (BufferDescription()
                 size: Woden Shaders MetallicRoughnessMaterialStateData instanceSize;
                 heapType: MemoryHeapType DeviceLocal;
                 usageModes: BufferUsageMode Uniform;
@@ -60,7 +60,7 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
             ) initialData: material state address.
 
             material stateBinding := self createMaterialStateBinding.
-            material stateBinding _
+            material stateBinding
                 bindOn: 0 uniformBuffer: material stateBuffer;
                 bindOn: 1 sampledTextureWithView: material validBaseColorTexture;
                 bindOn: 2 sampledTextureWithView: material validNormalTexture;
@@ -88,14 +88,14 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
             self materialBlendingEquation: BlendingMode Copy asBlendingEquation.
         }.
 
-        stateTracker _
+        stateTracker
             useGraphicShaderBindings: material stateBinding.
 
         let hasColor0 := self hasColor0VertexAttribute.
         let hasTangent4 := self hasTangent4VertexAttribute && renderPass isDepthOnlyPass not.
         let hasSkinning := self hasSkinningParameters.
 
-        stateTracker _
+        stateTracker
             vertexShader: ((hasSkinning, hasColor0, hasTangent4) selectCase: #{
             (false, false, false) : Woden Shaders MetallicRoughnessMaterialShaders(false, false, false) vertex shaderEntryPointInfo address.
             (false, false, true) : Woden Shaders MetallicRoughnessMaterialShaders(false, false, true) vertex shaderEntryPointInfo address.
@@ -111,23 +111,23 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
 
         renderPass isDepthPass ifTrue: {
             renderPass isDepthNormalPass ifTrue: {
-                stateTracker _
+                stateTracker
                     fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders(false, false, false) surfaceNormalValueFragment shaderEntryPointInfo address.
             } ifFalse: {
                 material hasAlphaMask ifTrue: {
-                    stateTracker _
+                    stateTracker
                         fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders(false, false, false) alphaTestingFragment shaderEntryPointInfo address.
                 } ifFalse: {
-                    stateTracker _
+                    stateTracker
                         fragmentShader: nil.
                 }.
             }.
         } ifFalse: {
             material normalTexture isNotNil && hasTangent4 ifTrue: {
-                stateTracker _
+                stateTracker
                     fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders(false, false, true) fragment shaderEntryPointInfo address.
             } ifFalse: {
-                stateTracker _
+                stateTracker
                     fragmentShader: Woden Shaders MetallicRoughnessMaterialShaders(false, false, false) fragment shaderEntryPointInfo address.
             }.
         }.
@@ -140,11 +140,11 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
 
         material stateBinding ifNil: {
             material stateBinding := self createMaterialStateBinding.
-            material stateBinding _
+            material stateBinding
                 bindOn: 1 sampledTextureWithView: material validTexture.
         }.
 
-        stateTracker _
+        stateTracker
             useGraphicShaderBindings: material stateBinding;
             vertexShader: Woden Shaders SkyMaterialShaders vertex shaderEntryPointInfo address;
             fragmentShader: Woden Shaders SkyMaterialShaders fragment shaderEntryPointInfo address.
@@ -163,15 +163,15 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
             return: false.
         }.
 
-        stateTracker _
+        stateTracker
             useGraphicShaderBindings: material stateBinding;
             vertexShader: Woden Shaders WaterMaterialShaders vertex shaderEntryPointInfo address;
             fragmentShader: Woden Shaders WaterMaterialShaders fragment shaderEntryPointInfo address.
         true
     }.
 
-    method createMaterialStateBinding => ShaderResourceBindingsPtr
-        := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5
+    method createMaterialStateBinding => ShaderResourceBindingsRef
+        := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5
 }.
 
 }. ## End of namespace ForwardRenderer

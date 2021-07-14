@@ -13,7 +13,7 @@ useNamespace: Std Math LinearAlgebra.
 class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCameraEye; definition: {
     compileTime constant ShadowMapTextureLayers := ForwardSceneRenderingPipeline ShadowMapTextureLayers.
 
-    protected field stateTracker type: StateTrackerPtr.
+    protected field stateTracker type: StateTrackerRef.
     protected field toneMappingOperator type: ToneMappingOperator.
 
     public field isRightEye type: Boolean8.
@@ -26,8 +26,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     public field activeShadowMapLayerCount type: UIntPointer.
     public field shadowMapLayers type: (ShadowMapRenderingPipelineLayer array: ShadowMapTextureLayers).
 
-    protected field cameraPostProcessingStateBuffer type: BufferPtr.
-    public field scene2DRenderers type: (StateTracker2DSceneRendererPtr array: FrameBufferingCount).
+    protected field cameraPostProcessingStateBuffer type: BufferRef.
+    public field scene2DRenderers type: (StateTracker2DSceneRendererRef array: FrameBufferingCount).
 
     const inline method engine => EnginePtr
         := viewport _ engine.
@@ -50,7 +50,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 currentAverageLuminance: 0.5f;
                 yourself.
 
-            cameraPostProcessingStateBuffer := self engine _ renderingDevice _ createBuffer: (BufferDescription()
+            cameraPostProcessingStateBuffer := self engine _ renderingDevice createBuffer: (BufferDescription()
                 size: Woden Shaders CameraPostProcessingStateData instanceSize;
                 heapType: MemoryHeapType DeviceLocal;
                 usageModes: BufferUsageMode Storage | BufferUsageMode CopyDestinationBuffer;
@@ -109,10 +109,10 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 normalCameraTransform translateBy: ipdOffset
             }.
 
-            projectionMatrix := frustumTangents makeReverseDepthProjectionMatrixWithNearDistance: nearDistance farDistance: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+            projectionMatrix := frustumTangents makeReverseDepthProjectionMatrixWithNearDistance: nearDistance farDistance: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
             frustum := frustumTangents makeFrustumWithNearDistance: nearDistance farDistance: farDistance.
         } ifFalse: {
-            projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+            projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
             frustum := FrustumF32()
                 makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
                 yourself.
@@ -132,7 +132,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             screenSize: screenSize;
             inverseScreenSize: 1 / screenSize;
 
-            ndcToTextureFetchTransform: (self engine _ renderingDevice _ shouldInvertProjectionY
+            ndcToTextureFetchTransform: (self engine _ renderingDevice shouldInvertProjectionY
                 ifTrue: Float32x4(1.0f, 1.0f, 1.0f, 1.0f)
                 ifFalse: Float32x4(1.0f, -1.0f, 1.0f, 1.0f));
 
@@ -278,7 +278,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let aspect := 1.0f.
 
         let cameraTransform := spotLight object _ currentTransform.
-        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
         let frustum := FrustumF32()
             makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
             yourself.
@@ -350,7 +350,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             frustumBoundingBox := frustumBoundingBox unionWith: (lightTransform inverseTransformPosition: each)
         }.
 
-        let projectionMatrix := frustumBoundingBox mappingToNDCCoordinatesReverseDepthWithInvertedY: self engine _ renderingDevice _ shouldInvertProjectionY.
+        let projectionMatrix := frustumBoundingBox mappingToNDCCoordinatesReverseDepthWithInvertedY: self engine _ renderingDevice shouldInvertProjectionY.
         let frustum := frustumBoundingBox asFrustum.
 
         let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
@@ -462,14 +462,14 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         }.
     }.
 
-    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref)
-        on: (framebuffer: FramebufferPtr const ref) ::=> Void
+    method setupStateTracker: (stateTracker: StateTrackerRef const ref) forRenderPass: (renderPass: RenderPassRef const ref)
+        on: (framebuffer: FramebufferRef const ref) ::=> Void
         := self setupStateTracker: stateTracker forRenderPass: renderPass
             on: framebuffer viewport: (RectangleI32 min: Int32x2 zeros max: (viewport _ currentExtent castTo: Int32x2)).
 
-    method setupStateTracker: (stateTracker: StateTrackerPtr const ref) forRenderPass: (renderPass: RenderPassPtr const ref)
-        on: (framebuffer: FramebufferPtr const ref) viewport: (viewport: RectangleI32) ::=> Void := {
-        stateTracker _
+    method setupStateTracker: (stateTracker: StateTrackerRef const ref) forRenderPass: (renderPass: RenderPassRef const ref)
+        on: (framebuffer: FramebufferRef const ref) viewport: (viewport: RectangleI32) ::=> Void := {
+        stateTracker
             resetState;
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
@@ -504,13 +504,13 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 sceneDepthTestingEnabled: OverrideableBoolean True;
                 sceneDepthWriteMask: OverrideableBoolean True.
 
-            stateTracker _
+            stateTracker
                 depthBiasConstantFactor: -10.0f;
                 depthBiasSlopeFactor: -3.0f.
 
             shadowMapLayers[i] renderSceneObjectsWith: renderingContext.
 
-            stateTracker _
+            stateTracker
                 endRenderPass.
         }
     }.
@@ -530,13 +530,13 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         self renderSceneObjectsWith: renderingContext.
 
-        stateTracker _
+        stateTracker
             endRenderPass.
     }.
 
     method decodeDepthBuffer => Void := {
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (viewport _ currentExtent castTo: Int32x2).
-        stateTracker _
+        stateTracker
             resetState;
 
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
@@ -559,8 +559,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     }.
 
     method resolveNormalBuffer => Void := {
-        viewport _ renderNormalBufferTexture = viewport _ normalBufferTexture ifFalse: {
-            stateTracker _
+        viewport _ renderNormalBufferTexture == viewport _ normalBufferTexture ifFalse: {
+            stateTracker
                 resolveTexture: viewport _ renderNormalBufferTexture level: 0 layer: 0
                     into: viewport _ normalBufferTexture level: 0 layer: 0
                     levelCount: 1 layerCount: 1
@@ -578,7 +578,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             resolveNormalBuffer.
 
         let ssaoViewport := RectangleI32 min: Int32x2 zeros max: (viewport _ ssaoTextureExtent castTo: Int32x2).
-        stateTracker _
+        stateTracker
             resetState;
 
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
@@ -599,7 +599,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         0 until: 2 do: {:blurPass :: Void |
             ## Horizontal blur.
-            stateTracker _
+            stateTracker
                 useGraphicShaderBindings: viewport _ ssaoBlurPingBinding;
                 beginRenderPass: viewport _ ssaoComputationRenderPass on: viewport _ ssaoPingFramebuffer contentOnBundle: false;
                 setViewport: ssaoViewport;
@@ -610,7 +610,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 endRenderPass.
 
             ## Vertical blur.
-            stateTracker _
+            stateTracker
                 useGraphicShaderBindings: viewport _ ssaoBlurPongBinding;
                 beginRenderPass: viewport _ ssaoComputationRenderPass on: viewport _ ssaoFramebuffer contentOnBundle: false;
                 setViewport: ssaoViewport;
@@ -636,11 +636,11 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         self renderSceneObjectsWith: renderingContext.
 
-        stateTracker _
+        stateTracker
             endRenderPass.
 
-        viewport _ renderHDRColorBuffer = viewport _ resolveHDRColorBuffer ifFalse: {
-            stateTracker _
+        viewport _ renderHDRColorBuffer == viewport _ resolveHDRColorBuffer ifFalse: {
+            stateTracker
                 resolveTexture: viewport _ renderHDRColorBuffer level: 0 layer: 0
                     into: viewport _ resolveHDRColorBuffer level: 0 layer: 0
                     levelCount: 1 layerCount: 1
@@ -668,7 +668,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     method renderHDRScene => Void := {
         let scene := self scene.
         scene ifNotNil: {
-            viewport _ hdrColorRenderPass _ setColorAttachment: 0 clearValue: scene _ backgroundColor.
+            viewport _ hdrColorRenderPass setColorAttachment: 0 clearValue: scene _ backgroundColor.
         }.
 
         self
@@ -691,7 +691,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let camera ref := self camera.
         camera isNil || camera _ hasNoAutoExposure ifTrue: {return: void}.
 
-        stateTracker _
+        stateTracker
             resetState;
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
@@ -701,7 +701,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         sceneRenderingPipeline _
             performAverageLuminanceComputationWith: stateTracker.
 
-        stateTracker _
+        stateTracker
             useComputeShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
             useComputeShaderBindings: normalLayer cameraStateBindings current;
             useComputeShaderBindings: sceneRenderingPipeline _ luminanceComputationResultMaterialBindings.
@@ -709,7 +709,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         sceneRenderingPipeline _
             performCameraAutoExposureStateComputationWith: stateTracker.
 
-        stateTracker _
+        stateTracker
             buffer: cameraPostProcessingStateBuffer offset: 0 size: Woden Shaders CameraPostProcessingStateData instanceSize
             memoryBarrierFrom: PipelineStageMask ComputeShader accesses: AccessMask ShaderWrite | AccessMask ShaderRead
                 to: PipelineStageMask FragmentShader accesses: AccessMask ShaderRead
@@ -721,20 +721,20 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         let scene2DRenderer ref := scene2DRenderers[self engine _ frameBufferingIndex].
         scene2DRenderer ifNil: {
-            scene2DRenderer := StateTracker2DSceneRenderer rcNew.
-            scene2DRenderer _
-                device: self engine _ renderingDevice.
+            scene2DRenderer := StateTracker2DSceneRenderer new
+                device: self engine _ renderingDevice;
+                yourself.
         }.
 
-        scene2DRenderer _
+        scene2DRenderer
             extent: viewport _ currentExtent;
             stateTracker: stateTracker;
             renderScene: viewport _ currentScene2D.
     }.
 
-    method toneMapAndComposeHDRSceneDisplayingOn: (backBuffer: FramebufferPtr const ref) with: (displayRenderPass: RenderPassPtr const ref) ::=> Void := {
+    method toneMapAndComposeHDRSceneDisplayingOn: (backBuffer: FramebufferRef const ref) with: (displayRenderPass: RenderPassRef const ref) ::=> Void := {
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (viewport _ currentExtent castTo: Int32x2).
-        stateTracker _
+        stateTracker
             resetState;
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
@@ -752,7 +752,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
         self renderScene2DOverlay.
 
-        stateTracker _
+        stateTracker
             endRenderPass
     }.
 
@@ -762,7 +762,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             uploadLightingState.
     }.
 
-    method constructCommandsOn: (theStateTracker: StateTrackerPtr const ref) displayingOn: (backBuffer: FramebufferPtr const ref) with: (displayRenderPass: RenderPassPtr const ref) ::=> Void := {
+    method constructCommandsOn: (theStateTracker: StateTrackerRef const ref) displayingOn: (backBuffer: FramebufferRef const ref) with: (displayRenderPass: RenderPassRef const ref) ::=> Void := {
         backBuffer isNil || displayRenderPass isNil ifTrue: {
             return: void
         }.

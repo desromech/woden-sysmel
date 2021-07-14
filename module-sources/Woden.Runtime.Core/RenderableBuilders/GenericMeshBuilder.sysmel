@@ -20,8 +20,8 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
     public field currentMaterial type: MaterialPtr.
     public field currentTransform type: ReversibleAffineTransform3dF32.
 
-    protected field vertexLayout type: VertexLayoutPtr.
-    protected field vertexBinding type: VertexBindingPtr.
+    protected field vertexLayout type: VertexLayoutRef.
+    protected field vertexBinding type: VertexBindingRef.
 
     protected field vertices type: Std Collections Vector(VertexType).
     protected field indices type: Std Collections Vector(IndexType).
@@ -249,9 +249,9 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
         self addI1: 23 i2: 22 i3: 21 i4: 20.
     }.
 
-    method vertexLayout => VertexLayoutPtr := {
+    method vertexLayout => VertexLayoutRef := {
         vertexLayout ifNil: {
-            vertexLayout := engine _ renderingDevice _ getDefaultVertexLayoutCache _ getOrCreateWithDescription: VertexType vertexLayoutDescription
+            vertexLayout := engine _ renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: VertexType vertexLayoutDescription
         }.
 
         vertexLayout
@@ -265,7 +265,7 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
         self finishLastSubmesh.
 
         let device := engine _ renderingDevice.
-        let vertexBuffer := device _ createBuffer: (BufferDescription()
+        let vertexBuffer := device createBuffer: (BufferDescription()
             size: vertices size * VertexType instanceSize;
             heapType: MemoryHeapType DeviceLocal;
             usageModes: BufferUsageMode Array;
@@ -274,7 +274,7 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
             yourself
         ) initialData: vertices data.
 
-        let indexBuffer := device _ createBuffer: (BufferDescription()
+        let indexBuffer := device createBuffer: (BufferDescription()
             size: indices size * IndexType instanceSize;
             heapType: MemoryHeapType DeviceLocal;
             usageModes: BufferUsageMode ElementArray;
@@ -283,9 +283,9 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
             yourself
         ) initialData: indices data.
 
-        let vertexBinding := device _ createVertexBindingFor: self vertexLayout.
-        let vertexBuffers mutable := BufferPtr array (vertexBuffer).
-        vertexBinding _ bindVertexBuffers: vertexBuffers.
+        let vertexBinding := device createVertexBindingFor: self vertexLayout.
+        let vertexBuffers mutable := BufferRef array (vertexBuffer).
+        vertexBinding bindVertexBuffers: vertexBuffers.
         submeshes do: {:each :: Void |
             each
                 vertexBinding: vertexBinding;

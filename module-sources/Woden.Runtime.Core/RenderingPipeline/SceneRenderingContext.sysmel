@@ -9,7 +9,7 @@ useNamespace: Woden GpuStructures.
  * material state specification from scene rendering pipeline specific data and method
  *#
 class SceneRenderingContext superclass: Std Object; definition: {
-    public field stateTracker type: StateTrackerPtr.
+    public field stateTracker type: StateTrackerRef.
 
     public field renderPass type: SceneRenderPass.
     public field renderMode type: SceneRenderMode.
@@ -92,14 +92,14 @@ class SceneRenderingContext superclass: Std Object; definition: {
     method sceneFaceCullingMode: (mode: FaceCullingMode) ::=> Void := {
         sceneFaceCullingMode := mode.
 
-        stateTracker _ faceCullingMode: self faceCullingMode.
+        stateTracker faceCullingMode: self faceCullingMode.
     }.
 
     method materialFaceCullingMode: (mode: FaceCullingMode) ::=> Void := {
         materialFaceCullingMode := mode.
         materialFaceCullingModeValid := true.
 
-        stateTracker _ faceCullingMode: self faceCullingMode.
+        stateTracker faceCullingMode: self faceCullingMode.
     }.
 
     method faceCullingMode => FaceCullingMode
@@ -107,12 +107,12 @@ class SceneRenderingContext superclass: Std Object; definition: {
 
     method sceneDepthWriteMask: (depthWriteMask: OverrideableBoolean) ::=> Void := {
         sceneDepthWriteMask := depthWriteMask.
-        stateTracker _ depthWriteMask: self depthWriteMask.
+        stateTracker depthWriteMask: self depthWriteMask.
     }.
 
     method sceneDepthTestingEnabled: (depthTestingEnabled: OverrideableBoolean) ::=> Void := {
         sceneDepthTestingEnabled := depthTestingEnabled.
-        stateTracker _ depthTestingEnabled: self depthTestingEnabled.
+        stateTracker depthTestingEnabled: self depthTestingEnabled.
     }.
 
     method resetObjectAttributes ::=> Void := {
@@ -124,12 +124,12 @@ class SceneRenderingContext superclass: Std Object; definition: {
 
     method objectDepthWriteMask: (depthWriteMask: OverrideableBoolean) ::=> Void := {
         objectDepthWriteMask := depthWriteMask.
-        stateTracker _ depthWriteMask: self depthWriteMask.
+        stateTracker depthWriteMask: self depthWriteMask.
     }.
 
     method objectDepthTestingEnabled: (depthTestingEnabled: OverrideableBoolean) ::=> Void := {
         objectDepthTestingEnabled := depthTestingEnabled.
-        stateTracker _ depthTestingEnabled: self depthTestingEnabled.
+        stateTracker depthTestingEnabled: self depthTestingEnabled.
     }.
 
     method depthWriteMask => Boolean8
@@ -140,13 +140,13 @@ class SceneRenderingContext superclass: Std Object; definition: {
 
     method sceneBlendingEquation: (blendingEquation: BlendingEquation) ::=> Void := {
         sceneBlendingEquation := blendingEquation.
-        stateTracker _ blendingEquation: self blendingEquation.
+        stateTracker blendingEquation: self blendingEquation.
     }.
 
     method materialBlendingEquation: (blendingEquation: BlendingEquation) ::=> Void := {
         materialBlendingEquation := blendingEquation.
         materialBlendingEquationValid := true.
-        stateTracker _ blendingEquation: self blendingEquation.
+        stateTracker blendingEquation: self blendingEquation.
     }.
 
     method blendingEquation => BlendingEquation := {
@@ -160,12 +160,12 @@ class SceneRenderingContext superclass: Std Object; definition: {
     method resetMaterialAttributes ::=> Void := {
         materialFaceCullingModeValid ifTrue: {
             materialFaceCullingModeValid := false.
-            stateTracker _ faceCullingMode: self faceCullingMode.
+            stateTracker faceCullingMode: self faceCullingMode.
         }.
 
         materialBlendingEquationValid ifTrue: {
             materialBlendingEquationValid := false.
-            stateTracker _ blendingEquation: self blendingEquation.
+            stateTracker blendingEquation: self blendingEquation.
         }.
     }.
 

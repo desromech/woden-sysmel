@@ -59,7 +59,7 @@ class Converter definition: {
         image _ uri isEmpty || parameters embedTextures ifTrue: {
             let memoryStream mutable := Std IO MemoryStream().
             let imageReadWriter := Std Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
-            imageReadWriter _ putTextureData: convertedTextureData _  onStream: memoryStream.
+            imageReadWriter _ putTextureData: convertedTextureData  onStream: memoryStream.
 
             let buffer := modelAsset _ newBuffer.
             buffer _ setContent: memoryStream contents.
@@ -75,7 +75,7 @@ class Converter definition: {
         } ifFalse: {
             let outputBasename := image _ uri asNativeFileReference basenameWithoutExtension asMutableString -- ".stx".
             let outputFileReference := outputDirectory / outputBasename asArraySlice.
-            convertedTextureData _ writeToFileNamed: outputFileReference fullName asMutableString.
+            convertedTextureData writeToFileNamed: outputFileReference fullName asMutableString.
             image _ uri: outputBasename
         }.
 

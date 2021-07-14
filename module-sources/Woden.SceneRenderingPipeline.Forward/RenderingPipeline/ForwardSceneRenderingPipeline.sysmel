@@ -11,32 +11,32 @@ useNamespace: Std Math Geometry.
 class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
     compileTime constant ShadowMapTextureLayers := 8u.
     
-    public field shaderSignature type: ShaderSignaturePtr.
-    protected field sampler type: SamplerPtr.
-    protected field cubeMapSampler type: SamplerPtr.
-    protected field deferredSampler type: SamplerPtr.
-    public field samplingStateBinding type: ShaderResourceBindingsPtr.
+    public field shaderSignature type: ShaderSignatureRef.
+    protected field sampler type: SamplerRef.
+    protected field cubeMapSampler type: SamplerRef.
+    protected field deferredSampler type: SamplerRef.
+    public field samplingStateBinding type: ShaderResourceBindingsRef.
 
-    public field specularBRDFLutTexture type: TexturePtr.
-    public field specularBRDFLutTextureView type: TextureViewPtr.
+    public field specularBRDFLutTexture type: TextureRef.
+    public field specularBRDFLutTextureView type: TextureViewRef.
 
     compileTime constant LuminanceComputationTextureCount := 9.
     let LuminanceComputationTextureSizes := UInt32x2 array(
         256, 128, 64, 32, 16, 8, 4, 2, 1
     ).
 
-    public field luminanceComputationRenderPass type: RenderPassPtr.
-    public field luminanceComputationFramebuffers type: (FramebufferPtr array: LuminanceComputationTextureCount).
-    public field luminanceComputationMaterialBindings type: (ShaderResourceBindingsPtr array: LuminanceComputationTextureCount).
+    public field luminanceComputationRenderPass type: RenderPassRef.
+    public field luminanceComputationFramebuffers type: (FramebufferRef array: LuminanceComputationTextureCount).
+    public field luminanceComputationMaterialBindings type: (ShaderResourceBindingsRef array: LuminanceComputationTextureCount).
 
-    protected field shadowMapSampler type: SamplerPtr.
+    protected field shadowMapSampler type: SamplerRef.
     protected field shadowMapTextureSize type: UInt32.
-    public field shadowMapTexture type: TexturePtr.
-    public field shadowMapTextureView type: TextureViewPtr.
-    public field shadowMapRenderPass type: RenderPassPtr.
-    public field shadowMapFramebuffers type: (FramebufferPtr array: ShadowMapTextureLayers).
+    public field shadowMapTexture type: TextureRef.
+    public field shadowMapTextureView type: TextureViewRef.
+    public field shadowMapRenderPass type: RenderPassRef.
+    public field shadowMapFramebuffers type: (FramebufferRef array: ShadowMapTextureLayers).
 
-    method luminanceComputationResultMaterialBindings => ShaderResourceBindingsPtr const ref
+    method luminanceComputationResultMaterialBindings => ShaderResourceBindingsRef const ref
         := luminanceComputationMaterialBindings[LuminanceComputationTextureCount - 1].
 
 
@@ -123,7 +123,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
             );
             yourself.
 
-            shaderSignature := device _ getDefaultShaderSignatureCache _ getOrCreateWithDescription: shaderSignatureDescription.
+            shaderSignature := device getDefaultShaderSignatureCache getOrCreateWithDescription: shaderSignatureDescription.
         }.
 
         ## Create the sampling state binding.
@@ -133,7 +133,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 ifTrue: (TextureFilter Anisotropic)
                 ifFalse: (TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapLinear).
 
-            sampler := device _ createSampler: (SamplerDescription()
+            sampler := device createSampler: (SamplerDescription()
                 filter: anisotropicFilter;
                 addressU: TextureAddressMode Wrap;
                 addressV: TextureAddressMode Wrap;
@@ -142,12 +142,12 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 maxAnisotropy: anisotropy;
                 yourself).
 
-            samplingStateBinding := shaderSignature _ createShaderResourceBindings: 0.
+            samplingStateBinding := shaderSignature createShaderResourceBindings: 0.
             0 until: 6 do: {:(UInt32)i :: Void |
-                samplingStateBinding _ bindOn: i sampler: sampler.
+                samplingStateBinding bindOn: i sampler: sampler.
             }.
 
-            shadowMapSampler := device _ createSampler: (SamplerDescription()
+            shadowMapSampler := device createSampler: (SamplerDescription()
                 filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapNearest;
                 addressU: TextureAddressMode Clamp;
                 addressV: TextureAddressMode Clamp;
@@ -156,31 +156,31 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 comparisonFunction: CompareFunction GreaterThan;
                 maxLod: 10000.0f;
                 yourself).
-            samplingStateBinding _ bindOn: 3 sampler: shadowMapSampler.
+            samplingStateBinding bindOn: 3 sampler: shadowMapSampler.
 
-            cubeMapSampler := device _ createSampler: (SamplerDescription()
+            cubeMapSampler := device createSampler: (SamplerDescription()
                 filter: anisotropicFilter;
                 addressU: TextureAddressMode Border;
                 addressV: TextureAddressMode Border;
                 addressW: TextureAddressMode Border;
                 maxAnisotropy: anisotropy;
                 yourself).
-            samplingStateBinding _ bindOn: 4 sampler: cubeMapSampler.
+            samplingStateBinding bindOn: 4 sampler: cubeMapSampler.
 
-            deferredSampler := device _ createSampler: (SamplerDescription()
+            deferredSampler := device createSampler: (SamplerDescription()
                 filter: TextureFilter MinLinear | TextureFilter MagLinear | TextureFilter MipmapNearest;
                 addressU: TextureAddressMode Clamp;
                 addressV: TextureAddressMode Clamp;
                 addressW: TextureAddressMode Clamp;
                 maxLod: 10000.0f;
                 yourself).
-            samplingStateBinding _ bindOn: 6 sampler: deferredSampler.
+            samplingStateBinding bindOn: 6 sampler: deferredSampler.
 
         }.
 
         ## Create the specularBRDFLut texture.
         {
-            specularBRDFLutTexture := device _ createTexture: (TextureDescription()
+            specularBRDFLutTexture := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: 512;
                 height: 512;
@@ -194,14 +194,14 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 sampleCount: 1;
                 yourself).
 
-            specularBRDFLutTextureView := specularBRDFLutTexture _ getOrCreateFullView.
+            specularBRDFLutTextureView := specularBRDFLutTexture getOrCreateFullView.
             ## TODO: generate the content of the lut texture.
         }.
 
         ## Create the luminance computation textures and framebuffers.
         {
             LuminanceComputationTextureSizes doWithIndex: {:textureExtent :i :: Void |
-                let luminanceIntermediateTexture := device _ createTexture: (TextureDescription()
+                let luminanceIntermediateTexture := device createTexture: (TextureDescription()
                     type: TextureType Texture2D;
                     width: textureExtent x;
                     height: textureExtent y;
@@ -214,13 +214,13 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                     heapType: MemoryHeapType DeviceLocal;
                     sampleCount: 1;
                     yourself).
-                let luminanceIntermediateTextureView := luminanceIntermediateTexture _ getOrCreateFullView.
+                let luminanceIntermediateTextureView := luminanceIntermediateTexture getOrCreateFullView.
 
-                let colorAttachments mutable := TextureViewPtr array(luminanceIntermediateTextureView).
-                luminanceComputationFramebuffers[i] := device _ createFramebuffer: textureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+                let colorAttachments mutable := TextureViewRef array(luminanceIntermediateTextureView).
+                luminanceComputationFramebuffers[i] := device createFramebuffer: textureExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
 
-                luminanceComputationMaterialBindings[i] := shaderSignature _ createShaderResourceBindings: 5.
-                luminanceComputationMaterialBindings[i] _
+                luminanceComputationMaterialBindings[i] := shaderSignature createShaderResourceBindings: 5.
+                luminanceComputationMaterialBindings[i]
                     bindOn: 1 sampledTextureView: luminanceIntermediateTextureView.
             }.
         }.
@@ -234,13 +234,13 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                     yourself
             ).
 
-            luminanceComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+            luminanceComputationRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
 
         ## Create the shadow map texture and associated framebuffers.
         {
             let extent := self shadowMapTextureExtent.
-            shadowMapTexture := device _ createTexture: (TextureDescription()
+            shadowMapTexture := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: extent x;
                 height: extent y;
@@ -254,12 +254,12 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 sampleCount: 1;
                 yourself).
 
-            let shadowMapTextureViewDescription mutable := shadowMapTexture _ getFullViewDescription.
+            let shadowMapTextureViewDescription mutable := shadowMapTexture getFullViewDescription.
             shadowMapTextureViewDescription format: PixelFormat R32_Float.
-            shadowMapTextureView := shadowMapTexture _ createView: shadowMapTextureViewDescription.
+            shadowMapTextureView := shadowMapTexture createView: shadowMapTextureViewDescription.
 
             0 until: ShadowMapTextureLayers do: {:(UInt32)i :: Void |
-                let layerDescription mutable := shadowMapTexture _ getFullViewDescription.
+                let layerDescription mutable := shadowMapTexture getFullViewDescription.
                 layerDescription
                     format: PixelFormat D32_Float;
                     usageMode: TextureUsageMode DepthAttachment;
@@ -271,8 +271,8 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                         layerCount: 1;
                         yourself).
 
-                let layerView := shadowMapTexture _ createView: layerDescription.
-                shadowMapFramebuffers[i] := device _ createFramebuffer: extent colorViews: TextureViewPtr const arraySlice() depthStencilView: layerView.
+                let layerView := shadowMapTexture createView: layerDescription.
+                shadowMapFramebuffers[i] := device createFramebuffer: extent colorViews: TextureViewRef const arraySlice() depthStencilView: layerView.
             }.
         }.
 
@@ -283,7 +283,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
 
-            shadowMapRenderPass := device _ createRenderPass: RenderPassColorAttachmentDescription const arraySlice() depthStencilAttachment: depthStencilAttachment address.
+            shadowMapRenderPass := device createRenderPass: RenderPassColorAttachmentDescription const arraySlice() depthStencilAttachment: depthStencilAttachment address.
         }.
     }.
 
@@ -294,16 +294,16 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     }.
 
     method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
-        self engine _ renderingDevice _ shouldInvertProjectionY ifTrue: {
+        self engine _ renderingDevice shouldInvertProjectionY ifTrue: {
             Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
         } ifFalse: {
             Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
         }.
     }.
 
-    method performAverageLuminanceComputationWith: (stateTracker: StateTrackerPtr const ref) ::=> Void := {
+    method performAverageLuminanceComputationWith: (stateTracker: StateTrackerRef const ref) ::=> Void := {
         ## Color to luma conversion
-        stateTracker _
+        stateTracker
             beginRenderPass: luminanceComputationRenderPass on: luminanceComputationFramebuffers first contentOnBundle: false;
             setViewport: (RectangleI32 min: Int32x2 zeros max: (LuminanceComputationTextureSizes first castTo: Int32x2));
             setScissor: (RectangleI32 min: Int32x2 zeros max: (LuminanceComputationTextureSizes first castTo: Int32x2));
@@ -321,7 +321,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
         1 until: LuminanceComputationTextureCount do: {:i :: Void |
 
             let extent := LuminanceComputationTextureSizes[i].
-            stateTracker _
+            stateTracker
                 useGraphicShaderBindings: luminanceComputationMaterialBindings[i - 1];
                 beginRenderPass: luminanceComputationRenderPass on: luminanceComputationFramebuffers[i] contentOnBundle: false;
                 setViewport: (RectangleI32 min: Int32x2 zeros max: (extent castTo: Int32x2));
@@ -333,8 +333,8 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
         }.
     }.
 
-    method performCameraAutoExposureStateComputationWith: (stateTracker: StateTrackerPtr const ref) ::=> Void := {
-        stateTracker _
+    method performCameraAutoExposureStateComputationWith: (stateTracker: StateTrackerRef const ref) ::=> Void := {
+        stateTracker
             computeShader: Woden Shaders ToneMappingMaterialShaders cameraAutoExposureStateComputation shaderEntryPointInfo address;
             dispatchCompute: 1.
     }.

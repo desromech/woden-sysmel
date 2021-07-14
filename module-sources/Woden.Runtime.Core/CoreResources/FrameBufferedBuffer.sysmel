@@ -7,7 +7,7 @@ useNamespace: Std Graphics Core.
  * I keep track of a state tracker and its corresponding command list allocator in a per frame basis.
  *#
 class FrameBufferedBuffer superclass: FrameBufferedRenderingResource; definition: {
-    public field buffers type: (BufferPtr array: FrameBufferingCount).
+    public field buffers type: (BufferRef array: FrameBufferingCount).
 
     method for: (anEngine: EnginePtr const ref) createWithDescription: (description: BufferDescription const ref) ::=> Void
         := self for: anEngine createWithDescription: description initialData: nil.
@@ -15,13 +15,13 @@ class FrameBufferedBuffer superclass: FrameBufferedRenderingResource; definition
     method for: (anEngine: EnginePtr const ref) createWithDescription: (description: BufferDescription const ref) initialData: (initialData: Void const pointer) ::=> Void := {
         engine := anEngine.
 
-        let device := engine _ renderingDevice.
+        let device ref := engine _ renderingDevice.
         0 until: FrameBufferingCount do: {:i :: Void |
-            buffers[i] := device _ createBuffer: description initialData: initialData.
+            buffers[i] := device createBuffer: description initialData: initialData.
         }
     }.
 
-    method current => BufferPtr const ref
+    method current => BufferRef const ref
         := buffers[self frameBufferingIndex].
 }.
 

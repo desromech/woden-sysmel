@@ -7,10 +7,10 @@ useNamespace: Std Graphics Core.
  * I am a mesh whose geometry data never changes in the GPU.
  *#
 class GenericSubmesh definition: {
-    public field vertexBinding type: VertexBindingPtr.
+    public field vertexBinding type: VertexBindingRef.
     public field vertexAttributeMask type: UInt32.
 
-    public field indexBuffer type: BufferPtr.
+    public field indexBuffer type: BufferRef.
     public field indexBufferOffset type: UIntPointer.
     public field indexBufferStride type: UIntPointer.
     public field material type: MaterialPtr.
@@ -23,16 +23,16 @@ class GenericSubmesh definition: {
         material isNil || vertexBinding isNil || indexOrVertexCount = 0 ifTrue: {return: void}.
         (context vertexAttributeMask: vertexAttributeMask; activateMaterial: material) ifFalse: { return: void }.
 
-        context stateTracker _ useVertexBinding: vertexBinding.
+        context stateTracker useVertexBinding: vertexBinding.
 
         indexBuffer ifNil: {
-            context stateTracker _
+            context stateTracker
                 primitiveTopology: primitiveTopology;
                 drawArrays: indexOrVertexCount instanceCount: 1 firstVertex: 0 baseInstance: 0
         } ifNotNil: {
-            context stateTracker _ useIndexBuffer: indexBuffer at: indexBufferOffset stride: indexBufferStride.
+            context stateTracker useIndexBuffer: indexBuffer at: indexBufferOffset stride: indexBufferStride.
 
-            context stateTracker _
+            context stateTracker
                 primitiveTopology: primitiveTopology;
     			drawElements: indexOrVertexCount instanceCount: 1 firstIndex: firstIndex baseVertex: 0 baseInstance: 0.
         }.

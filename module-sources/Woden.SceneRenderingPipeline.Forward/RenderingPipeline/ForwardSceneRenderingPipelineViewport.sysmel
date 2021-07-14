@@ -18,63 +18,63 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
 
     public field currentExtent type: UInt32x2.
-    public field renderingCommandQueue type: CommandQueuePtr.
+    public field renderingCommandQueue type: CommandQueueRef.
     public field stateTrackers type: FrameBufferedStateTracker.
 
-    public field depthNormalFramebuffer type: FramebufferPtr.
-    public field depthNormalRenderPass type: RenderPassPtr.
+    public field depthNormalFramebuffer type: FramebufferRef.
+    public field depthNormalRenderPass type: RenderPassRef.
 
-    public field renderDepthBufferTextureView type: TextureViewPtr.
-    public field decodedDepthBufferTextureView type: TextureViewPtr.
-    public field decodeDepthFramebuffer type: FramebufferPtr.
-    public field decodeDepthRenderPass type: RenderPassPtr.
-    public field decodeDepthBinding type: ShaderResourceBindingsPtr.
+    public field renderDepthBufferTextureView type: TextureViewRef.
+    public field decodedDepthBufferTextureView type: TextureViewRef.
+    public field decodeDepthFramebuffer type: FramebufferRef.
+    public field decodeDepthRenderPass type: RenderPassRef.
+    public field decodeDepthBinding type: ShaderResourceBindingsRef.
 
-    public field renderNormalBufferTexture type: TexturePtr.
-    public field normalBufferTexture type: TexturePtr.
-    public field normalBufferTextureView type: TextureViewPtr.
+    public field renderNormalBufferTexture type: TextureRef.
+    public field normalBufferTexture type: TextureRef.
+    public field normalBufferTextureView type: TextureViewRef.
 
     public field ssaoQuality type: ScreenSpaceAmbientOcclusionQualitySetting.
     public field multiSampleCount type: UInt32.
 
     public field ssaoTextureExtent type: UInt32x2.
-    public field ssaoTextureView type: TextureViewPtr.
-    public field ssaoFramebuffer type: FramebufferPtr.
-    public field ssaoPingTextureView type: TextureViewPtr.
-    public field ssaoPingFramebuffer type: FramebufferPtr.
-    public field ssaoComputationRenderPass type: RenderPassPtr.
-    public field ssaoComputationBinding type: ShaderResourceBindingsPtr.
-    public field ssaoBlurPingBinding type: ShaderResourceBindingsPtr.
-    public field ssaoBlurPongBinding type: ShaderResourceBindingsPtr.
+    public field ssaoTextureView type: TextureViewRef.
+    public field ssaoFramebuffer type: FramebufferRef.
+    public field ssaoPingTextureView type: TextureViewRef.
+    public field ssaoPingFramebuffer type: FramebufferRef.
+    public field ssaoComputationRenderPass type: RenderPassRef.
+    public field ssaoComputationBinding type: ShaderResourceBindingsRef.
+    public field ssaoBlurPingBinding type: ShaderResourceBindingsRef.
+    public field ssaoBlurPongBinding type: ShaderResourceBindingsRef.
 
-    public field hdrColorFramebuffer type: FramebufferPtr.
-    public field renderHDRColorBuffer type: TexturePtr.
-    public field resolveHDRColorBuffer type: TexturePtr.
-    public field hdrColorRenderPass type: RenderPassPtr.
-    public field hdrColorBufferBinding type: ShaderResourceBindingsPtr.
+    public field hdrColorFramebuffer type: FramebufferRef.
+    public field renderHDRColorBuffer type: TextureRef.
+    public field resolveHDRColorBuffer type: TextureRef.
+    public field hdrColorRenderPass type: RenderPassRef.
+    public field hdrColorBufferBinding type: ShaderResourceBindingsRef.
 
     protected field eyeReadbackBufferPitch type: UIntPointer.
     protected field eyeReadbackBufferSlicePitch type: UIntPointer.
     protected field eyeReadbackBufferSize type: UIntPointer.
-    protected field eyeReadbackBuffer type: BufferPtr.
+    protected field eyeReadbackBuffer type: BufferRef.
 
     protected field dumpFrameCount type: UIntPointer.
 
-    protected field leftEyeFramebuffer type: FramebufferPtr.
-    protected field leftEyeTexture type: TexturePtr.
-    protected field leftEyeTextureView type: TextureViewPtr.
+    protected field leftEyeFramebuffer type: FramebufferRef.
+    protected field leftEyeTexture type: TextureRef.
+    protected field leftEyeTextureView type: TextureViewRef.
 
-    protected field rightEyeFramebuffer type: FramebufferPtr.
-    protected field rightEyeTexture type: TexturePtr.
-    protected field rightEyeTextureView type: TextureViewPtr.
+    protected field rightEyeFramebuffer type: FramebufferRef.
+    protected field rightEyeTexture type: TextureRef.
+    protected field rightEyeTextureView type: TextureViewRef.
 
-    protected field eyeCompositionRenderPass type: RenderPassPtr.
-    protected field stereoEyeCompositionBinding type: ShaderResourceBindingsPtr.
+    protected field eyeCompositionRenderPass type: RenderPassRef.
+    protected field stereoEyeCompositionBinding type: ShaderResourceBindingsRef.
 
-    protected field currentBackBufferLeftEye type: FramebufferPtr.
-    protected field currentBackBufferRightEye type: FramebufferPtr.
-    public field currentDisplayRenderPass type: RenderPassPtr.
-    public field currentScene2D type: Std Graphics Scene2D NodePtr.
+    protected field currentBackBufferLeftEye type: FramebufferRef.
+    protected field currentBackBufferRightEye type: FramebufferRef.
+    public field currentDisplayRenderPass type: RenderPassRef.
+    public field currentScene2D type: Std Graphics Scene2D NodeRef.
 
     const inline method engine => EnginePtr
         := sceneRenderingPipeline _ engine.
@@ -100,20 +100,20 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let isDumpingFrames := self engine _ renderingSettings frameDumping.
         let device := self engine _ renderingDevice.
         renderingCommandQueue ifNotNil: {
-            renderingCommandQueue _ waitForIdle
+            renderingCommandQueue waitForIdle
         }.
 
         let newMultiSampleCount := renderingSettings multiSampleCount max: 1u.
         multiSampleCount = newMultiSampleCount ifFalse: {
-            depthNormalRenderPass reset.
-            hdrColorRenderPass reset.
+            depthNormalRenderPass := nil.
+            hdrColorRenderPass := nil.
         }.
 
         multiSampleCount := newMultiSampleCount.
 
-        hdrColorFramebuffer reset.
+        hdrColorFramebuffer := nil.
 
-        let renderDepthBuffer := device _ createTexture: (TextureDescription()
+        let renderDepthBuffer := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: requiredExtent x;
             height: requiredExtent y;
@@ -126,7 +126,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             heapType: MemoryHeapType DeviceLocal;
             sampleCount: multiSampleCount;
             yourself).
-        let decodedDepthBuffer := device _ createTexture: (TextureDescription()
+        let decodedDepthBuffer := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: requiredExtent x;
             height: requiredExtent y;
@@ -143,7 +143,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         ## We cannot use R10G10B10A2_UNorm for multi-sampled rendering.
         let normalBufferFormat := PixelFormat R10G10B10A2_UNorm.
 
-        renderNormalBufferTexture := device _ createTexture: (TextureDescription()
+        renderNormalBufferTexture := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: requiredExtent x;
             height: requiredExtent y;
@@ -158,7 +158,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             yourself).
         normalBufferTexture := renderNormalBufferTexture.
         multiSampleCount > 1u ifTrue: {
-            normalBufferTexture := device _ createTexture: (TextureDescription()
+            normalBufferTexture := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
                 height: requiredExtent y;
@@ -174,27 +174,27 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         let depthBufferAttachmentView := {
-            let depthBufferAttachmentViewDescription mutable := renderDepthBuffer _ getFullViewDescription.
+            let depthBufferAttachmentViewDescription mutable := renderDepthBuffer getFullViewDescription.
             depthBufferAttachmentViewDescription
                 format: PixelFormat D32_Float;
                 usageMode: TextureUsageMode DepthAttachment.
-            renderDepthBuffer _ createView: depthBufferAttachmentViewDescription
+            renderDepthBuffer createView: depthBufferAttachmentViewDescription
         }.
 
         {
-            let renderDepthBufferTextureViewDescription mutable := renderDepthBuffer _ getFullViewDescription.
+            let renderDepthBufferTextureViewDescription mutable := renderDepthBuffer getFullViewDescription.
             renderDepthBufferTextureViewDescription format: PixelFormat R32_Float.
-            renderDepthBufferTextureView := renderDepthBuffer _ createView: renderDepthBufferTextureViewDescription.
+            renderDepthBufferTextureView := renderDepthBuffer createView: renderDepthBufferTextureViewDescription.
         }.
 
-        decodedDepthBufferTextureView := decodedDepthBuffer _ getOrCreateFullView.
-        normalBufferTextureView := normalBufferTexture _ getOrCreateFullView.
+        decodedDepthBufferTextureView := decodedDepthBuffer getOrCreateFullView.
+        normalBufferTextureView := normalBufferTexture getOrCreateFullView.
 
         ## Create the depth normal framebuffer.
         {
-            let renderNormalBufferTextureView := renderNormalBufferTexture _ getOrCreateFullView.
-            let colorAttachments mutable := TextureViewPtr array(renderNormalBufferTextureView).
-            depthNormalFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
+            let renderNormalBufferTextureView := renderNormalBufferTexture getOrCreateFullView.
+            let colorAttachments mutable := TextureViewRef array(renderNormalBufferTextureView).
+            depthNormalFramebuffer := device createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
         depthNormalRenderPass ifNil: {
@@ -214,19 +214,19 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 beginAction: RenderPassAttachmentAction Clear;
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
-            depthNormalRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+            depthNormalRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
         ## Create the decode framebuffer render pass.
         {
-            let colorAttachments mutable := TextureViewPtr array(decodedDepthBufferTextureView).
-            decodeDepthFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+            let colorAttachments mutable := TextureViewRef array(decodedDepthBufferTextureView).
+            decodeDepthFramebuffer := device createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
         }.
 
         decodeDepthBinding ifNil: {
-            decodeDepthBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+            decodeDepthBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
         }.
-        decodeDepthBinding _
+        decodeDepthBinding
             bindOn: 1 sampledTextureView: renderDepthBufferTextureView.
 
         decodeDepthRenderPass ifNil: {
@@ -237,12 +237,12 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                     endAction: RenderPassAttachmentAction Keep;
                     yourself
             ).
-            decodeDepthRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+            decodeDepthRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
 
         ## Create the main hdr framebuffer.
         {
-            renderHDRColorBuffer := device _ createTexture: (TextureDescription()
+            renderHDRColorBuffer := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: requiredExtent x;
                 height: requiredExtent y;
@@ -257,7 +257,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 yourself).
             resolveHDRColorBuffer := renderHDRColorBuffer.
             multiSampleCount > 1u ifTrue: {
-                resolveHDRColorBuffer := device _ createTexture: (TextureDescription()
+                resolveHDRColorBuffer := device createTexture: (TextureDescription()
                     type: TextureType Texture2D;
                     width: requiredExtent x;
                     height: requiredExtent y;
@@ -272,23 +272,23 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                     yourself).
             }.
 
-            let renderColorBufferTextureView := renderHDRColorBuffer _ getOrCreateFullView.
+            let renderColorBufferTextureView := renderHDRColorBuffer getOrCreateFullView.
 
             hdrColorBufferBinding ifNil: {
-                hdrColorBufferBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+                hdrColorBufferBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
             }.
-            hdrColorBufferBinding _ bindOn: 1 sampledTextureView: resolveHDRColorBuffer _ getOrCreateFullView.
+            hdrColorBufferBinding bindOn: 1 sampledTextureView: resolveHDRColorBuffer getOrCreateFullView.
 
-            let colorAttachments mutable := TextureViewPtr array(renderColorBufferTextureView).
-            hdrColorFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
+            let colorAttachments mutable := TextureViewRef array(renderColorBufferTextureView).
+            hdrColorFramebuffer := device createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: depthBufferAttachmentView.
         }.
 
-        ssaoFramebuffer reset.
-        ssaoTextureView reset.
-        ssaoPingFramebuffer reset.
-        ssaoPingTextureView reset.
+        ssaoFramebuffer := nil.
+        ssaoTextureView := nil.
+        ssaoPingFramebuffer := nil.
+        ssaoPingTextureView := nil.
         ssaoQuality isDisabled ifTrue: {
-            ssaoTextureView := self engine _ resourceCache _ whiteTexture _ textureView.
+            ssaoTextureView := self engine _ resourceCache _ whiteTexture textureView.
         } ifFalse: {
             self createSSAOBuffersForExtent: requiredExtent.
         }.
@@ -309,18 +309,18 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 beginAction: RenderPassAttachmentAction Keep;
                 endAction: RenderPassAttachmentAction Keep;
                 yourself.
-            hdrColorRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
+            hdrColorRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: depthStencilAttachment address.
         }.
 
         isDumpingFrames ifTrue: {
-            eyeReadbackBufferPitch := sceneRenderingPipeline _ swapChainColorBufferFormat bytesPerPixel * requiredExtent x alignedTo: device _ minTextureDataPitchAlignment.
-            eyeReadbackBufferSlicePitch := eyeReadbackBufferPitch * requiredExtent y alignedTo: device _ minTextureDataOffsetAlignment.
+            eyeReadbackBufferPitch := sceneRenderingPipeline _ swapChainColorBufferFormat bytesPerPixel * requiredExtent x alignedTo: device minTextureDataPitchAlignment.
+            eyeReadbackBufferSlicePitch := eyeReadbackBufferPitch * requiredExtent y alignedTo: device minTextureDataOffsetAlignment.
             eyeReadbackBufferSize := eyeReadbackBufferSlicePitch * FrameBufferingCount.
             stereoPresentationMode isStereoscopic ifTrue: {
                 eyeReadbackBufferSize := eyeReadbackBufferSize * 2
             }.
 
-            eyeReadbackBuffer := device _ createBuffer: (BufferDescription()
+            eyeReadbackBuffer := device createBuffer: (BufferDescription()
                 size: eyeReadbackBufferSize;
                 heapType: MemoryHeapType DeviceToHost;
                 usageModes: BufferUsageMode CopyDestinationBuffer;
@@ -349,18 +349,18 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             ## Left eye
             {
-                leftEyeTexture := device _ createTexture: eyeTextureDescription.
-                leftEyeTextureView := leftEyeTexture _ getOrCreateFullView.
-                let colorAttachments mutable := TextureViewPtr array(leftEyeTextureView).
-                leftEyeFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+                leftEyeTexture := device createTexture: eyeTextureDescription.
+                leftEyeTextureView := leftEyeTexture getOrCreateFullView.
+                let colorAttachments mutable := TextureViewRef array(leftEyeTextureView).
+                leftEyeFramebuffer := device createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
             }.
 
             ## Right eye
             stereoPresentationMode isStereoscopic ifTrue: {
-                rightEyeTexture := device _ createTexture: eyeTextureDescription.
-                rightEyeTextureView := rightEyeTexture _ getOrCreateFullView.
-                let colorAttachments mutable := TextureViewPtr array(rightEyeTextureView).
-                rightEyeFramebuffer := device _ createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+                rightEyeTexture := device createTexture: eyeTextureDescription.
+                rightEyeTextureView := rightEyeTexture getOrCreateFullView.
+                let colorAttachments mutable := TextureViewRef array(rightEyeTextureView).
+                rightEyeFramebuffer := device createFramebuffer: requiredExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
             } ifFalse: {
                 rightEyeTexture := leftEyeTexture.
                 rightEyeTextureView := leftEyeTextureView.
@@ -369,15 +369,15 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             }.
 
             stereoEyeCompositionBinding ifNil: {
-                stereoEyeCompositionBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+                stereoEyeCompositionBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
             }.
 
             self hasStereoscopicPresentationModeWithFlippedEyes ifTrue: {
-                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: rightEyeTextureView.
-                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: leftEyeTextureView.
+                stereoEyeCompositionBinding bindOn: 1 sampledTextureView: rightEyeTextureView.
+                stereoEyeCompositionBinding bindOn: 2 sampledTextureView: leftEyeTextureView.
             } ifFalse: {
-                stereoEyeCompositionBinding _ bindOn: 1 sampledTextureView: leftEyeTextureView.
-                stereoEyeCompositionBinding _ bindOn: 2 sampledTextureView: rightEyeTextureView.
+                stereoEyeCompositionBinding bindOn: 1 sampledTextureView: leftEyeTextureView.
+                stereoEyeCompositionBinding bindOn: 2 sampledTextureView: rightEyeTextureView.
             }.
 
             eyeCompositionRenderPass ifNil: {
@@ -389,7 +389,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                         yourself
                 ).
 
-                eyeCompositionRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+                eyeCompositionRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: nil.
             }.
         }.
 
@@ -399,7 +399,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         ## Get the rendering command queue.
-        renderingCommandQueue := device _ getDefaultCommandQueue.
+        renderingCommandQueue := device getDefaultCommandQueue.
 
         ## Build the command allocator and list.
         stateTrackers isCreated ifFalse: {
@@ -413,16 +413,16 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let device ref := self engine _ renderingDevice.
 
         ssaoComputationBinding ifNil: {
-            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
         }.
-        ssaoComputationBinding _
+        ssaoComputationBinding
             bindOn: 1 sampledTextureView: decodedDepthBufferTextureView;
             bindOn: 2 sampledTextureView: normalBufferTextureView.
 
         ## Create the SSAO computation framebuffer.
         ssaoTextureExtent := ssaoQuality computeTextureExtentForFramebufferExtent: framebufferExtent.
         {
-            let ssaoTexture := device _ createTexture: (TextureDescription()
+            let ssaoTexture := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: ssaoTextureExtent x;
                 height: ssaoTextureExtent y;
@@ -435,14 +435,14 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 heapType: MemoryHeapType DeviceLocal;
                 sampleCount: 1;
                 yourself).
-            ssaoTextureView := ssaoTexture _ getOrCreateFullView.
+            ssaoTextureView := ssaoTexture getOrCreateFullView.
 
-            let colorAttachments mutable := TextureViewPtr array(ssaoTextureView).
-            ssaoFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+            let colorAttachments mutable := TextureViewRef array(ssaoTextureView).
+            ssaoFramebuffer := device createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
         }.
 
         {
-            let ssaoPingTexture := device _ createTexture: (TextureDescription()
+            let ssaoPingTexture := device createTexture: (TextureDescription()
                 type: TextureType Texture2D;
                 width: ssaoTextureExtent x;
                 height: ssaoTextureExtent y;
@@ -455,21 +455,21 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 heapType: MemoryHeapType DeviceLocal;
                 sampleCount: 1;
                 yourself).
-            ssaoPingTextureView := ssaoPingTexture _ getOrCreateFullView.
+            ssaoPingTextureView := ssaoPingTexture getOrCreateFullView.
 
-            let colorAttachments mutable := TextureViewPtr array(ssaoPingTextureView).
-            ssaoPingFramebuffer := device _ createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewPtr nil.
+            let colorAttachments mutable := TextureViewRef array(ssaoPingTextureView).
+            ssaoPingFramebuffer := device createFramebuffer: ssaoTextureExtent colorViews: colorAttachments depthStencilView: TextureViewRef nil.
         }.
 
         ssaoBlurPingBinding ifNil: {
-            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
         }.
-        ssaoBlurPingBinding _ bindOn: 1 sampledTextureView: ssaoTextureView.
+        ssaoBlurPingBinding bindOn: 1 sampledTextureView: ssaoTextureView.
 
         ssaoBlurPongBinding ifNil: {
-            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature _ createShaderResourceBindings: 5.
+            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
         }.
-        ssaoBlurPongBinding _ bindOn: 1 sampledTextureView: ssaoPingTextureView.
+        ssaoBlurPongBinding bindOn: 1 sampledTextureView: ssaoPingTextureView.
 
         ssaoComputationRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
@@ -480,7 +480,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                     yourself
             ).
 
-            ssaoComputationRenderPass := device _ createRenderPass: colorAttachments depthStencilAttachment: nil.
+            ssaoComputationRenderPass := device createRenderPass: colorAttachments depthStencilAttachment: nil.
         }.
     }.
 
@@ -502,14 +502,14 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
-        self engine _ renderingDevice _ shouldInvertProjectionY ifTrue: {
+        self engine _ renderingDevice shouldInvertProjectionY ifTrue: {
             Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
         } ifFalse: {
             Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
         }.
     }.
 
-    override method setCurrentBackBufferLeftEye: (leftEye: FramebufferPtr const ref) rightEye: (rightEye: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
+    override method setCurrentBackBufferLeftEye: (leftEye: FramebufferRef const ref) rightEye: (rightEye: FramebufferRef const ref) renderPass: (displayRenderPass: RenderPassRef const ref) ::=> Void := {
         currentDisplayRenderPass := displayRenderPass.
         currentBackBufferLeftEye := leftEye.
         currentBackBufferRightEye := rightEye.
@@ -541,7 +541,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
     method composeStereoscopicPresentation => Void := {
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2).
-        stateTrackers current _
+        stateTrackers current
             resetState;
             useShaderSignature: sceneRenderingPipeline _ shaderSignature;
             useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
@@ -573,24 +573,24 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
             let frameToSave := dumpFrameCount - FrameBufferingCount.
             let formToSave := Form extent: currentExtent pixelFormat: sceneRenderingPipeline _ swapChainColorBufferFormat.
-            let sourceData := (eyeReadbackBuffer _ map: MappingAccessMask ReadOnly) reinterpretCastTo: UInt8 pointer.
+            let sourceData := (eyeReadbackBuffer map: MappingAccessMask ReadOnly) reinterpretCastTo: UInt8 pointer.
 
-            let destRow mutable := formToSave _ pixels getPointer.
-            let destPitch := formToSave _ pitch.
+            let destRow mutable := formToSave pixels getPointer.
+            let destPitch := formToSave pitch.
             let sourceRow mutable := sourceData + frameOffset.
-            let copySize := currentExtent x * formToSave _ pixelFormat bytesPerPixel.
+            let copySize := currentExtent x * formToSave pixelFormat bytesPerPixel.
             0 until: currentExtent y do: {:y :: Void |
                 Std memcpy(destRow, sourceRow, copySize).
                 destRow := destRow + destPitch.
                 sourceRow := sourceRow + eyeReadbackBufferPitch.
             }.
 
-            eyeReadbackBuffer _ unmap.
+            eyeReadbackBuffer unmap.
 
-            formToSave _ writeToFileNamed: outputFilename
+            formToSave writeToFileNamed: outputFilename
         }.
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2).
-        let stateTracker ref := stateTrackers current _.
+        let stateTracker ref := stateTrackers current.
 
         stateTracker
             ## Present the frame.
@@ -634,12 +634,12 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         dumpFrameCount := dumpFrameCount + 1.
     }.
 
-    override method setScene2D: (scene2D: Std Graphics Scene2D NodePtr const ref) ::=> Void := {
+    override method setScene2D: (scene2D: Std Graphics Scene2D NodeRef const ref) ::=> Void := {
         currentScene2D := scene2D
     }.
 
-    override method scene2DBuilder => Std Graphics Scene2D BuilderPtr
-        := self engine _ renderingDevice _ createScene2DBuilder.
+    override method scene2DBuilder => Std Graphics Scene2D BuilderRef
+        := self engine _ renderingDevice createScene2DBuilder.
 
     override method constructAndEnqueueCommandList => Void := {
         currentBackBufferLeftEye isNil || currentDisplayRenderPass isNil ifTrue: {
@@ -672,7 +672,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             self composeStereoscopicPresentation
         }.
 
-        stateTracker _
+        stateTracker
             close.
 
         self engine _ enqueueCommandList: (stateTracker upCastFor: CommandList).

@@ -11,7 +11,7 @@ class ModelAssetTexture superclass: ModelAssetElement; definition: {
     public field image type: ModelAssetImagePtr.
     public field sampler type: ModelAssetSamplerPtr.
 
-    field textureWithView type: TextureWithViewPtr.
+    field textureWithView type: TextureWithViewRef.
 
     method setColorUsage => Void := {
         image ifNotNil: {
@@ -31,18 +31,18 @@ class ModelAssetTexture superclass: ModelAssetElement; definition: {
         }
     }.
 
-    method asTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewPtr := {
-        image ifNil: {return: TextureWithViewPtr nil}.
+    method asTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewRef := {
+        image ifNil: {return: TextureWithViewRef nil}.
 
         let textureData := image _ asTextureDataFor: engine.
-        textureData ifNil: {return: TextureWithViewPtr nil}.
+        textureData ifNil: {return: TextureWithViewRef nil}.
 
         let texture := image _ usageMode = ModelAssetImageUsageMode Color
-            ifTrue: {engine _ renderingDevice _ createColorTextureWithData: textureData _}
-            ifFalse: {engine _ renderingDevice _ createTextureWithData: textureData _}.
-        texture ifNil: {return: TextureWithViewPtr nil}.
+            ifTrue: {engine _ renderingDevice createColorTextureWithData: textureData}
+            ifFalse: {engine _ renderingDevice createTextureWithData: textureData}.
+        texture ifNil: {return: TextureWithViewRef nil}.
 
-        texture _ asTextureWithView
+        texture asTextureWithView
     }.
 }.
 

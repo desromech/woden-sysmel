@@ -41,7 +41,7 @@ class RenderingPipelineCameraLayer definition: {
 
             cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
             cameraStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
+                each bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
             }.
         }.
     }.
@@ -51,7 +51,7 @@ class RenderingPipelineCameraLayer definition: {
     }.
 
     method uploadCameraState => Void := {
-        cameraStateBuffers current _ uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
+        cameraStateBuffers current uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
     method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
@@ -70,21 +70,21 @@ class RenderingPipelineCameraLayer definition: {
 
             spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
             spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _ bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+                each bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
             }.
         }.
 
-        spatialObject _ objectStateBuffers current _
+        spatialObject _ objectStateBuffers current
             uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
 
-        context stateTracker _
+        context stateTracker
             useGraphicShaderBindings: spatialObject _ objectStateBindings current.
 
         renderObject renderable _ renderWithContext: context.
     }.
 
     virtual method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
-        context stateTracker _
+        context stateTracker
             useGraphicShaderBindings: cameraStateBindings current.
 
         renderableSceneObjects do: {:each :: Void |

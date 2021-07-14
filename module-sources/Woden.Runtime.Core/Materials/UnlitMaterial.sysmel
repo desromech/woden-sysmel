@@ -17,8 +17,8 @@ class UnlitMaterial superclass: Material; definition: {
 
     public field state type: Woden Shaders UnlitMaterialStateData.
 
-    public field stateBinding type: ShaderResourceBindingsPtr.
-    public field texture type: TextureWithViewPtr.
+    public field stateBinding type: ShaderResourceBindingsRef.
+    public field texture type: TextureWithViewRef.
 
     public field doubleSided type: Boolean8.
     public field isTranslucent type: Boolean8.
@@ -43,7 +43,7 @@ class UnlitMaterial superclass: Material; definition: {
             colorFactor: Float32x4 white
     }.
 
-    method validTexture => TextureWithViewPtr := {
+    method validTexture => TextureWithViewRef := {
         texture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         texture
     }.

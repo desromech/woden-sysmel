@@ -7,8 +7,8 @@ useNamespace: Woden Runtime.
 class TextureDefinition superclass: LevelElementDefinition; definition: {
     override method isTextureDefinition => Boolean8 := true.
 
-    virtual method getOrCreateTextureWithViewFor: (engine: EnginePtr) ::=> TextureWithViewPtr
-        := TextureWithViewPtr nil.
+    virtual method getOrCreateTextureWithViewFor: (engine: EnginePtr) ::=> TextureWithViewRef
+        := TextureWithViewRef nil.
 }.
 
 compileTime constant TextureDefinitionPtr := TextureDefinition rcPointer.

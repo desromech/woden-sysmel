@@ -14,50 +14,50 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     public field bufferView type: ModelAssetBinaryBufferViewPtr.
     public field usageMode type: ModelAssetImageUsageMode.
 
-    method asTextureDataFromFileFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
-        uri ifEmpty: {return: TextureDataPtr nil}.
+    method asTextureDataFromFileFor: (engine: EnginePtr const ref) ::=> TextureDataRef := {
+        uri ifEmpty: {return: TextureDataRef nil}.
 
         let fileReference := self modelAsset _ parentFolder resolve: uri asNativeFileReference.
         let solvedFileReference := engine _ resourceCache _ solveTextureFileReference: fileReference.
         TextureData readFromFileReference: solvedFileReference
     }.
 
-    method asTextureDataFromBufferView ::=> TextureDataPtr := {
-        mimeType ifEmpty: {return: TextureDataPtr nil}.
+    method asTextureDataFromBufferView ::=> TextureDataRef := {
+        mimeType ifEmpty: {return: TextureDataRef nil}.
 
         let memoryStream mutable := bufferView _ asFixedMemoryStream.
         TextureData readFromStream: memoryStream withMimeType: mimeType asArraySlice.
     }.
 
-    method asTextureDataFor: (engine: EnginePtr const ref) ::=> TextureDataPtr := {
+    method asTextureDataFor: (engine: EnginePtr const ref) ::=> TextureDataRef := {
         let result := bufferView ifNil: {
             self asTextureDataFromFileFor: engine
         } ifNotNil: {
             self asTextureDataFromBufferView
         }.
-        result ifNil: {return: TextureDataPtr nil}.
+        result ifNil: {return: TextureDataRef nil}.
 
         ## Do not generate mipmaps if there are already present, or if they cannot be generated.
-        result _ hasGeneratedMipmaps || result _ hasOptimalTargetSpecificTiling ifTrue: {
+        result hasGeneratedMipmaps || result hasOptimalTargetSpecificTiling ifTrue: {
             return: result
         }.
 
         let resultWithMiplevels := usageMode selectCase: #{
-        ModelAssetImageUsageMode Color : {result _ generateColorMiplevels}.
-        ModelAssetImageUsageMode Linear : {result _ generateMiplevels}.
-        ModelAssetImageUsageMode Normal : {result _ generateNormalMiplevels}.
+        ModelAssetImageUsageMode Color : {result generateColorMiplevels}.
+        ModelAssetImageUsageMode Linear : {result generateMiplevels}.
+        ModelAssetImageUsageMode Normal : {result generateNormalMiplevels}.
         }.
         resultWithMiplevels ifNil: {return: result}.
         resultWithMiplevels
     }.
 
-    method asOfflineTextureDataFromFile ::=> TextureDataPtr := {
-        uri ifEmpty: {return: TextureDataPtr nil}.
+    method asOfflineTextureDataFromFile ::=> TextureDataRef := {
+        uri ifEmpty: {return: TextureDataRef nil}.
 
         TextureData readFromFileReference: uri asNativeFileReference
     }.
 
-    method asOfflineTextureData ::=> TextureDataPtr := {
+    method asOfflineTextureData ::=> TextureDataRef := {
         bufferView ifNil: {
             self asOfflineTextureDataFromFile
         } ifNotNil: {

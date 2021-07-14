@@ -8,7 +8,7 @@ class MaterialLoader definition: {
     field parentFolder type: Std FileReference.
     field engine type: EnginePtr.
 
-    method loadColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+    method loadColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
         let result := engine _ resourceCache _ loadColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
@@ -17,10 +17,10 @@ class MaterialLoader definition: {
         result
     }.
 
-    method loadColorTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewPtr
-        := self loadColorTextureFrom: relativePath default: TextureWithViewPtr nil.
+    method loadColorTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewRef
+        := self loadColorTextureFrom: relativePath default: TextureWithViewRef nil.
 
-    method loadNonColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+    method loadNonColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
         let result := engine _ resourceCache _ loadNonColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
@@ -29,10 +29,10 @@ class MaterialLoader definition: {
         result
     }.
 
-    method loadNonColorTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewPtr
-        := self loadNonColorTextureFrom: relativePath default: TextureWithViewPtr nil.
+    method loadNonColorTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewRef
+        := self loadNonColorTextureFrom: relativePath default: TextureWithViewRef nil.
 
-    method loadNormalTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+    method loadNormalTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
         let result := engine _ resourceCache _ loadNormalTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
@@ -41,8 +41,8 @@ class MaterialLoader definition: {
         result
     }.
 
-    method loadNormalTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewPtr
-        := self loadNormalTextureFrom: relativePath default: TextureWithViewPtr nil.
+    method loadNormalTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewRef
+        := self loadNormalTextureFrom: relativePath default: TextureWithViewRef nil.
 
 
     method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) into: (result: MetallicRoughnessMaterial ref) ::=> Void := {
@@ -88,7 +88,7 @@ class MaterialLoader definition: {
             isTranslucent: (object getBoolean8: "isTranslucent" asMutableString default: false)
     }.
 
-    method loadColorCubeTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewPtr const ref) ::=> TextureWithViewPtr := {
+    method loadColorCubeTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
         let result := engine _ resourceCache _ loadColorCubeTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
@@ -97,8 +97,8 @@ class MaterialLoader definition: {
         result
     }.
 
-    method loadColorCubeTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewPtr
-        := self loadColorCubeTextureFrom: relativePath default: TextureWithViewPtr nil.
+    method loadColorCubeTextureFrom: (relativePath: Std String const ref) ::=> TextureWithViewRef
+        := self loadColorCubeTextureFrom: relativePath default: TextureWithViewRef nil.
 
 
     method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {

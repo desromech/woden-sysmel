@@ -38,20 +38,20 @@ class SceneRenderingPipelineViewport superclass: Std RCObject; definition: {
         stereoPresentationMode := thePresentationMode
     }.
 
-    virtual method setCurrentBackBufferLeftEye: (leftEye: FramebufferPtr const ref) rightEye: (rightEye: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void := {
+    virtual method setCurrentBackBufferLeftEye: (leftEye: FramebufferRef const ref) rightEye: (rightEye: FramebufferRef const ref) renderPass: (displayRenderPass: RenderPassRef const ref) ::=> Void := {
 
     }.
 
-    method setCurrentBackBuffer: (backBuffer: FramebufferPtr const ref) renderPass: (displayRenderPass: RenderPassPtr) ::=> Void
-        := self setCurrentBackBufferLeftEye: backBuffer rightEye: FramebufferPtr nil renderPass: displayRenderPass.
+    method setCurrentBackBuffer: (backBuffer: FramebufferRef const ref) renderPass: (displayRenderPass: RenderPassRef const ref) ::=> Void
+        := self setCurrentBackBufferLeftEye: backBuffer rightEye: FramebufferRef nil renderPass: displayRenderPass.
 
     virtual method getLastFrameVisibleObjectCount => UIntPointer
         := 0.
 
-    virtual method scene2DBuilder => Std Graphics Scene2D BuilderPtr
-        := Std Graphics Scene2D BuilderPtr nil.
+    virtual method scene2DBuilder => Std Graphics Scene2D BuilderRef
+        := Std Graphics Scene2D BuilderRef nil.
 
-    virtual method setScene2D: (scene2D: Std Graphics Scene2D NodePtr const ref) ::=> Void := {
+    virtual method setScene2D: (scene2D: Std Graphics Scene2D NodeRef const ref) ::=> Void := {
 
     }.
 

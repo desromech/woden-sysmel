@@ -17,14 +17,14 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
 
     public field state type: Woden Shaders MetallicRoughnessMaterialStateData.
 
-    public field stateBinding type: ShaderResourceBindingsPtr.
-    public field stateBuffer type: BufferPtr. ## TODO: Use pool of elements here.
+    public field stateBinding type: ShaderResourceBindingsRef.
+    public field stateBuffer type: BufferRef. ## TODO: Use pool of elements here.
 
-    public field baseColorTexture type: TextureWithViewPtr.
-    public field normalTexture type: TextureWithViewPtr.
-    public field emissionTexture type: TextureWithViewPtr.
-    public field occlusionTexture type: TextureWithViewPtr.
-    public field metallicRoughnessTexture type: TextureWithViewPtr.
+    public field baseColorTexture type: TextureWithViewRef.
+    public field normalTexture type: TextureWithViewRef.
+    public field emissionTexture type: TextureWithViewRef.
+    public field occlusionTexture type: TextureWithViewRef.
+    public field metallicRoughnessTexture type: TextureWithViewRef.
 
     public field doubleSided type: Boolean8.
     public field isTranslucent type: Boolean8.
@@ -79,27 +79,27 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
     override method activateWithSceneRenderingContext: (context: SceneRenderingContext ref) ::=> Boolean8
         := context activateMetallicRoughnessMaterial: self.
 
-    method validBaseColorTexture => TextureWithViewPtr := {
+    method validBaseColorTexture => TextureWithViewRef := {
         baseColorTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         baseColorTexture
     }.
 
-    method validNormalTexture => TextureWithViewPtr := {
+    method validNormalTexture => TextureWithViewRef := {
         normalTexture ifNil: {return: engine _ resourceCache _ neutralNormalTexture}.
         normalTexture
     }.
 
-    method validEmissionTexture => TextureWithViewPtr := {
+    method validEmissionTexture => TextureWithViewRef := {
         emissionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         emissionTexture
     }.
 
-    method validOcclusionTexture => TextureWithViewPtr := {
+    method validOcclusionTexture => TextureWithViewRef := {
         occlusionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         occlusionTexture
     }.
 
-    method validMetallicRoughnessTexture => TextureWithViewPtr := {
+    method validMetallicRoughnessTexture => TextureWithViewRef := {
         metallicRoughnessTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
         metallicRoughnessTexture
     }.

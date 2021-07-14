@@ -7,17 +7,17 @@ useNamespace: Std Graphics Core.
  * I keep track of a state tracker and its corresponding command list allocator in a per frame basis.
  *#
 class FrameBufferedShaderResourcesBindings superclass: FrameBufferedRenderingResource; definition: {
-    public field bindings type: (ShaderResourceBindingsPtr array: FrameBufferingCount).
+    public field bindings type: (ShaderResourceBindingsRef array: FrameBufferingCount).
 
-    method for: (anEngine: EnginePtr const ref) createForShaderSignature: (shaderSignature: ShaderSignaturePtr const ref) bindingSet: (bindingSetIndex: UInt32) ::=> Void := {
+    method for: (anEngine: EnginePtr const ref) createForShaderSignature: (shaderSignature: ShaderSignatureRef const ref) bindingSet: (bindingSetIndex: UInt32) ::=> Void := {
         engine := anEngine.
 
         0 until: FrameBufferingCount do: {:i :: Void |
-            bindings[i] := shaderSignature _ createShaderResourceBindings: bindingSetIndex
+            bindings[i] := shaderSignature createShaderResourceBindings: bindingSetIndex
         }
     }.
 
-    method current => ShaderResourceBindingsPtr const ref
+    method current => ShaderResourceBindingsRef const ref
         := bindings[self frameBufferingIndex].
 }.
 

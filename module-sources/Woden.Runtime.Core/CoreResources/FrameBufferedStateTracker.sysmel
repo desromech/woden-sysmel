@@ -7,32 +7,32 @@ useNamespace: Std Graphics Core.
  * I keep track of a state tracker and its corresponding command list allocator in a per frame basis.
  *#
 class FrameBufferedStateTracker superclass: FrameBufferedRenderingResource; definition: {
-    public field allocators type: (CommandListAllocatorPtr array: FrameBufferingCount).
-    public field stateTrackers type: (StateTrackerPtr array: FrameBufferingCount).
+    public field allocators type: (CommandListAllocatorRef array: FrameBufferingCount).
+    public field stateTrackers type: (StateTrackerRef array: FrameBufferingCount).
 
     method for: (anEngine: EnginePtr const ref) createOfType: (type: CommandListType) ::=> Void := {
         engine := anEngine.
-        let device := engine _ renderingDevice.
-        let commandQueue := device _ getDefaultCommandQueue.
+        let device ref := engine _ renderingDevice.
+        let commandQueue ref := device getDefaultCommandQueue.
 
         0 until: FrameBufferingCount do: {:i :: Void |
-            allocators[i] := device _ createCommandAllocatorOfType: type for: commandQueue..
-            stateTrackers[i] := device _ createDeferredStateTrackerOfType: type for: allocators[i].
-            stateTrackers[i] _ close.
+            allocators[i] := device createCommandAllocatorOfType: type for: commandQueue..
+            stateTrackers[i] := device createDeferredStateTrackerOfType: type for: allocators[i].
+            stateTrackers[i] close.
         }
     }.
 
-    method currentAllocator => CommandListAllocatorPtr const ref
+    method currentAllocator => CommandListAllocatorRef const ref
         := allocators[self frameBufferingIndex].
 
-    method current => StateTrackerPtr const ref
+    method current => StateTrackerRef const ref
         := stateTrackers[self frameBufferingIndex].
 
-    method currentReseted => StateTrackerPtr const ref := {
+    method currentReseted => StateTrackerRef const ref := {
         let index := self frameBufferingIndex.
 
-        allocators[index] _ resetAllocator.
-        stateTrackers[index] _ resetFor: allocators[index].
+        allocators[index] resetAllocator.
+        stateTrackers[index] resetFor: allocators[index].
 
         stateTrackers[index]
     }.

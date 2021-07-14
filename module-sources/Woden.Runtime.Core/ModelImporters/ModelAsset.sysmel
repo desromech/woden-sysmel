@@ -235,12 +235,12 @@ class ModelAsset superclass: Std RCObject; definition: {
         animation
     }.
 
-    field vertexBindingCache type: Std Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingPtr).
+    field vertexBindingCache type: Std Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingRef).
 
-    method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingPtr := {
-        vertexBindingCache at: bindingDescription ifAbsentPut: { :: VertexBindingPtr |
-            let vertexBinding := engine _ renderingDevice _ createVertexBindingFor: bindingDescription vertexLayout.
-            vertexBinding _ bindVertexBuffers: bindingDescription buffers asArraySlice offset: bindingDescription offsets asArraySlice.
+    method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingRef := {
+        vertexBindingCache at: bindingDescription ifAbsentPut: { :: VertexBindingRef |
+            let vertexBinding := engine _ renderingDevice createVertexBindingFor: bindingDescription vertexLayout.
+            vertexBinding bindVertexBuffers: bindingDescription buffers asArraySlice offset: bindingDescription offsets asArraySlice.
             vertexBinding.
         }.
     }.

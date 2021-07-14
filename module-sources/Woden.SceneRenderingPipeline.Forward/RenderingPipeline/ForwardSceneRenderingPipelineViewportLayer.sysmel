@@ -32,7 +32,7 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
 
             lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
             lightingStateBindings bindings doWithIndex: {:each :index :: Void |
-                each _
+                each
                     bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
                     bindOn: 1 sampledTextureView: sceneRenderingPipeline _ shadowMapTextureView;
                     bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
@@ -41,9 +41,9 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
     }.
 
 
-    method cameraPostProcessingStateBuffer: (buffer: BufferPtr const ref) ::=> Void := {
+    method cameraPostProcessingStateBuffer: (buffer: BufferRef const ref) ::=> Void := {
         cameraStateBindings bindings do: {:each :: Void |
-            each _ bindOn: 1 storageBuffer: buffer
+            each bindOn: 1 storageBuffer: buffer
         }.
     }.
 
@@ -68,7 +68,7 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
 
         ## TODO: Support light probes properly.
         let blackTexture := self engine _ resourceCache _ blackTextureCube.
-        lightingStateBindings current _
+        lightingStateBindings current
             bindOn: 5 sampledTextureWithView: blackTexture;
             bindOn: 6 sampledTextureWithView: blackTexture.
 
@@ -95,18 +95,18 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
         }.
     }.
 
-    method setSSAOTextureView: (textureView: TextureViewPtr const ref) ::=> Void := {
-        lightingStateBindings current _
+    method setSSAOTextureView: (textureView: TextureViewRef const ref) ::=> Void := {
+        lightingStateBindings current
             bindOn: 3 sampledTextureView: textureView.
     }.
 
     method uploadLightingState => Void := {
-        lightingStateBuffers current _
+        lightingStateBuffers current
             uploadAt: 0 size: Woden Shaders GlobalLightingStateData instanceSize data: lightingState address.
     }.
 
     override method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
-        context stateTracker _
+        context stateTracker
             useGraphicShaderBindings: lightingStateBindings current.
 
         super renderSceneObjectsWith: context

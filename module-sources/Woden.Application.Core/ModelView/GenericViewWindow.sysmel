@@ -10,10 +10,10 @@ useNamespace: Std Graphics GUI.
  * I am the model that lies underlying a Woden application.
  *#
 class GenericViewWindow superclass: ViewWindow; definition: {
-    protected field window type: WindowPtr.
-    protected field swapChain type: SwapChainPtr.
+    protected field window type: WindowRef.
+    protected field swapChain type: SwapChainRef.
     protected field currentSwapChainExtent type: UInt32x2.
-    protected field displayRenderPass type: RenderPassPtr.
+    protected field displayRenderPass type: RenderPassRef.
     protected field isOutOfDate type: Boolean8.
 
     override method extent => UInt32x2
@@ -21,7 +21,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
     override method validatePresentationSurfaces => Boolean8 := {
         window ifNotNil: {
-            let newExtent := window _ extent.
+            let newExtent := window extent.
             swapChain isNil || currentSwapChainExtent ~= newExtent || isOutOfDate ifTrue: {
                 self createSwapChainWithExtent: newExtent
             }.
@@ -34,7 +34,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
     method createSwapChainWithExtent: (newExtent: UInt32x2) ::=> Void := {
         let device := self engine _ renderingDevice.
         let renderingSettings ref := self engine _ renderingSettings.
-        window _ vsyncDisabled: renderingSettings vsyncEnabled not.
+        window vsyncDisabled: renderingSettings vsyncEnabled not.
 
         let swapChainCreationInfo mutable := SwapChainCreationInfo()
             colorBufferFormat: self colorBufferFormat;
@@ -44,8 +44,8 @@ class GenericViewWindow superclass: ViewWindow; definition: {
             bufferCount: FrameBufferingCount;
             yourself.
 
-        let defaultCommandQueue := device _ getDefaultCommandQueue.
-        swapChain := window _ createSwapChain: swapChainCreationInfo for: defaultCommandQueue.
+        let defaultCommandQueue := device getDefaultCommandQueue.
+        swapChain := window createSwapChain: swapChainCreationInfo for: defaultCommandQueue.
         currentSwapChainExtent := newExtent.
         isOutOfDate := false.
     }.
@@ -57,7 +57,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
         let renderingSettings ref := self engine _ renderingSettings.
 
-        window := self engine _ windowSystem _ createWindow: (WindowCreationInfo()
+        window := self engine _ windowSystem createWindow: (WindowCreationInfo()
 			resizable: true;
 			extent: (renderingSettings resolution castTo: Int32x2);
 			title: "Test Window" asMutableString;
@@ -69,31 +69,29 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 	        return: false.
 	    }.
 
-        window _ renderingDevice: self engine _ renderingDevice.
+        window renderingDevice: self engine _ renderingDevice.
 
         ## Create the event handler.
-	    {
-	        let eventHandler := GenericViewEventHandler rcNew.
-			eventHandler _ viewWindow: self address.
-	        window _ eventHandler: (eventHandler upCastFor: EventHandler)
-	    }.
+        window eventHandler: (GenericViewEventHandler new
+            viewWindow: self address;
+            upCastFor: EventHandler).
 
         true
     }.
 
-    override method getCurrentBackBufferLeftEye => FramebufferPtr := {
-        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferPtr nil}.
+    override method getCurrentBackBufferLeftEye => FramebufferRef := {
+        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferRef nil}.
 
-        swapChain _ getCurrentBackBufferForLayer: 0u
+        swapChain getCurrentBackBufferForLayer: 0u
     }.
 
-    override method getCurrentBackBufferRightEye => FramebufferPtr := {
-        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferPtr nil}.
+    override method getCurrentBackBufferRightEye => FramebufferRef := {
+        swapChain isNil || isOutOfDate ifTrue: {return: FramebufferRef nil}.
 
-        swapChain _ getCurrentBackBufferForLayer: 1u
+        swapChain getCurrentBackBufferForLayer: 1u
     }.
 
-    override method getDisplayRenderPass => RenderPassPtr := {
+    override method getDisplayRenderPass => RenderPassRef := {
         displayRenderPass ifNil: {
             let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                 RenderPassColorAttachmentDescription()
@@ -113,17 +111,17 @@ class GenericViewWindow superclass: ViewWindow; definition: {
                     stencil: self defaultClearStencil;
                     yourself)
                 yourself.
-            displayRenderPass := self engine _ renderingDevice _ createRenderPass: colorAttachments depthStencilAttachment:
+            displayRenderPass := self engine _ renderingDevice createRenderPass: colorAttachments depthStencilAttachment:
                 (depthStencilAttachment format = PixelFormat Unknown ifTrue: nil ifFalse: depthStencilAttachment address).
         }.
         displayRenderPass
     }.
 
     override method toggleFullscreen => Void
-        := window _ toggleFullscreen.
+        := window toggleFullscreen.
 
     override method commitSurfaces => Void := {
-        swapChain _ swapBuffers selectCase: #{
+        swapChain swapBuffers selectCase: #{
         SwapChainPresentationError OutOfDate : {
             isOutOfDate := true
         }.
@@ -136,12 +134,12 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
     override method close => Void := {
         window ifNil: {return: void}.
-        (window _ eventHandler getPointer castTo: GenericViewEventHandler pointer) ifNotNil: {:eventHandler :: Void |
+        (window eventHandler rcObjectAddress castTo: GenericViewEventHandler pointer) ifNotNil: {:eventHandler :: Void |
             eventHandler _ viewWindow := nil
         }.
 
-        window _ close.
-        window reset.
+        window close.
+        window := nil.
         view _ viewWindowDestroyed.
     }.
 }.
@@ -161,7 +159,7 @@ class GenericViewEventHandler superclass: EventHandler; definition: {
     }.
 }.
 
-compileTime constant GenericViewWindowPtr := GenericViewWindow rcPointer
+compileTime constant GenericViewWindowRef := GenericViewWindow rcPointer
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

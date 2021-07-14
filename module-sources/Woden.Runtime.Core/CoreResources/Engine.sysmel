@@ -16,28 +16,28 @@ compileTime if: Compiler compilationTarget isDesktopPC then: {
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
 class Engine superclass: Std RCObject; definition: {
-    protected field windowSystem type: WindowSystemPtr.
-    protected field renderingDevice type: RenderingDevicePtr.
+    protected field windowSystem type: WindowSystemRef.
+    protected field renderingDevice type: RenderingDeviceRef.
     protected field resourceCache type: ResourceCachePtr.
 
     protected field renderingProcessesMutex type: Std Mutex.
     protected field renderingProcesses type: Std Collections Vector(RenderingProcessWeakPtr).
 
     protected field frameBufferingIndex type: UInt32.
-    protected field syncronizationFences type: (FencePtr array: FrameBufferingCount).
-    protected field pendingCommandLists type: Std Collections Vector(CommandListPtr ).
+    protected field syncronizationFences type: (FenceRef array: FrameBufferingCount).
+    protected field pendingCommandLists type: Std Collections Vector(CommandListRef).
 
-    const inline method windowSystem => WindowSystemPtr const ref
+    const inline method windowSystem => WindowSystemRef const ref
         := windowSystem.
 
-    const inline method renderingDevice => RenderingDevicePtr const ref
+    const inline method renderingDevice => RenderingDeviceRef const ref
         := renderingDevice.
 
     const inline method resourceCache => ResourceCachePtr const ref
         := resourceCache.
 
     const inline method mainLoopFrameCount => UInt32
-        := windowSystem _ mainLoopFrameCount.
+        := windowSystem mainLoopFrameCount.
 
     const inline method frameBufferingIndex => UInt32
         := frameBufferingIndex.
@@ -95,7 +95,7 @@ class Engine superclass: Std RCObject; definition: {
 
     method queryDeviceCapabilities => Void := {
         ## Do we need to flip the texture coordinates when doing projective texturing?
-        renderingDevice _ shouldInvertProjectionY not ifTrue: {
+        renderingDevice shouldInvertProjectionY not ifTrue: {
             projectiveTextureMatrix := Float32x4x4(
                 0.5, 0, 0, 0,
                 0, -0.5, 0, 0,
@@ -112,16 +112,17 @@ class Engine superclass: Std RCObject; definition: {
         }
     }.
 
-    private field globalEventHandler type: EngineGlobalEventHandlerPtr.
+    private field globalEventHandler type: EngineGlobalEventHandlerRef.
 
     method runMainLoop => Int32 := {
-        globalEventHandler := EngineGlobalEventHandler rcNew.
-        globalEventHandler _ engineWeakPtr: self asWeakRCPointer.
-        windowSystem _ registerGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
+        globalEventHandler := EngineGlobalEventHandler new
+            engineWeakPtr: self asWeakRCRef;
+            yourself.
+        windowSystem registerGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
 
-        let result := windowSystem _ runMainLoop.
+        let result := windowSystem runMainLoop.
 
-        windowSystem _ unregisterGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
+        windowSystem unregisterGlobalEventHandler: (globalEventHandler upCastFor: EventHandler).
 
         result
     }.
@@ -137,16 +138,16 @@ class Engine superclass: Std RCObject; definition: {
         resourceCache reset.
     }.
 
-    method enqueueCommandList: (commandList: CommandListPtr const ref) ::=> Void := {
+    method enqueueCommandList: (commandList: CommandListRef const ref) ::=> Void := {
         pendingCommandLists add: commandList
     }.
 
     method submitPendingCommandLists => Void := {
         pendingCommandLists ifEmpty: {return: void}.
 
-        let commandQueue := renderingDevice _ getDefaultCommandQueue.
+        let commandQueue := renderingDevice getDefaultCommandQueue.
         pendingCommandLists do: {:each :: Void |
-            commandQueue _ submitCommandList: each
+            commandQueue submitCommandList: each
         }.
         pendingCommandLists removeAll.
     }.
@@ -238,10 +239,10 @@ class Engine superclass: Std RCObject; definition: {
     method signalThisFrameFence => Void := {
         let fence ref := syncronizationFences[frameBufferingIndex].
         fence ifNil: {
-            fence := renderingDevice _ createFence
+            fence := renderingDevice createFence
         }.
         fence ifNotNil: {
-            renderingDevice _ getDefaultCommandQueue _ signalFence: fence
+            renderingDevice getDefaultCommandQueue signalFence: fence
         }.
     }.
 
@@ -252,26 +253,26 @@ class Engine superclass: Std RCObject; definition: {
     method waitThisFrameFence => Void := {
         let fence ref := syncronizationFences[frameBufferingIndex].
         fence ifNotNil: {
-            fence _ wait
+            fence wait
         }.
     }.
 }.
 
 compileTime constant EnginePtr := Engine rcPointer.
-compileTime constant EngineWeakPtr := Engine weakRCPointer.
+compileTime constant EngineWeakRef := Engine weakRCRef.
 
 class EngineGlobalEventHandler superclass: EventHandler; definition: {
-    public field engineWeakPtr type: EngineWeakPtr.
+    public field engineWeakPtr type: EngineWeakRef.
 
     override method onTickEvent: (event: TickEvent ref) ::=> Void := {
-        let engine := engineWeakPtr lock.
+        let engine := engineWeakPtr asRCRef.
         engine ifNotNil: {
-            engine _ onTickEvent: event
+            engine onTickEvent: event
         }
     }.
 }.
 
-compileTime constant EngineGlobalEventHandlerPtr := EngineGlobalEventHandler rcPointer.
+compileTime constant EngineGlobalEventHandlerRef := EngineGlobalEventHandler rcRef.
 
 
 }. ## End of namespace Runtime
