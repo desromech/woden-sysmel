@@ -11,25 +11,25 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
     compileTime constant Primitives := Std Collections Vector(ModelAssetMeshPrimitivePtr).
     public field primitives type: Std Collections Vector(ModelAssetMeshPrimitivePtr).
 
-    public field renderable type: RenderablePtr.
+    public field renderable type: RenderableRef.
 
-    method createRenderableWithPrimitives: (primitives: Primitives const ref) for: (engine: EnginePtr const ref) ::=> RenderablePtr := {
-        let meshRenderable := GenericMeshRenderable rcNew.
-        meshRenderable _ submeshes reserve: primitives size.
+    method createRenderableWithPrimitives: (primitives: Primitives const ref) for: (engine: EngineRef const ref) ::=> RenderableRef := {
+        let meshRenderable := GenericMeshRenderable new.
+        meshRenderable submeshes reserve: primitives size.
         let boundingBox mutable := BoxF32 empty.
         primitives do: {:each :: Void |
             boundingBox := boundingBox unionWith: each _ boundingBox.
-            meshRenderable _ submeshes add: (each _ asSubmeshFor: engine)
+            meshRenderable submeshes add: (each _ asSubmeshFor: engine)
         }.
 
-        meshRenderable _ localBoundingBox: boundingBox.
+        meshRenderable localBoundingBox: boundingBox.
 
         ## Set the mesh renderable type according to its opacity.
         primitives first _ isOpaque ifTrue: {
-            meshRenderable _
+            meshRenderable
                 renderPriority: RenderPriority Opaque
         } ifFalse: {
-            meshRenderable _
+            meshRenderable
                 renderPriority: RenderPriority TranslucentSorted;
                 withoutDepthWrite
         }.
@@ -37,13 +37,13 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
         meshRenderable upCastFor: Renderable
     }.
 
-    method asRenderableFor: (engine: EnginePtr const ref) ::=> RenderablePtr := {
+    method asRenderableFor: (engine: EngineRef const ref) ::=> RenderableRef := {
         renderable ifNotNil: {
             return: renderable
         }.
 
         primitives ifEmpty: {
-            renderable := NullRenderable rcNew upCastFor: Renderable.
+            renderable := NullRenderable new upCastFor: Renderable.
             void.
         } ifNotEmpty: {
             let opaquePrimitiveCount mutable type: UIntPointer.
@@ -74,11 +74,11 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
                     }
                 }.
 
-                let compositeRenderable := CompositeRenderable rcNew.
-                compositeRenderable _
+                let compositeRenderable := CompositeRenderable new
                     addComponent: (self createRenderableWithPrimitives: opaquePrimitives for: engine);
                     addComponent: (self createRenderableWithPrimitives: translucentPrimitives for: engine);
-                    computeBoundingBox.
+                    computeBoundingBox;
+                    yourself.
                 renderable := compositeRenderable upCastFor: Renderable.
                 void.
             }.

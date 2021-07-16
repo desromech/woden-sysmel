@@ -10,7 +10,7 @@ class Skeleton superclass: Std RCObject; definition: {
     public field bones type: Std Collections Vector(Bone).
 }.
 
-compileTime constant SkeletonPtr := Skeleton rcPointer.
+compileTime constant SkeletonRef := Skeleton rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -2,13 +2,13 @@ namespace Woden definition: {
 namespace Runtime definition: {
 
 class AnimationState superclass: Std RCObject; definition: {
-    field animation type: AnimationPtr.
-    field target type: AnimationTargetPtr.
+    field animation type: AnimationRef.
+    field target type: AnimationTargetRef.
 
-    const inline method animation => AnimationPtr const ref
+    const inline method animation => AnimationRef const ref
         := animation.
 
-    const inline method target => AnimationTargetPtr const ref
+    const inline method target => AnimationTargetRef const ref
         := target.
 
     public field previousTime type: Float32.
@@ -16,7 +16,7 @@ class AnimationState superclass: Std RCObject; definition: {
     public field currentNonLoopedTime type: Float32. ## Non looped animation. Use for linear interpolation.
     public field isLooped type: Boolean8.
 
-    virtual method initializeWithAnimation: (theAnimation: AnimationPtr) target: (theTarget: AnimationTargetPtr const ref)::=> Void := {
+    virtual method initializeWithAnimation: (theAnimation: AnimationRef) target: (theTarget: AnimationTargetRef const ref)::=> Void := {
         animation := theAnimation.
         target := theTarget.
     }.
@@ -29,17 +29,17 @@ class AnimationState superclass: Std RCObject; definition: {
 
         previousTime := currentTime.
         currentNonLoopedTime := currentTime := currentTime + deltaTime.
-        animation _ update: deltaTime withState: self
+        animation update: deltaTime withState: self
     }.
 
     virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
         animation ifNotNil: {
-            animation _ applyInterpolationForRendering: alpha withState: self
+            animation applyInterpolationForRendering: alpha withState: self
         }.
     }.
 }.
 
-compileTime constant AnimationStatePtr := AnimationState rcPointer.
+compileTime constant AnimationStateRef := AnimationState rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

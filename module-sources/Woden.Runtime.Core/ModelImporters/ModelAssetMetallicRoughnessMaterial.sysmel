@@ -21,21 +21,21 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
     public field roughnessFactor type: Float32.
     public field metallicRoughnessTexture type: ModelAssetTexturePtr.
 
-    field renderingMaterial type: MaterialPtr.
+    field renderingMaterial type: MaterialRef.
 
     override method isMetallicRoughnessMaterial => Boolean8
         := true.
 
-    override method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr := {
+    override method asRenderingMaterialFor: (engine: EngineRef const ref) ::=> MaterialRef := {
         renderingMaterial ifNotNil: {return: renderingMaterial}.
 
         let convertedMaterial := MetallicRoughnessMaterial for: engine.
 
-        convertedMaterial _
+        convertedMaterial
             doubleSided: doubleSided;
             isTranslucent: alphaMode = ModelAssetMaterialAlphaMode Blend.
 
-        convertedMaterial _ state
+        convertedMaterial state
             emissionFactor: Float32x4(emissionFactor, 1.0f);
             baseColorFactor: baseColorFactor;
             alphaCutoff: (alphaMode = ModelAssetMaterialAlphaMode Mask ifTrue: alphaCutoff ifFalse: 0.0f);
@@ -43,23 +43,23 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
             roughnessFactor: roughnessFactor.
 
         baseColorTexture ifNotNil: {
-            convertedMaterial _ baseColorTexture: (baseColorTexture _ asTextureWithViewFor: engine)
+            convertedMaterial baseColorTexture: (baseColorTexture _ asTextureWithViewFor: engine)
         }.
 
         emissionTexture ifNotNil: {
-            convertedMaterial _ emissionTexture: (emissionTexture _ asTextureWithViewFor: engine)
+            convertedMaterial emissionTexture: (emissionTexture _ asTextureWithViewFor: engine)
         }.
 
         normalTexture ifNotNil: {
-            convertedMaterial _ normalTexture: (normalTexture _ asTextureWithViewFor: engine)
+            convertedMaterial normalTexture: (normalTexture _ asTextureWithViewFor: engine)
         }.
 
         metallicRoughnessTexture ifNotNil: {
-            convertedMaterial _ metallicRoughnessTexture: (metallicRoughnessTexture _ asTextureWithViewFor: engine)
+            convertedMaterial metallicRoughnessTexture: (metallicRoughnessTexture _ asTextureWithViewFor: engine)
         }.
 
         occlusionTexture ifNotNil: {
-            convertedMaterial _ occlusionTexture: (occlusionTexture _ asTextureWithViewFor: engine)
+            convertedMaterial occlusionTexture: (occlusionTexture _ asTextureWithViewFor: engine)
         }.
 
         renderingMaterial := convertedMaterial upCastFor: Material

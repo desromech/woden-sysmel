@@ -7,12 +7,12 @@ useNamespace: Std Graphics Core.
  * An abstract pipeline for rendering a scene.
  *#
 class SceneRenderingPipeline superclass: Std RCObject; definition: {
-    protected field engine type: EnginePtr.
+    protected field engine type: EngineRef.
 
-    const inline method engine => EnginePtr const ref
+    const inline method engine => EngineRef const ref
         := engine.
 
-    virtual method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+    virtual method initializeForEngine: (anEngine: EngineRef const ref) ::=> Void := {
         engine := anEngine.
     }.
 
@@ -31,14 +31,14 @@ class SceneRenderingPipeline superclass: Std RCObject; definition: {
     virtual method swapChainDepthStencilBufferFormat => PixelFormat
         := PixelFormat Unknown.
 
-    abstract method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr.
+    abstract method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportRef.
 
     ## Allow the scene rendering pipeline to override the view window class.
-    virtual method newViewWindowInstance => Std RCObject rcPointer
-        := Std RCObject rcPointer nil.
+    virtual method newViewWindowInstance => Std RCObjectRef
+        := Std RCObjectRef nil.
 }.
 
-compileTime constant SceneRenderingPipelinePtr := SceneRenderingPipeline rcPointer.
+compileTime constant SceneRenderingPipelineRef := SceneRenderingPipeline rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

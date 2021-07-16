@@ -6,11 +6,10 @@ useNamespace: Woden Runtime.
 
 class DirectionalLightSourceVisualComponent superclass: LightSourceVisualComponent; definition: {
 
-    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
-        let node := super createLightSourceNodeFor: engine.
-        node _
-            makeDirectional.
-        node
+    override method createLightSourceNodeFor: (engine: EngineRef) ::=> LightSourceNodeRef := {
+        (super createLightSourceNodeFor: engine)
+            makeDirectional;
+            yourself
     }.
 }.
 

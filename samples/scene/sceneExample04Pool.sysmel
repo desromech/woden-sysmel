@@ -5,17 +5,16 @@ Compiler importModulesNamed: #(
 
 useNamespace: Woden Runtime.
 
-function constructPoolScene(scene: ScenePtr const ref) => Void := {
-    let engine := scene _ engine.
+function constructPoolScene(scene: SceneRef const ref) => Void := {
+    let engine := scene engine.
 
     ## Build the floor.
     {
-        let tileMaterial := engine _ resourceCache _ loadMaterialFrom: "materials/artificial/floor/tile" asNativeFileReference.
-        let concreteMaterial := engine _ resourceCache _ loadMaterialFrom: "materials/artificial/concrete/concrete" asNativeFileReference.
+        let tileMaterial := engine resourceCache loadMaterialFrom: "materials/artificial/floor/tile" asNativeFileReference.
+        let concreteMaterial := engine resourceCache loadMaterialFrom: "materials/artificial/concrete/concrete" asNativeFileReference.
 
         let borderThickness := 0.5f.
-        let meshBuilder := engine _ newGenericMeshBuilder.
-        meshBuilder _
+        let renderable := engine newGenericMeshBuilder
             currentMaterial: (tileMaterial upCastFor: Material);
 
             translateToX: borderThickness*0.5f negated - 4.5f y: -1.0f z: 0.0f;
@@ -59,79 +58,64 @@ function constructPoolScene(scene: ScenePtr const ref) => Void := {
 
     		## Use a planar texture coordinates
     		planeTextureScale: 2.0f offset: 0.0f;
-    		computeTangentsBitangents.
+    		computeTangentsBitangents;
+            
+            renderable.
 
-        let renderable := meshBuilder _ renderable.
-
-        let floor := SpatialObjectNode rcNew.
-        floor _ renderable: renderable.
-        scene _ add: (floor upCastFor: SceneNode).
+        scene add: (SpatialObjectNode new
+            renderable: renderable;
+            upCastFor: SceneNode).
     }.
 
     ## Build and add the cube to the scene.
-    {
-        let meshBuilder := engine _ newGenericMeshBuilder.
-        meshBuilder _ addCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
-        let renderable := meshBuilder _ renderable.
-
-        let cube := SpatialObjectNode rcNew.
-        cube _
-            renderable: renderable;
-            translateByX: 4.5f y: 0.5f z: 0.0f.
-        scene _ add: (cube upCastFor: SceneNode).
-    }.
+    scene add: (SpatialObjectNode new
+        renderable: (engine newGenericMeshBuilder
+            addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
+            renderable);
+        translateByX: 4.5f y: 0.5f z: 0.0f;
+        upCastFor: SceneNode).
 
     ## Build the water.
     {
-        let meshBuilder := engine _ newGenericMeshBuilder.
-        meshBuilder _
-            currentMaterial: (engine _ resourceCache _ loadMaterialFrom: "materials/water/pool/pool" asNativeFileReference);
-            addGridWithSize: 5.0f subdivisions: 64.
-
-        let renderable := WaterRenderableMesh rcNew.
-        renderable _
-            mesh: meshBuilder _ renderable.
-        renderable _ mesh _ withoutDepthWrite.
-
-        renderable _ waterDeformationState
+        let renderable := WaterRenderableMesh new
+            mesh: (engine newGenericMeshBuilder
+                currentMaterial: (engine resourceCache loadMaterialFrom: "materials/water/pool/pool" asNativeFileReference);
+                addGridWithSize: 5.0f subdivisions: 64;
+                renderable);
+                yourself.
+        renderable mesh withoutDepthWrite.
+        renderable waterDeformationState
             harmonicAt: 0 amplitude: 0.05f frequency: -1.1f center: Float32x2(0, 0);
             harmonicAt: 1 amplitude: 0.02f frequency: 2.23f direction: Float32x2(0, -1);
             harmonicAt: 2 amplitude: 0.015f frequency: 1.80f direction: Float32x2(1, 0).
 
-        let water := SpatialObjectNode rcNew.
-
-        water _
+        scene add: (SpatialObjectNode new
             renderable: (renderable upCastFor: Renderable);
-            translateToX: 0.0f y: -0.3 z: 0.0f.
-        scene _ add: (water upCastFor: SceneNode).
+            translateToX: 0.0f y: -0.3 z: 0.0f;
+            upCastFor: SceneNode).
     }.
 
-    ## Add the light source.
-    {
-        let sunLight := LightSourceNode rcNew.
-        sunLight _
-            makeDirectional;
-            castShadows: true;
-            intensity: Float32x3(1f, 1f, 0.8f) normalized * 0.7f;
-            rotateDegreesOnX: -35;
-            rotateDegreesOnY: -5;
-            translateToX: 0.0f y: 1.5f z: 2.5f.
-        scene _ add: (sunLight upCastFor: SceneNode).
-    }.
+    ## Add the sun light.
+    scene add: (LightSourceNode new
+        makeDirectional;
+        castShadows: true;
+        intensity: Float32x3(1f, 1f, 0.8f) normalized * 0.7f;
+        rotateDegreesOnX: -35;
+        rotateDegreesOnY: -5;
+        translateToX: 0.0f y: 1.5f z: 2.5f;
+        upCastFor: SceneNode).
 
     ## Add the sky box.
     {
-        let meshBuilder := engine _ newGenericMeshBuilder.
-        meshBuilder _
-            currentMaterial: ((engine _ resourceCache _ loadMaterialFrom: "materials/sky/sample/daylight" asNativeFileReference));
-            addInteriorCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
-        let renderable := meshBuilder _ renderable.
-        renderable _ withoutDepth.
+        let renderable := engine newGenericMeshBuilder
+            currentMaterial: ((engine resourceCache loadMaterialFrom: "materials/sky/sample/daylight" asNativeFileReference));
+            addInteriorCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
+            renderable.
+        renderable withoutDepth.
 
-        let cube := SpatialObjectNode rcNew.
-        cube _
-            renderable: renderable.
-        scene _ backgroundLayer _ addChild: (cube upCastFor: SceneNode).
+        scene backgroundLayer addChild: (SpatialObjectNode new
+            renderable: renderable;
+            upCastFor: SceneNode).
     }.
 
 }.
@@ -143,11 +127,8 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     constructPoolScene(scene).
 
     ## Setup the camera
-    {
-        let camera := model mainCamera.
-        camera _
-            toneMappingOperator: ToneMappingOperator Filmic;
-            withAutoExposure;
-            translateByX: 0.0f y: 1.0f z: -4.0f.
-    }.
+    model mainCamera
+        toneMappingOperator: ToneMappingOperator Filmic;
+        withAutoExposure;
+        translateByX: 0.0f y: 1.0f z: -4.0f.
 }.

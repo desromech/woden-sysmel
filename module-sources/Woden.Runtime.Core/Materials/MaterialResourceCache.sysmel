@@ -12,7 +12,7 @@ ResourceCache extend: {
         self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
-    method loadMaterialFrom: (fileReference: Std FileReference const ref) ::=> MaterialPtr := {
+    method loadMaterialFrom: (fileReference: Std FileReference const ref) ::=> MaterialRef := {
         let solvedFileReference := self solveMaterialFileReference: fileReference.
         solvedFileReference exists ifFalse: {
             return: self defaultMaterial

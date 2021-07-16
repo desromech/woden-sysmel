@@ -32,8 +32,8 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
     ## For displaying we only need a swap chain with the color buffer, by default.
     method createSwapChainWithExtent: (newExtent: UInt32x2) ::=> Void := {
-        let device := self engine _ renderingDevice.
-        let renderingSettings ref := self engine _ renderingSettings.
+        let device := self engine renderingDevice.
+        let renderingSettings ref := self engine renderingSettings.
         window vsyncDisabled: renderingSettings vsyncEnabled not.
 
         let swapChainCreationInfo mutable := SwapChainCreationInfo()
@@ -50,14 +50,14 @@ class GenericViewWindow superclass: ViewWindow; definition: {
         isOutOfDate := false.
     }.
 
-    override method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
+    override method openForView: (theView: ViewRef const ref) ::=> Boolean8 := {
         (super openForView: theView) ifFalse: {
             return: false.
         }.
 
-        let renderingSettings ref := self engine _ renderingSettings.
+        let renderingSettings ref := self engine renderingSettings.
 
-        window := self engine _ windowSystem createWindow: (WindowCreationInfo()
+        window := self engine windowSystem createWindow: (WindowCreationInfo()
 			resizable: true;
 			extent: (renderingSettings resolution castTo: Int32x2);
 			title: "Test Window" asMutableString;
@@ -69,7 +69,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 	        return: false.
 	    }.
 
-        window renderingDevice: self engine _ renderingDevice.
+        window renderingDevice: self engine renderingDevice.
 
         ## Create the event handler.
         window eventHandler: (GenericViewEventHandler new
@@ -111,7 +111,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
                     stencil: self defaultClearStencil;
                     yourself)
                 yourself.
-            displayRenderPass := self engine _ renderingDevice createRenderPass: colorAttachments depthStencilAttachment:
+            displayRenderPass := self engine renderingDevice createRenderPass: colorAttachments depthStencilAttachment:
                 (depthStencilAttachment format = PixelFormat Unknown ifTrue: nil ifFalse: depthStencilAttachment address).
         }.
         displayRenderPass
@@ -140,7 +140,7 @@ class GenericViewWindow superclass: ViewWindow; definition: {
 
         window close.
         window := nil.
-        view _ viewWindowDestroyed.
+        view viewWindowDestroyed.
     }.
 }.
 
@@ -151,15 +151,14 @@ class GenericViewEventHandler superclass: EventHandler; definition: {
         super processEvent: event.
 
         viewWindow ifNotNil: {
-            let view := viewWindow _ view.
-            view ifNotNil: {
-                view _ processEvent: event.
+            viewWindow _ view ifNotNil: { :v :: Void |
+                v processEvent: event.
             }
         }.
     }.
 }.
 
-compileTime constant GenericViewWindowRef := GenericViewWindow rcPointer
+compileTime constant GenericViewWindowRef := GenericViewWindow rcRef
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

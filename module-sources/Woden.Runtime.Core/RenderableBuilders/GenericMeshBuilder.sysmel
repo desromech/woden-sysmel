@@ -14,10 +14,10 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
     compileTime constant IndexType := LargestSupportedIndexType.
 
     protected field baseVertex type: IndexType.
-    protected field engine type: EnginePtr.
+    protected field engine type: EngineRef.
 
     public field currentColor type: Float32x4.
-    public field currentMaterial type: MaterialPtr.
+    public field currentMaterial type: MaterialRef.
     public field currentTransform type: ReversibleAffineTransform3dF32.
 
     protected field vertexLayout type: VertexLayoutRef.
@@ -28,14 +28,14 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
     protected field submeshes type: Std Collections Vector(SubmeshType).
 
     meta definition: {
-        method for: (anEngine: EnginePtr) ::=> GenericMeshBuilder rcPointer := {
-            let result := GenericMeshBuilder rcNew.
-            result _ initializeWithEngine: anEngine.
-            result
-        }
+        method for: (anEngine: EngineRef) ::=> GenericMeshBuilder rcRef
+            := 
+                GenericMeshBuilder new
+                initializeWithEngine: anEngine;
+                yourself.
     }.
 
-    method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
+    method initializeWithEngine: (anEngine: EngineRef) ::=> Void := {
         engine := anEngine.
         currentTransform setIdentity.
         self reset
@@ -43,7 +43,7 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
 
     method reset => Void := {
         currentColor := Float32x4 ones.
-        currentMaterial := engine _ resourceCache _ defaultMaterial.
+        currentMaterial := engine resourceCache defaultMaterial.
         baseVertex := 0.
     }.
 
@@ -53,10 +53,10 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
     		beginWithNewBaseVertex
     }.
 
-    method beginSubMeshWith: (primitiveTopology: PrimitiveTopology) material: (newMaterial: MaterialPtr const ref) ::=> Void := {
+    method beginSubMeshWith: (primitiveTopology: PrimitiveTopology) material: (newMaterial: MaterialRef const ref) ::=> Void := {
         submeshes ifNotEmpty: {
             let lastSubmesh ref := submeshes last.
-            lastSubmesh primitiveTopology = primitiveTopology && lastSubmesh material = newMaterial ifTrue: {return: void}.
+            lastSubmesh primitiveTopology = primitiveTopology && lastSubmesh material == newMaterial ifTrue: {return: void}.
             self finishLastSubmesh
         }.
 
@@ -251,20 +251,20 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
 
     method vertexLayout => VertexLayoutRef := {
         vertexLayout ifNil: {
-            vertexLayout := engine _ renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: VertexType vertexLayoutDescription
+            vertexLayout := engine renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: VertexType vertexLayoutDescription
         }.
 
         vertexLayout
     }.
 
-    method renderable => RenderablePtr := {
+    method renderable => RenderableRef := {
         submeshes isEmpty || vertices isEmpty || indices isEmpty ifTrue: {
-            return: (NullRenderable rcNew upCastFor: Renderable)
+            return: (NullRenderable new upCastFor: Renderable)
         }.
 
         self finishLastSubmesh.
 
-        let device := engine _ renderingDevice.
+        let device := engine renderingDevice.
         let vertexBuffer := device createBuffer: (BufferDescription()
             size: vertices size * VertexType instanceSize;
             heapType: MemoryHeapType DeviceLocal;
@@ -300,11 +300,10 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
             boundingBox := boundingBox unionWith: eachVertex position.
         }.
 
-        let result := GenericMeshRenderable rcNew.
-        result _
+        GenericMeshRenderable new
             localBoundingBox: boundingBox;
-            submeshes: submeshes.
-        result upCastFor: Renderable
+            submeshes: submeshes;
+            upCastFor: Renderable
     }.
 
     method planeTextureScale: (texScale: Float32x2) offset: (texOffset: Float32x2) ::=> Void := {
@@ -467,12 +466,12 @@ class GenericMeshBuilder superclass: Std RCObject; definition: {
         := AxisVectors[axis + 4].
 }.
 
-compileTime constant GenericMeshBuilderPtr := GenericMeshBuilder rcPointer.
+compileTime constant GenericMeshBuilderRef := GenericMeshBuilder rcRef.
 
 
 Engine extend: {
-    inline method newGenericMeshBuilder => GenericMeshBuilderPtr
-        := GenericMeshBuilder for: self asRCPointer.
+    inline method newGenericMeshBuilder => GenericMeshBuilderRef
+        := GenericMeshBuilder for: self asRCRef.
 }.
 
 }. ## End of namespace Runtime

@@ -7,69 +7,56 @@ useNamespace: Woden Runtime.
 
 class TurnTableAnimation superclass: Animation; definition: {
     override method update: (deltaTime: Float32) withState: (state: AnimationState ref) ::=> Boolean8 := {
-        state target _ rotateRadiansOnY: deltaTime * 0.2f.
+        state target rotateRadiansOnY: deltaTime * 0.2f.
         true
     }.
 }.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
-    let scene := model newScene.
-    scene _
+    let scene := model newScene
         backgroundColor: Float32x4(0.01f, 0.01f, 0.01f, 1.0f);
-        backgroundLighting: Float32x3(0.03f, 0.03f, 0.03f).
+        backgroundLighting: Float32x3(0.03f, 0.03f, 0.03f);
+        yourself.
 
     ## Setup the camera
-    {
-        let camera := model mainCamera.
-        camera _ translateByZ: 3.0; translateByY: 1.6.
-    }.
+    model mainCamera translateByZ: 3.0; translateByY: 1.6.
 
     ## Build the floor.
-    {
-        let meshBuilder := model engine _ newGenericMeshBuilder.
-        meshBuilder _
-            addCubeWithWidth: 10.0 height: 0.5 depth: 10.0.
-        let renderable := meshBuilder _ renderable.
-
-        let floor := SpatialObjectNode rcNew.
-        floor _
-            renderable: renderable;
-            translateByY: -0.25f.
-        scene _ add: (floor upCastFor: SceneNode).
-    }.
+    scene add: (SpatialObjectNode new
+        renderable: (model engine newGenericMeshBuilder
+            addCubeWithWidth: 10.0 height: 0.5 depth: 10.0;
+            renderable);
+        translateByY: -0.25f;
+        upCastFor: SceneNode).
 
     ## Add the fox sample model
     {
-        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/Fox/Fox" asNativeFileReference.
+        let modelAsset := model engine resourceCache loadModelAssetFrom: "models/Fox/Fox" asNativeFileReference.
         modelAsset ifNotNil: {
             let foxNode := modelAsset _  createSceneNodeNamed: "fox" asMutableString for: model engine.
-            foxNode _
+            foxNode
                 scaleBy: 0.015f;
                 rotateDegreesOnY: 90;
-                translateByY: foxNode _ boundingBox min y negated.
+                translateByY: foxNode boundingBox min y negated.
+            scene add: foxNode.
 
-            scene _ add: foxNode.
-
-            model animationScheduler _ activateAnimationState: (TurnTableAnimation rcNew _ newStateForTargetSceneNode: foxNode).
-
-            model animationScheduler _ activateAnimationState: (modelAsset _ animations first _ asAnimation _ newStateForTargetSceneNode: foxNode looped: true).
+            model animationScheduler
+                activateAnimationState: (TurnTableAnimation new newStateForTargetSceneNode: foxNode);
+                activateAnimationState: (modelAsset _ animations first _ asAnimation newStateForTargetSceneNode: foxNode looped: true).
         }.
     }.
 
     ## Add the light source.
-    {
-        let light := LightSourceNode rcNew.
-        light _
-            makeSpot;
-            radius: 10.0;
-            shadowNormalBias: 0.01f;
-            intensity: Float32x3(1.0f, 1.0f, 0.9f)*1.5f;
-            spotOuterCutoff: 65.0f;
-            spotInnerCutoff: 60.0f;
-            castShadows: true;
-            lookAtBottom;
-            rotateDegreesOnX: 45;
-            translateByX: 0.0f y: 2.0f z: 1.0f.
-        scene _ add: (light upCastFor: SceneNode).
-    }.
+    scene add: (LightSourceNode new
+        makeSpot;
+        radius: 10.0;
+        shadowNormalBias: 0.01f;
+        intensity: Float32x3(1.0f, 1.0f, 0.9f)*1.5f;
+        spotOuterCutoff: 65.0f;
+        spotInnerCutoff: 60.0f;
+        castShadows: true;
+        lookAtBottom;
+        rotateDegreesOnX: 45;
+        translateByX: 0.0f y: 2.0f z: 1.0f;
+        upCastFor: SceneNode).
 }.

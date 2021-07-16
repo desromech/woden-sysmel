@@ -7,14 +7,14 @@ useNamespace: Std Graphics GUI.
 useNamespace: Std Math LinearAlgebra.
 
 class GameApplicationView superclass: SceneView; definition: {
-    method gameModel => GameApplicationModelPtr
+    method gameModel => GameApplicationModelRef
         := self model downCastFor: GameApplicationModel.
 
     method globalGameState => GlobalGameStatePtr
-        := self gameModel _ globalGameState.
+        := self gameModel globalGameState.
 
     method player => PlayerPtr
-        := self gameModel _ player.
+        := self gameModel player.
 }.
 
 }. ## namespace GameSystem

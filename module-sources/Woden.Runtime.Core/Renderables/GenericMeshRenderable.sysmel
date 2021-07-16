@@ -18,20 +18,20 @@ class GenericMeshRenderable superclass: ImmutableRenderable; definition: {
         }
     }.
 
-    override method copy => Renderable rcPointer := {
-        let result := GenericMeshRenderable rcNew.
-        result _ := self.
+    override method copy => Renderable rcRef := {
+        let result := GenericMeshRenderable new.
+        result rcObjectAddress _ := self.
         result upCastFor: Renderable
     }.
 
-    override method setMaterial: (material: MaterialPtr const ref) ::=> Void := {
+    override method setMaterial: (material: MaterialRef const ref) ::=> Void := {
         submeshes do: {:each :: Void |
             each material: material.
         }.
     }.
 }.
 
-compileTime constant GenericMeshRenderablePtr := GenericMeshRenderable rcPointer.
+compileTime constant GenericMeshRenderableRef := GenericMeshRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

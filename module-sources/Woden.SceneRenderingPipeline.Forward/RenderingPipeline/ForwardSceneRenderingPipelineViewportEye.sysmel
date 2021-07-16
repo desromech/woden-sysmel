@@ -29,10 +29,10 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     protected field cameraPostProcessingStateBuffer type: BufferRef.
     public field scene2DRenderers type: (StateTracker2DSceneRendererRef array: FrameBufferingCount).
 
-    const inline method engine => EnginePtr
+    const inline method engine => EngineRef
         := viewport _ engine.
 
-    const inline method sceneRenderingPipeline => ForwardSceneRenderingPipelinePtr const ref
+    const inline method sceneRenderingPipeline => ForwardSceneRenderingPipelineRef const ref
         := viewport _ sceneRenderingPipeline.
 
     const inline method isLeftEye => Boolean8
@@ -41,7 +41,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     const inline method isRightEye => Boolean8
         := isRightEye.
 
-    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: SceneRenderingPipelineViewport pointer) ::=> Void := {
+    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelineRef const ref) owner: (theOwner: SceneRenderingPipelineViewport pointer) ::=> Void := {
         owner := theOwner.
         sceneRenderingPipeline := theSceneRenderingPipeline.
 
@@ -50,7 +50,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
                 currentAverageLuminance: 0.5f;
                 yourself.
 
-            cameraPostProcessingStateBuffer := self engine _ renderingDevice createBuffer: (BufferDescription()
+            cameraPostProcessingStateBuffer := self engine renderingDevice createBuffer: (BufferDescription()
                 size: Woden Shaders CameraPostProcessingStateData instanceSize;
                 heapType: MemoryHeapType DeviceLocal;
                 usageModes: BufferUsageMode Storage | BufferUsageMode CopyDestinationBuffer;
@@ -80,16 +80,16 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         scene ifNil: {return: void}.
         camera ifNil: {return: void}.
 
-        toneMappingOperator := camera _ toneMappingOperator.
+        toneMappingOperator := camera toneMappingOperator.
 
-        let normalCameraTransform mutable := camera _ globalTransform.
+        let normalCameraTransform mutable := camera globalTransform.
         let backgroundCameraTransform mutable := normalCameraTransform.
         backgroundCameraTransform translation: Float32x3 zeros.
         let foregroundCameraTransform := ReversibleAffineTransform3dF32 identity.
 
-        let fov := camera _ fov.
-        let nearDistance := camera _ nearDistance.
-        let farDistance := camera _ farDistance.
+        let fov := camera fov.
+        let nearDistance := camera nearDistance.
+        let farDistance := camera farDistance.
 
         let screenSize := (viewport _ currentExtent castTo: Float32x2).
         let aspect := screenSize x / screenSize y.
@@ -97,22 +97,22 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let frustum mutable type: FrustumF32.
 
         viewport _ stereoPresentationMode isStereoscopic ifTrue: {
-            let ipd := camera _ stereoIpd.
+            let ipd := camera stereoIpd.
             let ipdOffset := normalCameraTransform transformVector: Float32x3(ipd*0.5f, 0, 0).
             let frustumTangents mutable := FrustumTangentsF32().
 
             self isLeftEye ifTrue: {
-                frustumTangents setForStereoLeftEyeFovY: fov aspect: aspect ipd: ipd displayDistance: camera _ stereoDisplayDistance.
+                frustumTangents setForStereoLeftEyeFovY: fov aspect: aspect ipd: ipd displayDistance: camera stereoDisplayDistance.
                 normalCameraTransform translateBy: ipdOffset negated
             } ifFalse: {
-                frustumTangents setForStereoRightEyeFovY: fov aspect: aspect ipd: ipd displayDistance: camera _ stereoDisplayDistance.
+                frustumTangents setForStereoRightEyeFovY: fov aspect: aspect ipd: ipd displayDistance: camera stereoDisplayDistance.
                 normalCameraTransform translateBy: ipdOffset
             }.
 
-            projectionMatrix := frustumTangents makeReverseDepthProjectionMatrixWithNearDistance: nearDistance farDistance: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
+            projectionMatrix := frustumTangents makeReverseDepthProjectionMatrixWithNearDistance: nearDistance farDistance: farDistance invertedY: self engine renderingDevice shouldInvertProjectionY.
             frustum := frustumTangents makeFrustumWithNearDistance: nearDistance farDistance: farDistance.
         } ifFalse: {
-            projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
+            projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine renderingDevice shouldInvertProjectionY.
             frustum := FrustumF32()
                 makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
                 yourself.
@@ -132,15 +132,15 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             screenSize: screenSize;
             inverseScreenSize: 1 / screenSize;
 
-            ndcToTextureFetchTransform: (self engine _ renderingDevice shouldInvertProjectionY
+            ndcToTextureFetchTransform: (self engine renderingDevice shouldInvertProjectionY
                 ifTrue: Float32x4(1.0f, 1.0f, 1.0f, 1.0f)
                 ifFalse: Float32x4(1.0f, -1.0f, 1.0f, 1.0f));
 
-            currentTime: scene _ currentTime;
+            currentTime: scene currentTime;
             currentFrameDeltaTime: viewport _ timeSinceLastFrame;
 
-            exposure: camera _ exposure;
-            autoExposureInfluenceFactor: camera _ autoExposureInfluenceFactor;
+            exposure: camera exposure;
+            autoExposureInfluenceFactor: camera autoExposureInfluenceFactor;
             yourself.
 
         let backgroundCameraState mutable := normalCameraState.
@@ -190,7 +190,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             uploadLightingState.
     }.
 
-    method gatherVisibleRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+    method gatherVisibleRenderingObjectsOf: (sceneLayer: SceneLayerRef const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
         let scene := self scene.
         scene ifNil: {return: void}.
 
@@ -198,20 +198,20 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         viewportLayer renderableSceneObjects removeAll.
 
         let frustum ref := viewportLayer frustum.
-        sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
-            let cameraDistance := (viewportLayer cameraTransform translation - each _ boundingBox center) length.
-            (each _ isVisibleInFrustum: frustum) ifTrue: {
-                each _ isLightSource ifTrue: {
+        sceneLayer renderingSceneObjectsDo: {:(RenderingSceneObjectRef const ref)each :: Void |
+            let cameraDistance := (viewportLayer cameraTransform translation - each boundingBox center) length.
+            (each isVisibleInFrustum: frustum) ifTrue: {
+                each isLightSource ifTrue: {
                     viewportLayer lightSources add: (ViewportLayerLightSource()
                         cameraDistance: cameraDistance;
                         object: (each downCastFor: RenderingSceneLightSource);
                         yourself)
                 }.
 
-                each _ isRenderable ifTrue: {
+                each isRenderable ifTrue: {
                     let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
                     viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
-                        priority: renderingSceneRenderable _ renderable _ renderPriority;
+                        priority: renderingSceneRenderable renderable renderPriority;
                         cameraDistance: cameraDistance;
                         object: renderingSceneRenderable;
                         yourself)
@@ -220,19 +220,19 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         }.
     }.
 
-    method gatherShadowCastingRenderingObjectsOf: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ShadowMapRenderingPipelineLayer ref) ::=> Void := {
+    method gatherShadowCastingRenderingObjectsOf: (sceneLayer: SceneLayerRef const ref) on: (viewportLayer: ShadowMapRenderingPipelineLayer ref) ::=> Void := {
         let scene := self scene.
         scene ifNil: {return: void}.
 
         viewportLayer renderableSceneObjects removeAll.
 
         let frustum ref := viewportLayer frustum.
-        sceneLayer _ renderingSceneObjectsDo: {:(RenderingSceneObjectPtr const ref)each :: Void |
-            let cameraDistance := (viewportLayer cameraTransform translation - each _ boundingBox center) length.
+        sceneLayer renderingSceneObjectsDo: {:(RenderingSceneObjectRef const ref)each :: Void |
+            let cameraDistance := (viewportLayer cameraTransform translation - each boundingBox center) length.
 
-            each _ isRenderable && (frustum intersectsOrContainsBox: each _ boundingBox) ifTrue: {
+            each isRenderable && (frustum intersectsOrContainsBox: each boundingBox) ifTrue: {
                 let renderingSceneRenderable := each downCastFor: RenderingSceneRenderable.
-                let priority := renderingSceneRenderable _ renderable _ renderPriority.
+                let priority := renderingSceneRenderable renderable renderPriority.
                 priority < RenderPriority TranslucentSorted ifTrue: {
                     viewportLayer renderableSceneObjects add: (ViewportLayerRenderableObject()
                         priority: priority;
@@ -258,7 +258,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             inverseMatrix: cameraTransform inverseMatrix4;
 
             projectionMatrix: projectionMatrix;
-            currentTime: scene _ currentTime;
+            currentTime: scene currentTime;
             yourself.
 
         layer
@@ -270,15 +270,15 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
     method selectAndPrepareShadowCastingSpotLight: (spotLight: ViewportLayerLightSource ref)
         lightState: (lightState: Woden Shaders LightSourceData ref)
         in: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
-        let lightSourceObject := spotLight object _ lightSourceObject.
+        let lightSourceObject := spotLight object lightSourceObject.
 
-        let fov := lightSourceObject _ spotOuterCutoff * 2.0f.
+        let fov := lightSourceObject spotOuterCutoff * 2.0f.
         let nearDistance := 0.01f.
         let farDistance := lightState radius.
         let aspect := 1.0f.
 
-        let cameraTransform := spotLight object _ currentTransform.
-        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine _ renderingDevice shouldInvertProjectionY.
+        let cameraTransform := spotLight object currentTransform.
+        let projectionMatrix := Float32x4x4 reversePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance invertedY: self engine renderingDevice shouldInvertProjectionY.
         let frustum := FrustumF32()
             makePerspectiveFovY: fov aspect: aspect near: nearDistance far: farDistance;
             yourself.
@@ -287,7 +287,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         self setupShadowMapLayer: shadowLayer
             withCameraTransform: cameraTransform projectionMatrix: projectionMatrix frustum: frustum.
 
-        let shadowMapBias := self engine _ projectiveTextureMatrix.
+        let shadowMapBias := self engine projectiveTextureMatrix.
         lightState
             cascadeSplitOffsets: 1;
             cascadeFrustumPlane: 0;
@@ -323,9 +323,9 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         cascadeFrustum: (cascadeFrustum: FrustumF32 const ref) ::=> Float32x4x4 := {
 
         let scene := self scene.
-        let sceneBoundingBox := scene _ normalLayer _ boundingBox.
+        let sceneBoundingBox := scene normalLayer boundingBox.
 
-        let extrudeDirection := directionalLight object _ position xyz.
+        let extrudeDirection := directionalLight object position xyz.
         let lookDirection := extrudeDirection negated.
 
         let shadowCastingBody := self extractShadowCastingBodyForFrustumCorners: cascadeFrustum corners sceneBoundingBox: sceneBoundingBox
@@ -342,7 +342,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             shadowCastingBodyBoundingBox := clippedShadowCastingBodyBoundingBox
         }.
 
-        let lightTransform mutable := directionalLight object _ currentTransform.
+        let lightTransform mutable := directionalLight object currentTransform.
         lightTransform translation: shadowCastingBodyBoundingBox center.
 
         let frustumBoundingBox mutable := BoxF32 empty.
@@ -350,14 +350,14 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             frustumBoundingBox := frustumBoundingBox unionWith: (lightTransform inverseTransformPosition: each)
         }.
 
-        let projectionMatrix := frustumBoundingBox mappingToNDCCoordinatesReverseDepthWithInvertedY: self engine _ renderingDevice shouldInvertProjectionY.
+        let projectionMatrix := frustumBoundingBox mappingToNDCCoordinatesReverseDepthWithInvertedY: self engine renderingDevice shouldInvertProjectionY.
         let frustum := frustumBoundingBox asFrustum.
 
         let shadowLayer ref := shadowMapLayers[activeShadowMapLayerCount].
         self setupShadowMapLayer: shadowLayer
             withCameraTransform: lightTransform projectionMatrix: projectionMatrix frustum: frustum.
 
-        let shadowMapBias := self engine _ projectiveTextureMatrix.
+        let shadowMapBias := self engine projectiveTextureMatrix.
         let shadowMapTransform := shadowMapBias * (projectionMatrix * (shadowLayer cameraState viewMatrix * viewportLayer cameraState inverseViewMatrix)).
         activeShadowMapLayerCount := activeShadowMapLayerCount + 1.
 
@@ -374,14 +374,14 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         camera ifNil: {return: void}.
         scene ifNil: {return: void}.
 
-        let sceneBoundingBox := scene _ normalLayer _ boundingBox.
+        let sceneBoundingBox := scene normalLayer boundingBox.
         sceneBoundingBox isEmpty ifTrue: {return: void}.
 
-        let splitDistribution := camera _ cascadeSplitDistribution.
+        let splitDistribution := camera cascadeSplitDistribution.
         let firstCascadeLayer := activeShadowMapLayerCount.
         let frustum := viewportLayer frustum.
-        let nearDistance := camera _ nearDistance.
-        let farDistance := camera _ farDistance.
+        let nearDistance := camera nearDistance.
+        let farDistance := camera farDistance.
 
         ## Compute the frustum split distribution.
         ## Parallel split shadow mapping: https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
@@ -423,8 +423,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
             let lightSource ref := viewportLayer lightSources[i].
             let lightState ref := viewportLayer lightingState lightSources[i].
 
-            lightSource object _ castShadows ifTrue: {
-                lightSource object _ lightType selectCase: #{
+            lightSource object castShadows ifTrue: {
+                lightSource object lightType selectCase: #{
                 LightSourceType Spot : { self selectAndPrepareShadowCastingSpotLight: lightSource lightState: lightState in: viewportLayer }.
                 LightSourceType Directional : { self selectAndPrepareShadowCastingDirectionalLight: lightSource lightState: lightState in: viewportLayer }.
                 _ : {}
@@ -439,7 +439,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let scene := self scene.
         scene ifNil: {return: void}.
 
-        self gatherShadowCastingRenderingObjectsOf: scene _ normalLayer on: layer.
+        self gatherShadowCastingRenderingObjectsOf: scene normalLayer on: layer.
         layer sortRenderingObjects.
     }.
 
@@ -449,7 +449,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         }
     }.
 
-    method prepareSceneLayer: (sceneLayer: SceneLayerPtr const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
+    method prepareSceneLayer: (sceneLayer: SceneLayerRef const ref) on: (viewportLayer: ForwardSceneRenderingPipelineViewportLayer ref) ::=> Void := {
         self gatherVisibleRenderingObjectsOf: sceneLayer on: viewportLayer.
 
         viewportLayer
@@ -471,8 +471,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         on: (framebuffer: FramebufferRef const ref) viewport: (viewport: RectangleI32) ::=> Void := {
         stateTracker
             resetState;
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
 
             frontFaceOrientation: FrontFaceOrientation CounterClockwise;
             depthFunction: CompareFunction GreaterOrEqual;
@@ -492,13 +492,13 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         0 until: activeShadowMapLayerCount do: {:i :: Void |
             let renderingContext mutable := ForwardSceneRenderingContext().
 
-            self setupStateTracker: stateTracker forRenderPass: sceneRenderingPipeline _ shadowMapRenderPass on: sceneRenderingPipeline _ shadowMapFramebuffers[i]
-                viewport: (RectangleI32 min: 0 max: (sceneRenderingPipeline _ shadowMapTextureExtent castTo: Int32x2)).
+            self setupStateTracker: stateTracker forRenderPass: sceneRenderingPipeline shadowMapRenderPass on: sceneRenderingPipeline shadowMapFramebuffers[i]
+                viewport: (RectangleI32 min: 0 max: (sceneRenderingPipeline shadowMapTextureExtent castTo: Int32x2)).
 
             renderingContext
                 stateTracker: stateTracker;
                 renderPass: SceneRenderPass DepthOnly;
-                sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+                sceneRenderingPipeline: sceneRenderingPipeline rcObjectAddress;
                 sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
                 sceneFaceCullingMode: FaceCullingMode Back;
                 sceneDepthTestingEnabled: OverrideableBoolean True;
@@ -522,7 +522,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         renderingContext
             stateTracker: stateTracker;
             renderPass: SceneRenderPass DepthNormal;
-            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            sceneRenderingPipeline: sceneRenderingPipeline rcObjectAddress;
             sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
             sceneFaceCullingMode: FaceCullingMode Back;
             sceneDepthTestingEnabled: OverrideableBoolean True;
@@ -539,8 +539,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         stateTracker
             resetState;
 
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: normalLayer cameraStateBindings current;
             useGraphicShaderBindings: viewport _ decodeDepthBinding;
 
@@ -581,8 +581,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         stateTracker
             resetState;
 
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: normalLayer cameraStateBindings current;
             useGraphicShaderBindings: viewport _ ssaoComputationBinding;
 
@@ -628,7 +628,7 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let renderingContext mutable := ForwardSceneRenderingContext().
         renderingContext
             stateTracker: stateTracker;
-            sceneRenderingPipeline: sceneRenderingPipeline getPointer;
+            sceneRenderingPipeline: sceneRenderingPipeline rcObjectAddress;
             sceneBlendingEquation: BlendingMode Copy asBlendingEquation;
             sceneFaceCullingMode: FaceCullingMode Back;
             sceneDepthTestingEnabled: OverrideableBoolean True;
@@ -659,16 +659,16 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         activeShadowMapLayerCount := 0.
         self
             prepareCameraState;
-            prepareSceneLayer: scene _ backgroundLayer on: backgroundLayer;
-            prepareSceneLayer: scene _ normalLayer on: normalLayer;
-            prepareSceneLayer: scene _ foregroundLayer on: foregroundLayer;
+            prepareSceneLayer: scene backgroundLayer on: backgroundLayer;
+            prepareSceneLayer: scene normalLayer on: normalLayer;
+            prepareSceneLayer: scene foregroundLayer on: foregroundLayer;
             prepareShadowMapLayers.
     }.
 
     method renderHDRScene => Void := {
         let scene := self scene.
         scene ifNotNil: {
-            viewport _ hdrColorRenderPass setColorAttachment: 0 clearValue: scene _ backgroundColor.
+            viewport _ hdrColorRenderPass setColorAttachment: 0 clearValue: scene backgroundColor.
         }.
 
         self
@@ -689,24 +689,24 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
 
     method computeAverageLuminance => Void := {
         let camera ref := self camera.
-        camera isNil || camera _ hasNoAutoExposure ifTrue: {return: void}.
+        camera isNil || camera hasNoAutoExposure ifTrue: {return: void}.
 
         stateTracker
             resetState;
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: normalLayer cameraStateBindings current;
             useGraphicShaderBindings: viewport _ hdrColorBufferBinding.
 
-        sceneRenderingPipeline _
+        sceneRenderingPipeline
             performAverageLuminanceComputationWith: stateTracker.
 
         stateTracker
-            useComputeShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useComputeShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useComputeShaderBindings: normalLayer cameraStateBindings current;
-            useComputeShaderBindings: sceneRenderingPipeline _ luminanceComputationResultMaterialBindings.
+            useComputeShaderBindings: sceneRenderingPipeline luminanceComputationResultMaterialBindings.
 
-        sceneRenderingPipeline _
+        sceneRenderingPipeline
             performCameraAutoExposureStateComputationWith: stateTracker.
 
         stateTracker
@@ -719,10 +719,10 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let currentScene2D ref := viewport _ currentScene2D.
         currentScene2D ifNil: { return: void }.
 
-        let scene2DRenderer ref := scene2DRenderers[self engine _ frameBufferingIndex].
+        let scene2DRenderer ref := scene2DRenderers[self engine frameBufferingIndex].
         scene2DRenderer ifNil: {
             scene2DRenderer := StateTracker2DSceneRenderer new
-                device: self engine _ renderingDevice;
+                device: self engine renderingDevice;
                 yourself.
         }.
 
@@ -736,8 +736,8 @@ class ForwardSceneRenderingPipelineViewportEye superclass: RenderingPipelineCame
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (viewport _ currentExtent castTo: Int32x2).
         stateTracker
             resetState;
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: normalLayer cameraStateBindings current;
             useGraphicShaderBindings: viewport _ hdrColorBufferBinding;
 

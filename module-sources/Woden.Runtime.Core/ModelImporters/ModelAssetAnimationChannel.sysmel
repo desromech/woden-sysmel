@@ -11,20 +11,18 @@ class ModelAssetAnimationChannel superclass: Std RCObject; definition: {
     public field targetNode type: ModelAssetNodePtr.
     public field targetProperty type: ModelAssetAnimationTargetProperty.
 
-    method asAnimationChannel => AnimationChannelPtr := {
+    method asAnimationChannel => AnimationChannelRef := {
         targetNode _ isJoint ifFalse: {
-            let channel := AnimationChannelWithCurve rcNew.
-            channel _
+            AnimationChannelWithCurve new
                 curveIndex: sampler _ index;
-                targetProperty: targetProperty.
-            channel upCastFor: AnimationChannel
+                targetProperty: targetProperty;
+                upCastFor: AnimationChannel
         } ifTrue: {
-            let channel := AnimationJointChannelWithCurve rcNew.
-            channel _
+            AnimationJointChannelWithCurve new
                 curveIndex: sampler _ index;
                 jointIndex: targetNode _ jointIndex;
-                targetProperty: targetProperty.
-            channel upCastFor: AnimationChannel
+                targetProperty: targetProperty;
+                upCastFor: AnimationChannel
         }.
     }
 }.

@@ -13,7 +13,7 @@ class GenericSubmesh definition: {
     public field indexBuffer type: BufferRef.
     public field indexBufferOffset type: UIntPointer.
     public field indexBufferStride type: UIntPointer.
-    public field material type: MaterialPtr.
+    public field material type: MaterialRef.
 
     public field firstIndex type: UInt32.
     public field indexOrVertexCount type: UInt32.

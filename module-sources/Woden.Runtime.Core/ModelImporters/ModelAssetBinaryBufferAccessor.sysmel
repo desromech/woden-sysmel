@@ -19,7 +19,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     public field minValue type: Float64x4.
     public field maxValue type: Float64x4.
 
-    method asIndexBufferFor: (engine: EnginePtr const ref) ::=> BufferRef
+    method asIndexBufferFor: (engine: EngineRef const ref) ::=> BufferRef
         := bufferView _ asIndexBufferFor: engine.
 
     method asFirstIndex => UIntPointer

@@ -7,23 +7,23 @@ useNamespace: Std Math Geometry.
  * I am a renderable with additional deformation state.
  *#
 class CompositeRenderable superclass: MutableRenderable; definition: {
-    public field components type: Std Collections Vector(RenderablePtr).
+    public field components type: Std Collections Vector(RenderableRef).
 
-    method addComponent: (component: RenderablePtr const ref) ::=> Void := {
+    method addComponent: (component: RenderableRef const ref) ::=> Void := {
         components add: component
     }.
 
     method computeBoundingBox => Void := {
         localBoundingBox := BoxF32 empty.
         components do: {:each :: Void |
-            localBoundingBox := localBoundingBox unionWith: each _ localBoundingBox
+            localBoundingBox := localBoundingBox unionWith: each localBoundingBox
         }.
     }.
 
-    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Std Collections Vector(RenderingSceneObject rcPointer) := {
+    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectRef) ::=> Std Collections Vector(RenderingSceneObject rcRef) := {
         let result mutable := RenderingSceneObjectList().
         components do: {:each :: Void |
-            let renderingSceneObjects := each _ createRenderingSceneObjectsFor: spatialObject.
+            let renderingSceneObjects := each createRenderingSceneObjectsFor: spatialObject.
             result addAll: renderingSceneObjects
         }.
 
@@ -32,7 +32,7 @@ class CompositeRenderable superclass: MutableRenderable; definition: {
 
 }.
 
-compileTime constant CompositeRenderablePtr := CompositeRenderable rcPointer.
+compileTime constant CompositeRenderableRef := CompositeRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

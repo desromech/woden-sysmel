@@ -7,21 +7,21 @@ macro method sampleSceneMainWith: modelInitializationBlock := {
     ``(Std MainEntryPoint: {:args :: Int32 |
 
         ## Create the scene model and initialize with the C arguments.
-        let `,sceneModel mutable := Woden Application SampleSceneModel rcNew.
-        (`,sceneModel _ initializeWithCommandLine: args) ifFalse: {
+        let `,sceneModel mutable := Woden Application SampleSceneModel new.
+        (`,sceneModel initializeWithCommandLine: args) ifFalse: {
             return: 1
         }.
 
         ## Build the scene of the sample.
-        `,modelInitializationBlock __macroInlineBlock: `,sceneModel _.
+        `,modelInitializationBlock __macroInlineBlock: `,sceneModel.
 
         ## Open the main view.
-        (`,sceneModel _ openApplication) ifFalse: {
+        (`,sceneModel openApplication) ifFalse: {
             return: 1
         }.
 
         ## Enter the main loop.
-        `,sceneModel _ runMainLoopAndShutdown.
+        `,sceneModel runMainLoopAndShutdown.
     })
 }.
 

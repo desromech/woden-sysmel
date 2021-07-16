@@ -10,24 +10,25 @@ class ModelAssetAnimation superclass: ModelAssetElement; definition: {
     public field channels type: Std Collections Vector(ModelAssetAnimationChannelPtr).
     public field samplers type: Std Collections Vector(ModelAssetAnimationSamplerPtr).
 
-    field convertedAnimation type: Animation rcPointer.
+    field convertedAnimation type: Animation rcRef.
 
-    method asAnimation => Animation rcPointer := {
+    method asAnimation => Animation rcRef := {
         convertedAnimation ifNotNil: {return: convertedAnimation}.
 
-        let multiChannelAnimation := MultiChannelAnimation rcNew.
-        multiChannelAnimation _ duration: 0.
+        let multiChannelAnimation := MultiChannelAnimation new
+            duration: 0;
+            yourself.
 
-        multiChannelAnimation _ curves reserve: samplers size.
+        multiChannelAnimation curves reserve: samplers size.
         samplers do: {:each :: Void |
             let curve := each _ asAnimationCurve.
-            multiChannelAnimation _ curves add: curve.
-            multiChannelAnimation _ duration: (multiChannelAnimation _ duration max: curve _ endTime)
+            multiChannelAnimation curves add: curve.
+            multiChannelAnimation duration: (multiChannelAnimation duration max: curve endTime)
         }.
 
-        multiChannelAnimation _ channels reserve: channels size.
+        multiChannelAnimation channels reserve: channels size.
         channels do: {:each :: Void |
-            multiChannelAnimation _ channels add: each _ asAnimationChannel
+            multiChannelAnimation channels add: each _ asAnimationChannel
         }.
 
         convertedAnimation := multiChannelAnimation upCastFor: Animation.

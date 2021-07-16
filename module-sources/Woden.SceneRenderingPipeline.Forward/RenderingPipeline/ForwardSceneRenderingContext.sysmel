@@ -11,7 +11,7 @@ class ForwardSceneRenderingContext superclass: SceneRenderingContext; definition
     public field sceneRenderingPipeline type: ForwardSceneRenderingPipeline pointer.
 
     method device => RenderingDeviceRef const ref
-        := sceneRenderingPipeline _ engine _ renderingDevice.
+        := sceneRenderingPipeline _ engine renderingDevice.
 
     override method uploadDeformationState: (deformationStateData: Void const pointer) size: (deformationStateSize: UIntPointer) on: (deformationStateCache: DeformationStateCache ref) ::=> Boolean8 := {
         deformationStateCache buffers isCreated ifFalse: {

@@ -53,7 +53,7 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
         result
     }.
 
-    field skeleton type: SkeletonPtr.
+    field skeleton type: SkeletonRef.
 
     method permutateBoneIndex: (boneIndex: UInt32) ::=> UInt32
         := joints[boneIndex] _ jointIndex castTo: UInt32.
@@ -99,20 +99,20 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
         }.
     }.
 
-    method asSkeleton => SkeletonPtr := {
+    method asSkeleton => SkeletonRef := {
         skeleton ifNotNil: {return: skeleton}.
 
         let boneCount := joints size.
         let inverseBindMatrices := inverseBindMatricesAccessor _ decodeAsVectorOfFloat32x4x4.
         Std assert: inverseBindMatrices size = boneCount.
 
-        skeleton := Skeleton rcNew.
-        skeleton _ bones resizeTo: boneCount.
+        skeleton := Skeleton new.
+        skeleton bones resizeTo: boneCount.
         joints doWithIndex: {:joint :index :: Void |
             let jointSortedIndex := joint _ jointIndex.
             Std assert: jointSortedIndex < boneCount && joint _ hasValidJointIndex.
 
-            skeleton _ bones[jointSortedIndex]
+            skeleton bones[jointSortedIndex]
                 parentIndex: joint _ parentJointIndex;
                 inverseBindMatrix: inverseBindMatrices[index];
                 restPose: (BonePose()

@@ -5,29 +5,29 @@ namespace Runtime definition: {
  * I am a renderable that has skeleton based deformation.
  *#
 class SkinnedRenderableMesh superclass: MeshWithExtraDeformationRenderable; definition: {
-    public field skeleton type: SkeletonPtr.
-    public field skeletonPose type: SkeletonPosePtr.
+    public field skeleton type: SkeletonRef.
+    public field skeletonPose type: SkeletonPoseRef.
 
-    override method getSkeletonPose => SkeletonPosePtr
+    override method getSkeletonPose => SkeletonPoseRef
         := skeletonPose.
 
     method createRestPose => Void := {
         skeleton ifNil: {return: void}.
 
         skeletonPose := SkeletonPose for: skeleton.
-        skeletonPose _
+        skeletonPose
             resetToRestPose
     }.
 
     override method activateDeformationStateOn: (context: SceneRenderingContext ref) ::=> Boolean8 := {
-        skeletonPose isNil || skeletonPose _ skinningMatrices isEmpty ifTrue: {return: false}.
-        skeletonPose _ validateSkinningMatrices.
+        skeletonPose isNil || skeletonPose skinningMatrices isEmpty ifTrue: {return: false}.
+        skeletonPose validateSkinningMatrices.
 
-        context uploadAndActivateSkinningState: skeletonPose _ skinningMatrices asArraySlice on: deformationStateCache
+        context uploadAndActivateSkinningState: skeletonPose skinningMatrices asArraySlice on: deformationStateCache
     }.
 }.
 
-compileTime constant SkinnedRenderableMeshPtr := SkinnedRenderableMesh rcPointer.
+compileTime constant SkinnedRenderableMeshRef := SkinnedRenderableMesh rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

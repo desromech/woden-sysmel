@@ -10,9 +10,9 @@ class FrameBufferedStateTracker superclass: FrameBufferedRenderingResource; defi
     public field allocators type: (CommandListAllocatorRef array: FrameBufferingCount).
     public field stateTrackers type: (StateTrackerRef array: FrameBufferingCount).
 
-    method for: (anEngine: EnginePtr const ref) createOfType: (type: CommandListType) ::=> Void := {
+    method for: (anEngine: EngineRef const ref) createOfType: (type: CommandListType) ::=> Void := {
         engine := anEngine.
-        let device ref := engine _ renderingDevice.
+        let device ref := engine renderingDevice.
         let commandQueue ref := device getDefaultCommandQueue.
 
         0 until: FrameBufferingCount do: {:i :: Void |

@@ -5,7 +5,7 @@ useNamespace: Woden Runtime.
 useNamespace: Std Graphics GUI.
 
 class SampleSceneModel superclass: SceneModel; definition: {
-    field animationScheduler type: AnimationSchedulerPtr.
+    field animationScheduler type: AnimationSchedulerRef.
     field accumulatedTime type: Float32.
     field updateTimeStep type: Float32.
 
@@ -13,12 +13,12 @@ class SampleSceneModel superclass: SceneModel; definition: {
         updateTimeStep := 1.0f / 60.0f.
     }.
 
-    const inline method animationScheduler => AnimationSchedulerPtr const ref
+    const inline method animationScheduler => AnimationSchedulerRef const ref
         := animationScheduler.
 
     override method initializeModel => Boolean8 := {
         super initializeModel ifFalse: {return: false}.
-        animationScheduler := AnimationScheduler rcNew.
+        animationScheduler := AnimationScheduler new.
         true.
     }.
 
@@ -27,16 +27,16 @@ class SampleSceneModel superclass: SceneModel; definition: {
 
         accumulatedTime := accumulatedTime + (event deltaSeconds castTo: Float32).
         while: accumulatedTime >= updateTimeStep do: {
-            animationScheduler _ update: updateTimeStep.
+            animationScheduler update: updateTimeStep.
             accumulatedTime := accumulatedTime - updateTimeStep
         }.
 
         ## Validate and interpolate the rendering state using the remaining delta.
-        animationScheduler _ applyInterpolationForRendering: accumulatedTime / updateTimeStep.
+        animationScheduler applyInterpolationForRendering: accumulatedTime / updateTimeStep.
     }.
 
-    override method createNewView => ViewPtr
-        := SampleSceneView rcNew upCastFor: View.
+    override method createNewView => ViewRef
+        := SampleSceneView new upCastFor: View.
 }.
 
 }. ## End of namespace Application

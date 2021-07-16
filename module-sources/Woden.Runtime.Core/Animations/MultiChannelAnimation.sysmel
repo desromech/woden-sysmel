@@ -3,15 +3,15 @@ namespace Runtime definition: {
 
 class MultiChannelAnimation superclass: Animation; definition: {
     public field duration type: Float32.
-    public field curves type: Std Collections Vector(AnimationCurvePtr).
-    public field channels type: Std Collections Vector(AnimationChannelPtr).
+    public field curves type: Std Collections Vector(AnimationCurveRef).
+    public field channels type: Std Collections Vector(AnimationChannelRef).
 
-    override method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcPointer := {
-        let result := MultiChannelAnimationState rcNew.
-        result _
-            initializeWithAnimation: (self asRCPointer upCastFor: Animation) target: target;
-            isLooped: isLooped.
-        result _ curveStates resizeTo: curves size.
+    override method newStateForTarget: (target: AnimationTargetRef const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcRef := {
+        let result := MultiChannelAnimationState new
+            initializeWithAnimation: (self asRCRef upCastFor: Animation) target: target;
+            isLooped: isLooped;
+            yourself.
+        result curveStates resizeTo: curves size.
         result upCastFor: AnimationState
     }.
 
@@ -40,16 +40,16 @@ class MultiChannelAnimation superclass: Animation; definition: {
 
         let multiChannelState ref := (state address reinterpretCastTo: MultiChannelAnimationState pointer) _.
         curves doWithIndex: {:eachCurve :index :: Void |
-            multiChannelState curveStates[index] := eachCurve _ computeCurveStateAtTime: interpolatedTime
+            multiChannelState curveStates[index] := eachCurve computeCurveStateAtTime: interpolatedTime
         }.
 
         channels do: {:each :: Void |
-            each _ applyChannelState: multiChannelState atTime: interpolatedTime
+            each applyChannelState: multiChannelState atTime: interpolatedTime
         }.
     }.
 }.
 
-compileTime constant MultiChannelAnimationPtr := MultiChannelAnimation rcPointer.
+compileTime constant MultiChannelAnimationRef := MultiChannelAnimation rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

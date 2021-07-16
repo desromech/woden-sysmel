@@ -9,7 +9,7 @@ useNamespace: Std Graphics Core.
 class FrameBufferedShaderResourcesBindings superclass: FrameBufferedRenderingResource; definition: {
     public field bindings type: (ShaderResourceBindingsRef array: FrameBufferingCount).
 
-    method for: (anEngine: EnginePtr const ref) createForShaderSignature: (shaderSignature: ShaderSignatureRef const ref) bindingSet: (bindingSetIndex: UInt32) ::=> Void := {
+    method for: (anEngine: EngineRef const ref) createForShaderSignature: (shaderSignature: ShaderSignatureRef const ref) bindingSet: (bindingSetIndex: UInt32) ::=> Void := {
         engine := anEngine.
 
         0 until: FrameBufferingCount do: {:i :: Void |

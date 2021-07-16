@@ -26,27 +26,27 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
         materialAttributes material: newMaterial
     }.
 
-    method buildMeshFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+    method buildMeshFor: (engine: EngineRef) with: (meshBuilder: GenericMeshBuilderRef const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         materialAttributes material ifNotNil: {
-            meshBuilder _ currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine)
+            meshBuilder currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine)
         }.
-        meshBuilder _
-            beginTriangles.
 
-    	let normalAxis := meshBuilder _ computeNormalAxis: plane normal.
-    	let tangent := meshBuilder _ tangentForAxis: normalAxis.
-    	let bitangent := meshBuilder _ bitangentForAxis: normalAxis.
+    	let normalAxis := meshBuilder computeNormalAxis: plane normal.
+    	let tangent := meshBuilder tangentForAxis: normalAxis.
+    	let bitangent := meshBuilder bitangentForAxis: normalAxis.
     	let textureMatrix := materialAttributes textureTransform.
+
+        meshBuilder beginTriangles.
 
         vertices do: {:each :: Void |
             let worldVertex := parentTransform transformPosition: each.
             
             let uv := Float32x2 x: (tangent dot: worldVertex) y: (bitangent dot: worldVertex).
-            meshBuilder _ addP: each N: plane normal TC: (textureMatrix * Float32x3(uv, 1)) xy
+            meshBuilder addP: each N: plane normal TC: (textureMatrix * Float32x3(uv, 1)) xy
         }.
 
         2 until: (vertices size castTo: UInt32) do: {:(UInt32)index :: Void |
-            meshBuilder _ addI1: 0 i2: index - 1 i3: index
+            meshBuilder addI1: 0 i2: index - 1 i3: index
         }.
     }.
 

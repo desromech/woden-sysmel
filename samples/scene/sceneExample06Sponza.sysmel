@@ -6,38 +6,32 @@ Compiler importModulesNamed: #(
 useNamespace: Woden Runtime.
 
 Woden Application sampleSceneMainWith: {:model :: Void |
-    let scene := model newScene.
-    scene _
+    let scene := model newScene
         backgroundColor: Float32x4 black;
-        backgroundLighting: 0.2f.
+        backgroundLighting: 0.2f;
+        yourself.
 
     ## Setup the camera
-    {
-        let camera := model mainCamera.
-        camera _
-            exposure: 0.25f;
-            toneMappingOperator: ToneMappingOperator Filmic;
-            withAutoExposure;
-            translateByY: 1.6.
-    }.
+    model mainCamera
+        exposure: 0.25f;
+        toneMappingOperator: ToneMappingOperator Filmic;
+        withAutoExposure;
+        translateByY: 1.6.
 
     ## Load the sponza model
     {
-        let modelAsset := model engine _ resourceCache _ loadModelAssetFrom: "models/Sponza/glTF/Sponza" asNativeFileReference.
+        let modelAsset := model engine resourceCache loadModelAssetFrom: "models/Sponza/glTF/Sponza" asNativeFileReference.
         modelAsset ifNotNil: {
             modelAsset _ scenes first _ createSceneNodesFor: model engine in: scene
         }.
     }.
 
     ## Add the moon light
-    {
-        let moonLight := LightSourceNode rcNew.
-        moonLight _
-            makeDirectional;
-            intensity: (Float32x3 x: 1.0f y: 1.0f z: 0.8f) normalized * 1.5f;
-            rotateDegreesOnX: -35.
-        scene _ add: (moonLight upCastFor: SceneNode).
-    }.
+    scene add: (LightSourceNode new
+        makeDirectional;
+        intensity: (Float32x3 x: 1.0f y: 1.0f z: 0.8f) normalized * 1.5f;
+        rotateDegreesOnX: -35;
+        upCastFor: SceneNode).
 
     ## Add the torch lights
     {
@@ -48,13 +42,12 @@ Woden Application sampleSceneMainWith: {:model :: Void |
             Float32x3 x: -4.95f y: 1.3f z: -1.72f
         ).
         torchLightPositions do: {:position :: Void |
-            let light := LightSourceNode rcNew.
-            light _
+            scene add: (LightSourceNode new
                 makePoint;
                 radius: 20.0f;
                 intensity: Float32x3(1.0f, 1.0f, 0.9f)*15.0f;
-                translateTo: position.
-            scene _ add: (light upCastFor: SceneNode).
+                translateTo: position;
+                upCastFor: SceneNode).
         }.
     }.
 }.

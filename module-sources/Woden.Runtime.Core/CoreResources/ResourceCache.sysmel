@@ -9,21 +9,21 @@ useNamespace: Std Graphics GUI.
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
 class ResourceCache superclass: Std RCObject; definition: {
-    private field engine type: EnginePtr.
+    private field engine type: EngineRef.
     private field assetLocations type: Std Collections Vector(Std FileReference).
     private field lazyResourceCreationMutex type: Std Mutex.
 
-    const inline method engine => EnginePtr const ref
+    const inline method engine => EngineRef const ref
         := engine.
 
-    private field defaultMaterial type: MaterialPtr.
+    private field defaultMaterial type: MaterialRef.
 
-    const inline method defaultMaterial => MaterialPtr const ref
+    const inline method defaultMaterial => MaterialRef const ref
         := defaultMaterial.
 
-    private field checkboardMaterial type: MaterialPtr.
+    private field checkboardMaterial type: MaterialRef.
 
-    const inline method checkboardMaterial => MaterialPtr const ref
+    const inline method checkboardMaterial => MaterialRef const ref
         := checkboardMaterial.
 
     private field whiteTexture type: TextureWithViewRef.
@@ -61,7 +61,7 @@ class ResourceCache superclass: Std RCObject; definition: {
     const inline method blackTextureCube => TextureWithViewRef const ref
         := blackTextureCube.
 
-    method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+    method initializeWithEngine: (anEngine: EngineRef const ref) ::=> Void := {
         engine := anEngine.
 
         assetLocations
@@ -77,9 +77,9 @@ class ResourceCache superclass: Std RCObject; definition: {
 
         defaultMaterial := (MetallicRoughnessMaterial for: engine) upCastFor: Material.
         checkboardMaterial := {
-            let material := MetallicRoughnessMaterial for: engine.
-            material _ baseColorTexture: checkboardTexture.
-            material upCastFor: Material
+            (MetallicRoughnessMaterial for: engine)
+                baseColorTexture: checkboardTexture;
+                upCastFor: Material
         }.
     }.
 
@@ -130,7 +130,7 @@ class ResourceCache superclass: Std RCObject; definition: {
     }.
 
     method createTextureWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewRef := {
-        let device := engine _ renderingDevice.
+        let device := engine renderingDevice.
         let texture := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: 1;
@@ -151,7 +151,7 @@ class ResourceCache superclass: Std RCObject; definition: {
     }.
 
     method createTextureCubeWithSolidColor: (color: UInt8x4) format: (format: PixelFormat) ::=> TextureWithViewRef := {
-        let device := engine _ renderingDevice.
+        let device := engine renderingDevice.
         let texture := device createTexture: (TextureDescription()
             type: TextureType TextureCube;
             width: 1;
@@ -175,7 +175,7 @@ class ResourceCache superclass: Std RCObject; definition: {
     }.
 
     method createCheckboardTexture => TextureWithViewRef := {
-        let device := engine _ renderingDevice.
+        let device := engine renderingDevice.
         let texture := device createTexture: (TextureDescription()
             type: TextureType Texture2D;
             width: 64;
@@ -220,7 +220,7 @@ class ResourceCache superclass: Std RCObject; definition: {
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice createColorTextureWithData: textureData.
+        let texture := engine renderingDevice createColorTextureWithData: textureData.
         texture ifNil: {return: checkboardTexture}.
 
         texture asTextureWithView
@@ -239,7 +239,7 @@ class ResourceCache superclass: Std RCObject; definition: {
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice createTextureWithData: textureData.
+        let texture := engine renderingDevice createTextureWithData: textureData.
         texture ifNil: {return: TextureWithViewRef nil}.
 
         texture asTextureWithView
@@ -258,7 +258,7 @@ class ResourceCache superclass: Std RCObject; definition: {
             withMiplevels ifNotNil: {textureData := withMiplevels}
         }.
 
-        let texture := engine _ renderingDevice createTextureWithData: textureData.
+        let texture := engine renderingDevice createTextureWithData: textureData.
         texture ifNil: {return: TextureWithViewRef nil}.
 
         texture asTextureWithView
@@ -271,14 +271,14 @@ class ResourceCache superclass: Std RCObject; definition: {
         let textureData := TextureData readFromFileReference: solvedFileReference.
         textureData ifNil: {return: TextureWithViewRef nil}.
 
-        let texture := engine _ renderingDevice createColorTextureWithData: textureData.
+        let texture := engine renderingDevice createColorTextureWithData: textureData.
         texture ifNil: {return: TextureWithViewRef nil}.
 
         texture asTextureWithView
     }.
 }.
 
-compileTime constant ResourceCachePtr := ResourceCache rcPointer.
+compileTime constant ResourceCacheRef := ResourceCache rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

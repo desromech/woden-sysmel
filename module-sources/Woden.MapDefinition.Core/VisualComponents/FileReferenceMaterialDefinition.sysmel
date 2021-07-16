@@ -20,11 +20,11 @@ class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition
     override method isFileReferenceMaterialDefinition => Boolean8
         := true.
 
-    field runtimeMaterial type: MaterialPtr.
+    field runtimeMaterial type: MaterialRef.
 
-    override method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr := {
+    override method getOrCreateMaterialFor: (engine: EngineRef) ::=> MaterialRef := {
         runtimeMaterial ifNil: {
-            runtimeMaterial := engine _ resourceCache _ loadMaterialFrom: path asNativeFileReference
+            runtimeMaterial := engine resourceCache loadMaterialFrom: path asNativeFileReference
         }.
 
         runtimeMaterial

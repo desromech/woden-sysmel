@@ -8,14 +8,14 @@ class AnimationJointChannelWithCurve superclass: AnimationChannelWithCurve; defi
         let curveState ref := state curveStates[curveIndex].
 
         targetProperty selectCase: #{
-        AnimationChannelTargetProperty Rotation : { state target _ setJoint: jointIndex rotationQuaternion: curveState rotationQuaternion }.
-        AnimationChannelTargetProperty Scale : { state target _ setJoint: jointIndex scale: curveState scale }.
-        AnimationChannelTargetProperty Translation : { state target _ setJoint: jointIndex translation: curveState translation }.
+        AnimationChannelTargetProperty Rotation : { state target setJoint: jointIndex rotationQuaternion: curveState rotationQuaternion }.
+        AnimationChannelTargetProperty Scale : { state target setJoint: jointIndex scale: curveState scale }.
+        AnimationChannelTargetProperty Translation : { state target setJoint: jointIndex translation: curveState translation }.
         }.
     }.
 }.
 
-compileTime constant AnimationJointChannelWithCurvePtr := AnimationJointChannelWithCurve rcPointer.
+compileTime constant AnimationJointChannelWithCurveRef := AnimationJointChannelWithCurve rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

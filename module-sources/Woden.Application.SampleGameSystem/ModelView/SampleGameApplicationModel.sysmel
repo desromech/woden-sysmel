@@ -8,11 +8,11 @@ class SampleGameApplicationModel superclass: GameApplicationModel; definition: {
     override method newGlobalGameState => GlobalGameStatePtr
         := SampleGlobalGameState rcNew upCastFor: GlobalGameState.
 
-    override method createNewView => ViewPtr
-        := SampleGameApplicationView rcNew upCastFor: View.
+    override method createNewView => ViewRef
+        := SampleGameApplicationView new upCastFor: View.
 }.
 
-compileTime constant SampleGameApplicationModelPtr := SampleGameApplicationModel rcPointer.
+compileTime constant SampleGameApplicationModelRef := SampleGameApplicationModel rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

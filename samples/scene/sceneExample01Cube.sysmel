@@ -9,30 +9,20 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     let scene := model newScene.
 
     ## Setup the camera
-    {
-        let camera := model mainCamera.
-        camera _ translateByZ: 3.0.
-    }.
+    model mainCamera translateByZ: 3.0.
 
     ## Build and add the cube to the scene.
-    {
-        let meshBuilder := model engine _ newGenericMeshBuilder.
-        meshBuilder _ addCubeWithWidth: 1.0 height: 1.0 depth: 1.0.
-        let renderable := meshBuilder _ renderable.
-
-        let cube := SpatialObjectNode rcNew.
-        cube _ renderable: renderable.
-        scene _ add: (cube upCastFor: SceneNode).
-    }.
+    scene add: (SpatialObjectNode new
+        renderable: (model engine newGenericMeshBuilder
+            addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
+            renderable);
+        upCastFor: SceneNode).
 
     ## Add the light source.
-    {
-        let light := LightSourceNode rcNew.
-        light _
-            makePoint;
-            radius: 4.0;
-            intensity: Float32x4 yellow rgb * 5.0f;
-            translateByX: -1.5f y: 1.5f z: 1.6f.
-        scene _ add: (light upCastFor: SceneNode).
-    }.
+    scene add: (LightSourceNode new
+        makePoint;
+        radius: 4.0;
+        intensity: Float32x4 yellow rgb * 5.0f;
+        translateByX: -1.5f y: 1.5f z: 1.6f;
+        upCastFor: SceneNode)
 }.

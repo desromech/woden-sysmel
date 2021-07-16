@@ -8,11 +8,10 @@ useNamespace: Std Graphics Core.
  *#
 class SkyMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> SkyMaterial rcPointer := {
-            let result := SkyMaterial rcNew.
-            result _ initializeWithEngine: anEngine.
-            result
-        }.
+        method for: (anEngine: EngineRef const ref) ::=> SkyMaterial rcRef
+            := SkyMaterial new
+                initializeWithEngine: anEngine;
+                yourself.
     }.
 
     public field stateBinding type: ShaderResourceBindingsRef.
@@ -23,7 +22,7 @@ class SkyMaterial superclass: Material; definition: {
     }.
 
     method validTexture => TextureWithViewRef := {
-        texture ifNil: {return: engine _ resourceCache _ whiteTextureCube}.
+        texture ifNil: {return: engine resourceCache whiteTextureCube}.
         texture
     }.
 
@@ -31,7 +30,7 @@ class SkyMaterial superclass: Material; definition: {
         := context activateSkyMaterial: self.
 }.
 
-compileTime constant SkyMaterialPtr := SkyMaterial rcPointer.
+compileTime constant SkyMaterialRef := SkyMaterial rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

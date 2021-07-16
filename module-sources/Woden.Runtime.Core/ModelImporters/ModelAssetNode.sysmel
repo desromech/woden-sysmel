@@ -30,26 +30,24 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
         rotationQuaternion := QuaternionF32 identity.
     }.
 
-    method asSceneNodeFor: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode rcNew.
+    method asSceneNodeFor: (engine: EngineRef const ref) ::=> SceneNodeRef := {
+        let node := SpatialObjectNode new.
         mesh ifNotNil: {
-            node _ renderable: (mesh _ asRenderableFor: engine).
+            node renderable: (mesh _ asRenderableFor: engine).
 
             skeleton ifNotNil: {
-                let skinnedMesh := SkinnedRenderableMesh rcNew.
-                skinnedMesh _
-                    mesh: node _ renderable;
+                node renderable: (SkinnedRenderableMesh new
+                    mesh: node renderable;
                     skeleton: (skeleton _ asSkeleton);
-                    createRestPose.
-                node _ renderable: (skinnedMesh upCastFor: Renderable)
+                    createRestPose;
+                    upCastFor: Renderable)
             }
         }.
 
-        node _ transform: transform.
+        node transform: transform.
         children do: {:each :: Void |
-            let childNode := each _ asSceneNodeFor: engine.
-            childNode ifNotNil: {
-                node _ addChild: childNode.
+            (each _ asSceneNodeFor: engine) ifNotNil: {:childNode :: Void |
+                node addChild: childNode.
             }
         }.
 

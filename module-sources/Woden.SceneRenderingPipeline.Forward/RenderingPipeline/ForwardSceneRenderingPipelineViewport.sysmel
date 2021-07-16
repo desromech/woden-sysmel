@@ -15,7 +15,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
     public field leftEyeViewport type: ForwardSceneRenderingPipelineViewportEye.
     public field rightEyeViewport type: ForwardSceneRenderingPipelineViewportEye.
-    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelineRef.
 
     public field currentExtent type: UInt32x2.
     public field renderingCommandQueue type: CommandQueueRef.
@@ -76,17 +76,17 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     public field currentDisplayRenderPass type: RenderPassRef.
     public field currentScene2D type: Std Graphics Scene2D NodeRef.
 
-    const inline method engine => EnginePtr
-        := sceneRenderingPipeline _ engine.
+    const inline method engine => EngineRef
+        := sceneRenderingPipeline engine.
 
-    method initializeWithSceneRenderingPipeline: (theRenderingPipeline: ForwardSceneRenderingPipelinePtr) ::=> Void := {
+    method initializeWithSceneRenderingPipeline: (theRenderingPipeline: ForwardSceneRenderingPipelineRef) ::=> Void := {
         sceneRenderingPipeline := theRenderingPipeline.
         leftEyeViewport viewport: self address.
         rightEyeViewport viewport: self address; isRightEye: true.
     }.
 
     override method extent: (requiredExtent: UInt32x2) ::=> Void := {
-        let renderingSettings ref := self engine _ renderingSettings.
+        let renderingSettings ref := self engine renderingSettings.
 
         currentExtent = requiredExtent &&
             hdrColorFramebuffer isNotNil &&
@@ -97,8 +97,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
 
         ssaoQuality := renderingSettings screenSpaceAmbientOcclusionQuality.
 
-        let isDumpingFrames := self engine _ renderingSettings frameDumping.
-        let device := self engine _ renderingDevice.
+        let isDumpingFrames := self engine renderingSettings frameDumping.
+        let device := self engine renderingDevice.
         renderingCommandQueue ifNotNil: {
             renderingCommandQueue waitForIdle
         }.
@@ -224,7 +224,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         decodeDepthBinding ifNil: {
-            decodeDepthBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+            decodeDepthBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
         }.
         decodeDepthBinding
             bindOn: 1 sampledTextureView: renderDepthBufferTextureView.
@@ -275,7 +275,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             let renderColorBufferTextureView := renderHDRColorBuffer getOrCreateFullView.
 
             hdrColorBufferBinding ifNil: {
-                hdrColorBufferBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+                hdrColorBufferBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
             }.
             hdrColorBufferBinding bindOn: 1 sampledTextureView: resolveHDRColorBuffer getOrCreateFullView.
 
@@ -288,7 +288,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         ssaoPingFramebuffer := nil.
         ssaoPingTextureView := nil.
         ssaoQuality isDisabled ifTrue: {
-            ssaoTextureView := self engine _ resourceCache _ whiteTexture textureView.
+            ssaoTextureView := self engine resourceCache whiteTexture textureView.
         } ifFalse: {
             self createSSAOBuffersForExtent: requiredExtent.
         }.
@@ -313,7 +313,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         isDumpingFrames ifTrue: {
-            eyeReadbackBufferPitch := sceneRenderingPipeline _ swapChainColorBufferFormat bytesPerPixel * requiredExtent x alignedTo: device minTextureDataPitchAlignment.
+            eyeReadbackBufferPitch := sceneRenderingPipeline swapChainColorBufferFormat bytesPerPixel * requiredExtent x alignedTo: device minTextureDataPitchAlignment.
             eyeReadbackBufferSlicePitch := eyeReadbackBufferPitch * requiredExtent y alignedTo: device minTextureDataOffsetAlignment.
             eyeReadbackBufferSize := eyeReadbackBufferSlicePitch * FrameBufferingCount.
             stereoPresentationMode isStereoscopic ifTrue: {
@@ -340,7 +340,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 depth: 1;
                 layers: 1;
                 miplevels: 1;
-                format: sceneRenderingPipeline _ swapChainColorBufferFormat;
+                format: sceneRenderingPipeline swapChainColorBufferFormat;
                 usageModes: usageModes;
                 mainUsageMode: TextureUsageMode Sampled;
                 heapType: MemoryHeapType DeviceLocal;
@@ -369,7 +369,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             }.
 
             stereoEyeCompositionBinding ifNil: {
-                stereoEyeCompositionBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+                stereoEyeCompositionBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
             }.
 
             self hasStereoscopicPresentationModeWithFlippedEyes ifTrue: {
@@ -383,7 +383,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
             eyeCompositionRenderPass ifNil: {
                 let colorAttachments mutable := RenderPassColorAttachmentDescription array (
                     RenderPassColorAttachmentDescription()
-                        format: sceneRenderingPipeline _ swapChainColorBufferFormat;
+                        format: sceneRenderingPipeline swapChainColorBufferFormat;
                         beginAction: RenderPassAttachmentAction Discard;
                         endAction: RenderPassAttachmentAction Keep;
                         yourself
@@ -410,10 +410,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     method createSSAOBuffersForExtent: (framebufferExtent: UInt32x2) ::=> Void := {
-        let device ref := self engine _ renderingDevice.
+        let device ref := self engine renderingDevice.
 
         ssaoComputationBinding ifNil: {
-            ssaoComputationBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+            ssaoComputationBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
         }.
         ssaoComputationBinding
             bindOn: 1 sampledTextureView: decodedDepthBufferTextureView;
@@ -462,12 +462,12 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         ssaoBlurPingBinding ifNil: {
-            ssaoBlurPingBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+            ssaoBlurPingBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
         }.
         ssaoBlurPingBinding bindOn: 1 sampledTextureView: ssaoTextureView.
 
         ssaoBlurPongBinding ifNil: {
-            ssaoBlurPongBinding := sceneRenderingPipeline _ shaderSignature createShaderResourceBindings: 5.
+            ssaoBlurPongBinding := sceneRenderingPipeline shaderSignature createShaderResourceBindings: 5.
         }.
         ssaoBlurPongBinding bindOn: 1 sampledTextureView: ssaoPingTextureView.
 
@@ -492,7 +492,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     override method prepareRendering ::=> Void := {
         let camera ref := self camera.
         camera ifNotNil: {
-            self engine _ frameProfiler cameraTransform: camera _ globalTransform
+            self engine frameProfiler cameraTransform: camera globalTransform
         }.
 
         leftEyeViewport prepareRendering.
@@ -502,7 +502,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
-        self engine _ renderingDevice shouldInvertProjectionY ifTrue: {
+        self engine renderingDevice shouldInvertProjectionY ifTrue: {
             Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
         } ifFalse: {
             Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
@@ -543,8 +543,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         let viewportRectangle := RectangleI32 min: Int32x2 zeros max: (currentExtent castTo: Int32x2).
         stateTrackers current
             resetState;
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: stereoEyeCompositionBinding;
 
             beginRenderPass: currentDisplayRenderPass on: currentBackBufferLeftEye contentOnBundle: false;
@@ -569,10 +569,10 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
                 paddedFrameCountText add: '0'
             }.
             paddedFrameCountText addAll: frameCountText asArraySlice.
-            let outputFilename := self engine _ renderingSettings frameDumpingPrefix -- paddedFrameCountText -- ".jpg".
+            let outputFilename := self engine renderingSettings frameDumpingPrefix -- paddedFrameCountText -- ".jpg".
 
             let frameToSave := dumpFrameCount - FrameBufferingCount.
-            let formToSave := Form extent: currentExtent pixelFormat: sceneRenderingPipeline _ swapChainColorBufferFormat.
+            let formToSave := Form extent: currentExtent pixelFormat: sceneRenderingPipeline swapChainColorBufferFormat.
             let sourceData := (eyeReadbackBuffer map: MappingAccessMask ReadOnly) reinterpretCastTo: UInt8 pointer.
 
             let destRow mutable := formToSave pixels getPointer.
@@ -595,8 +595,8 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         stateTracker
             ## Present the frame.
             resetState;
-            useShaderSignature: sceneRenderingPipeline _ shaderSignature;
-            useGraphicShaderBindings: sceneRenderingPipeline _ samplingStateBinding;
+            useShaderSignature: sceneRenderingPipeline shaderSignature;
+            useGraphicShaderBindings: sceneRenderingPipeline samplingStateBinding;
             useGraphicShaderBindings: stereoEyeCompositionBinding;
 
             beginRenderPass: currentDisplayRenderPass on: currentBackBufferLeftEye contentOnBundle: false;
@@ -639,7 +639,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
     }.
 
     override method scene2DBuilder => Std Graphics Scene2D BuilderRef
-        := self engine _ renderingDevice createScene2DBuilder.
+        := self engine renderingDevice createScene2DBuilder.
 
     override method constructAndEnqueueCommandList => Void := {
         currentBackBufferLeftEye isNil || currentDisplayRenderPass isNil ifTrue: {
@@ -652,7 +652,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         }.
 
         let stateTracker := stateTrackers currentReseted.
-        let isDumpingFrames := self engine _ renderingSettings frameDumping.
+        let isDumpingFrames := self engine renderingSettings frameDumping.
 
         stereoPresentationMode isMonoscopic || stereoPresentationMode isMultiLayerSwapChain ifTrue: {
             isDumpingFrames ifTrue: {
@@ -675,7 +675,7 @@ class ForwardSceneRenderingPipelineViewport superclass: SceneRenderingPipelineVi
         stateTracker
             close.
 
-        self engine _ enqueueCommandList: (stateTracker upCastFor: CommandList).
+        self engine enqueueCommandList: (stateTracker upCastFor: CommandList).
     }.
 }.
 

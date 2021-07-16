@@ -10,7 +10,7 @@ useNamespace: Std Math LinearAlgebra.
 class SpatialObject superclass: AbstractGPUSpatialObject; definition: {
 }.
 
-compileTime constant SpatialObjectPtr := SpatialObject rcPointer.
+compileTime constant SpatialObjectRef := SpatialObject rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

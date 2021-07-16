@@ -8,13 +8,13 @@ useNamespace: Std Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class RenderingSceneRenderable superclass: RenderingSceneObject; definition: {
-    public field renderable type: RenderablePtr.
+    public field renderable type: RenderableRef.
 
     const override method isRenderable => Boolean8
         := true.
 }.
 
-compileTime constant RenderingSceneRenderablePtr := RenderingSceneRenderable rcPointer.
+compileTime constant RenderingSceneRenderableRef := RenderingSceneRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

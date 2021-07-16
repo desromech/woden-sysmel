@@ -7,63 +7,61 @@ useNamespace: Std Math Geometry.
  * I am a node that poses a local coordinate system that is associated with a model matrix in the GPU.
  *#
 class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
-    protected field objectState type: SpatialObjectPtr.
-    protected field renderable type: RenderablePtr.
+    protected field objectState type: SpatialObjectRef.
+    protected field renderable type: RenderableRef.
     protected field renderingSceneObjects type: RenderingSceneObjectList.
 
     override method initialize => Void := {
-        objectState := SpatialObject rcNew.
+        objectState := SpatialObject new.
     }.
 
     override method localInternalBoundingBox => BoxF32
         := renderable
             ifNil: {BoxF32 empty}
-            ifNotNil: { renderable _ localBoundingBox }.
+            ifNotNil: {renderable localBoundingBox}.
 
-    override const method getSkeletonPose => SkeletonPosePtr := {
-        renderable ifNil: {return: SkeletonPosePtr nil}.
+    override const method getSkeletonPose => SkeletonPoseRef := {
+        renderable ifNil: {return: SkeletonPoseRef nil}.
 
-        renderable _ getSkeletonPose
+        renderable getSkeletonPose
     }.
 
     method visible => Boolean8
-        := objectState _ visible.
+        := objectState visible.
 
     method visible: (aBoolean8: Boolean8) ::=> Void := {
-        objectState _ visible: aBoolean8
+        objectState visible: aBoolean8
     }.
 
     method color => Float32x4
-        := objectState _ color.
+        := objectState color.
 
     method color: (aColor: Float32x4) ::=> Void := {
-        objectState _ color: aColor
+        objectState color: aColor
     }.
 
-    const inline method renderable => RenderablePtr const ref
+    const inline method renderable => RenderableRef const ref
         := renderable.
 
-    inline method renderable: (theRenderable: RenderablePtr const ref) ::=> Void := {
+    inline method renderable: (theRenderable: RenderableRef const ref) ::=> Void := {
         let layer := self sceneLayer.
         layer ifNotNil: {
-            self removeRenderingSceneObjectsFromSceneLayer: layer _.
+            self removeRenderingSceneObjectsFromSceneLayer: layer.
             renderingSceneObjects removeAll
         }.
 
         renderable := theRenderable.
 
         renderable ifNotNil: {
-            renderingSceneObjects := renderable _ createRenderingSceneObjectsFor: (objectState upCastFor: AbstractSpatialObject).
+            renderingSceneObjects := renderable createRenderingSceneObjectsFor: (objectState upCastFor: AbstractSpatialObject).
             renderingSceneObjects do: {:each :: Void |
-                each _ node: (self asWeakRCPointer upCastFor: SceneNode)
+                each node: (self asWeakRCRef upCastFor: SceneNode)
             }.
 
             layer ifNotNil: {
-                self addRenderingSceneObjectsToSceneLayer: layer _.
+                self addRenderingSceneObjectsToSceneLayer: layer.
             }.
         }.
-
-        renderable _
     }.
 
     const override method isSpatialObjectNode => Boolean8
@@ -72,20 +70,20 @@ class SpatialObjectNode superclass: AbstractSpatialObjectNode; definition: {
     override method globalTransformChanged => Void := {
         super globalTransformChanged.
         renderingSceneObjects do: {:each :: Void |
-            each _ transformChanged.
+            each transformChanged.
         }.
     }.
 
-    override method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+    override method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
         sceneLayer addRenderingSceneObjects: renderingSceneObjects.
     }.
 
-    override method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+    override method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
         sceneLayer removeRenderingSceneObjects: renderingSceneObjects.
     }.
 }.
 
-compileTime constant SpatialObjectNodePtr := SpatialObjectNode rcPointer.
+compileTime constant SpatialObjectNodeRef := SpatialObjectNode rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

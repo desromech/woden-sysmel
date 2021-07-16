@@ -16,33 +16,33 @@ class SceneView superclass: View; definition: {
     protected field currentBackBufferRightEye type: FramebufferRef.
     protected field stereoPresentationMode type: StereoPresentationMode.
 
-    method sceneModel => SceneModel pointer
-        := model getPointer castTo: SceneModel pointer.
+    method sceneModel => SceneModelRef
+        := model downCastFor: SceneModel.
 
-    method scene => ScenePtr
+    method scene => SceneRef
         := isSecondaryView
-            ifTrue: {self sceneModel _ secondaryScene}
-            ifFalse: {self sceneModel _ scene}.
+            ifTrue: {self sceneModel secondaryScene}
+            ifFalse: {self sceneModel scene}.
 
-    method camera => CameraPtr
+    method camera => CameraRef
         := isSecondaryView
-            ifTrue: {self sceneModel _ secondarySceneMainCamera}
-            ifFalse: {self sceneModel _ mainCamera}.
+            ifTrue: {self sceneModel secondarySceneMainCamera}
+            ifFalse: {self sceneModel mainCamera}.
 
-    protected field sceneRenderingPipelineViewport type: SceneRenderingPipelineViewportPtr.
+    protected field sceneRenderingPipelineViewport type: SceneRenderingPipelineViewportRef.
 
     method ensureRenderingViewportWithExtent: (requiredExtent: UInt32x2) ::=> Void := {
         sceneRenderingPipelineViewport ifNil: {
-            sceneRenderingPipelineViewport := self sceneModel _ sceneRenderingPipeline _ createSceneRenderingPipelineViewport.
+            sceneRenderingPipelineViewport := self sceneModel sceneRenderingPipeline createSceneRenderingPipelineViewport.
         }.
 
         ## Apply and sanitize the stereo presentation mode.
-        stereoPresentationMode := self sceneModel _ stereoPresentationMode.
-        stereoPresentationMode isMultiLayerSwapChain && viewWindow _ getCurrentBackBufferRightEye isNil ifTrue: {
+        stereoPresentationMode := self sceneModel stereoPresentationMode.
+        stereoPresentationMode isMultiLayerSwapChain && viewWindow getCurrentBackBufferRightEye isNil ifTrue: {
             stereoPresentationMode := StereoPresentationMode Monoscopic.
         }.
 
-        sceneRenderingPipelineViewport _
+        sceneRenderingPipelineViewport
             stereoPresentationMode: stereoPresentationMode;
             extent: requiredExtent.
         currentExtent := requiredExtent.
@@ -52,8 +52,8 @@ class SceneView superclass: View; definition: {
 
     }.
 
-    override method newViewWindowInstance => ViewWindowPtr := {
-        let result := self sceneModel _ sceneRenderingPipeline _ newViewWindowInstance.
+    override method newViewWindowInstance => ViewWindowRef := {
+        let result := self sceneModel sceneRenderingPipeline newViewWindowInstance.
         result ifNotNil: {
             return: (result downCastFor: ViewWindow)
         }.
@@ -61,19 +61,19 @@ class SceneView superclass: View; definition: {
     }.
 
     override method defaultClearDepth => Float32
-        := self sceneModel _ sceneRenderingPipeline _ defaultClearDepth.
+        := self sceneModel sceneRenderingPipeline defaultClearDepth.
 
     override method defaultClearStencil => UInt8
-        := self sceneModel _ sceneRenderingPipeline _ defaultClearStencil.
+        := self sceneModel sceneRenderingPipeline defaultClearStencil.
 
     override method colorBufferFormat => PixelFormat
-        := self sceneModel _ sceneRenderingPipeline _ swapChainColorBufferFormat.
+        := self sceneModel sceneRenderingPipeline swapChainColorBufferFormat.
 
     override method depthStencilFormat => PixelFormat
-        := self sceneModel _ sceneRenderingPipeline _ swapChainDepthStencilBufferFormat.
+        := self sceneModel sceneRenderingPipeline swapChainDepthStencilBufferFormat.
 
     override method isStereoRequested => Boolean8
-        := self sceneModel _ stereoPresentationMode isMultiLayerSwapChain.
+        := self sceneModel stereoPresentationMode isMultiLayerSwapChain.
 
     method stereoPresentationMode => StereoPresentationMode
         := stereoPresentationMode.
@@ -84,20 +84,20 @@ class SceneView superclass: View; definition: {
     protected field hasValidPresentationSurfaces type: Boolean8.
 
     override method prepareRendering => Void := {
-        hasValidPresentationSurfaces := viewWindow isNotNil && viewWindow _ validatePresentationSurfaces.
+        hasValidPresentationSurfaces := viewWindow isNotNil && viewWindow validatePresentationSurfaces.
         hasValidPresentationSurfaces ifFalse: {return: void}.
 
         framePreparationTime := (Std Chrono profileTimeToRun: {
-            self ensureRenderingViewportWithExtent: viewWindow _ drawingSurfaceExtent.
-            lastFrameVisibleObjectCount := sceneRenderingPipelineViewport _ getLastFrameVisibleObjectCount.
-            currentBackBufferLeftEye := viewWindow _ getCurrentBackBufferLeftEye.
-            currentBackBufferRightEye := viewWindow _ getCurrentBackBufferRightEye.
+            self ensureRenderingViewportWithExtent: viewWindow drawingSurfaceExtent.
+            lastFrameVisibleObjectCount := sceneRenderingPipelineViewport getLastFrameVisibleObjectCount.
+            currentBackBufferLeftEye := viewWindow getCurrentBackBufferLeftEye.
+            currentBackBufferRightEye := viewWindow getCurrentBackBufferRightEye.
             self prepareViewCamera.
-            sceneRenderingPipelineViewport _
+            sceneRenderingPipelineViewport
                 timeSinceLastFrame: timeSinceLastFrame;
                 scene: self scene;
                 camera: self camera;
-                setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport _ scene2DBuilder);
+                setScene2D: (self buildOverlayScene2DWith: sceneRenderingPipelineViewport scene2DBuilder);
                 prepareRendering.
         }) castTo: Float32.
     }.
@@ -106,8 +106,8 @@ class SceneView superclass: View; definition: {
         hasValidPresentationSurfaces ifFalse: {return: void}.
 
         commandListConstructionTime := (Std Chrono profileTimeToRun: {
-            sceneRenderingPipelineViewport _
-                setCurrentBackBufferLeftEye: currentBackBufferLeftEye rightEye: currentBackBufferRightEye renderPass: viewWindow _ getDisplayRenderPass;
+            sceneRenderingPipelineViewport
+                setCurrentBackBufferLeftEye: currentBackBufferLeftEye rightEye: currentBackBufferRightEye renderPass: viewWindow getDisplayRenderPass;
                 constructAndEnqueueCommandList.
         }) castTo: Float32.
     }.
@@ -115,7 +115,7 @@ class SceneView superclass: View; definition: {
     override method commitSurfaces => Void := {
         hasValidPresentationSurfaces ifFalse: {return: void}.
 
-        viewWindow _ commitSurfaces.
+        viewWindow commitSurfaces.
     }.
 
     private field defaultFontFaceWithSize type: FontFaceWithSizeRef.
@@ -130,7 +130,7 @@ class SceneView superclass: View; definition: {
     }.
 
     virtual method buildOverlayFPSDisplayWith: (builder: Std Graphics Scene2D BuilderRef const ref) ::=> Std Graphics Scene2D NodeRef := {
-        let frameTime := self engine _ lastFrameTime.
+        let frameTime := self engine lastFrameTime.
         let frameTimeString := Std String textStreamContents: {:out :: Void |
             out << "Frame time " << (frameTime * 1000.0f) << " ms "; nl.
             out << "FPS " << (1.0 / frameTime); nl.

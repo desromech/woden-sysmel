@@ -46,7 +46,7 @@ class AnimationCurve superclass: Std RCObject; definition: {
         := AnimationCurveState().
 }.
 
-compileTime constant AnimationCurvePtr := AnimationCurve rcPointer.
+compileTime constant AnimationCurveRef := AnimationCurve rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

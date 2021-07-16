@@ -8,22 +8,21 @@ class Animation superclass: Std RCObject; definition: {
     virtual method applyInterpolationForRendering: (alpha: Float32) withState: (state: AnimationState ref) ::=> Void
         := void.
 
-    virtual method newStateForTarget: (target: AnimationTargetPtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcPointer := {
-        let result := AnimationState rcNew.
-        result _
-            initializeWithAnimation: self asRCPointer target: target;
-            isLooped: isLooped.
-        result
+    virtual method newStateForTarget: (target: AnimationTargetRef const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcRef := {
+        AnimationState new
+            initializeWithAnimation: self asRCRef target: target;
+            isLooped: isLooped;
+            yourself
     }.
 
-    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodePtr const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcPointer
+    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodeRef const ref) looped: (isLooped: Boolean8) ::=> AnimationState rcRef
         := self newStateForTarget: (AnimationTarget forSceneNode: sceneNode) looped: isLooped.
 
-    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationState rcPointer
+    virtual method newStateForTargetSceneNode: (sceneNode: SceneNodeRef const ref) ::=> AnimationState rcRef
         := self newStateForTargetSceneNode: sceneNode looped: false.
 }.
 
-compileTime constant AnimationPtr := Animation rcPointer.
+compileTime constant AnimationRef := Animation rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

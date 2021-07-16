@@ -20,7 +20,7 @@ class Entity superclass: Std RCObject; definition: {
     public field localBoundingBox type: BoxF32.
     public field collisionObject type: CollisionObjectPtr.
     public field visualComponent type: VisualComponentPtr.
-    public field sceneNode type: SceneNodePtr.
+    public field sceneNode type: SceneNodeRef.
 
     meta definition: {
         macro method registerWithClassName: className
@@ -37,8 +37,8 @@ class Entity superclass: Std RCObject; definition: {
     method boundingBox => BoxF32
         := localBoundingBox transformedWith: transform asReversibleAffineTransform3d.
 
-    method engine => EnginePtr
-        := parentSector ifNil: {EnginePtr nil} ifNotNil: {parentSector _ engine}.
+    method engine => EngineRef
+        := parentSector ifNil: {EngineRef nil} ifNotNil: {parentSector _ engine}.
 
     method physicalSector => PhysicalSector pointer
         := parentSector
@@ -120,13 +120,13 @@ class Entity superclass: Std RCObject; definition: {
 
     virtual method removeFromScene => Void := {
         sceneNode ifNil: {return: void}.
-        sceneNode _ removeFromScene.
+        sceneNode removeFromScene.
     }.
 
-    virtual method addToScene: (scene: ScenePtr const ref) ::=> Void := {
+    virtual method addToScene: (scene: SceneRef const ref) ::=> Void := {
         sceneNode ifNil: {self createSceneNode}.
         sceneNode ifNotNil: {
-            scene _ add: sceneNode
+            scene add: sceneNode
         }
     }.
 
@@ -183,7 +183,7 @@ class Entity superclass: Std RCObject; definition: {
         let interpolatedTransform := previousTransform interpolateTo: transform at: alpha.
         renderTransform := interpolatedTransform asReversibleAffineTransform3d.
         sceneNode ifNotNil: {
-            sceneNode _ transform: renderTransform.
+            sceneNode transform: renderTransform.
         }.
     }.
 

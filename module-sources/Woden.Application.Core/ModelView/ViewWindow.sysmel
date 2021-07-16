@@ -8,31 +8,31 @@ useNamespace: Std Graphics Core.
  * I am a generic interface for a window that is used by a view.
  *#
 class ViewWindow superclass: Std RCObject; definition: {
-    protected field view type: ViewPtr.
+    protected field view type: ViewRef.
 
-    const inline method engine => EnginePtr const ref
-        := view _ engine.
+    const inline method engine => EngineRef const ref
+        := view engine.
 
-    const inline method view => ViewPtr const ref
+    const inline method view => ViewRef const ref
         := view.
 
     virtual method defaultClearDepth => Float32
-        := view _ defaultClearDepth.
+        := view defaultClearDepth.
 
     virtual method defaultClearStencil => UInt8
-        := view _ defaultClearStencil.
+        := view defaultClearStencil.
 
     virtual method colorBufferFormat => PixelFormat
-        := view _ colorBufferFormat.
+        := view colorBufferFormat.
 
     virtual method depthStencilFormat => PixelFormat
-        := view _ depthStencilFormat.
+        := view depthStencilFormat.
 
     virtual method extent => UInt32x2
-        := view _ initialExtent.
+        := view initialExtent.
 
     virtual method isStereoRequested => Boolean8
-        := view _ isStereoRequested.
+        := view isStereoRequested.
 
     virtual method drawingSurfaceExtent => UInt32x2
         := self extent.
@@ -40,7 +40,7 @@ class ViewWindow superclass: Std RCObject; definition: {
     virtual method validatePresentationSurfaces => Boolean8
         := true.
 
-    virtual method openForView: (theView: ViewPtr const ref) ::=> Boolean8 := {
+    virtual method openForView: (theView: ViewRef const ref) ::=> Boolean8 := {
         view := theView.
         true
     }.
@@ -66,7 +66,7 @@ class ViewWindow superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant ViewWindowPtr := ViewWindow rcPointer
+compileTime constant ViewWindowRef := ViewWindow rcRef.
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

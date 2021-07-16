@@ -49,7 +49,7 @@ class AbstractSpatialObject superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant AbstractSpatialObjectPtr := AbstractSpatialObject rcPointer.
+compileTime constant AbstractSpatialObjectRef := AbstractSpatialObject rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -16,18 +16,17 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     override method boundingRectangle => RectangleF32
         := rectangle.
 
-    field renderable type: RenderablePtr.
+    field renderable type: RenderableRef.
 
-    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+    method getOrCreateRenderableFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderableRef := {
         renderable ifNotNil: {return: renderable}.
 
         materialAttributes material ifNil: {
-            renderable := engine _ resourceCache _ unitCubeRenderable.
+            renderable := engine resourceCache unitCubeRenderable.
             return: renderable
         }.
 
-        let meshBuilder := engine _ newGenericMeshBuilder.
-        meshBuilder _
+        renderable := engine newGenericMeshBuilder
             currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine);
             currentTransform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
 
@@ -35,23 +34,22 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
 
     		## Use a planar texture coordinates
     		planeTextureTransform: materialAttributes textureTransform withModelTransform: parentTransform;
-    		computeTangentsBitangents.
-        renderable := meshBuilder _ renderable
+    		computeTangentsBitangents;
+            renderable
     }.
 
-    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode rcNew.
+    override method createSceneNodeFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodeRef := {
+        let node := SpatialObjectNode new.
 
         materialAttributes material ifNil: {
-            let deformedCube := SpatialObjectNode rcNew.
-            deformedCube _
+            ## Make deformed rectangle for the non-material case.
+            node addChild: (SpatialObjectNode new
                 renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);
-                transform: self boundingBox reversibleTransformToConvertUnitBoxToMe.
-            node _ addChild: (deformedCube upCastFor: SceneNode).
+                transform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
+                upCastFor: SceneNode).
 
         } ifNotNil: {
-            node _
-                renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
+            node renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
         }.
 
         node upCastFor: SceneNode

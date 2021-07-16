@@ -31,15 +31,15 @@ class ModelAssetTexture superclass: ModelAssetElement; definition: {
         }
     }.
 
-    method asTextureWithViewFor: (engine: EnginePtr const ref) ::=> TextureWithViewRef := {
+    method asTextureWithViewFor: (engine: EngineRef const ref) ::=> TextureWithViewRef := {
         image ifNil: {return: TextureWithViewRef nil}.
 
         let textureData := image _ asTextureDataFor: engine.
         textureData ifNil: {return: TextureWithViewRef nil}.
 
         let texture := image _ usageMode = ModelAssetImageUsageMode Color
-            ifTrue: {engine _ renderingDevice createColorTextureWithData: textureData}
-            ifFalse: {engine _ renderingDevice createTextureWithData: textureData}.
+            ifTrue: {engine renderingDevice createColorTextureWithData: textureData}
+            ifFalse: {engine renderingDevice createTextureWithData: textureData}.
         texture ifNil: {return: TextureWithViewRef nil}.
 
         texture asTextureWithView

@@ -8,11 +8,10 @@ useNamespace: Std Graphics Core.
  *#
 class MetallicRoughnessMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> MetallicRoughnessMaterial rcPointer := {
-            let result := MetallicRoughnessMaterial rcNew.
-            result _ initializeWithEngine: anEngine.
-            result
-        }.
+        method for: (anEngine: EngineRef const ref) ::=> MetallicRoughnessMaterial rcRef
+            := MetallicRoughnessMaterial new
+                initializeWithEngine: anEngine;
+                yourself.
     }.
 
     public field state type: Woden Shaders MetallicRoughnessMaterialStateData.
@@ -80,32 +79,32 @@ class MetallicRoughnessMaterial superclass: Material; definition: {
         := context activateMetallicRoughnessMaterial: self.
 
     method validBaseColorTexture => TextureWithViewRef := {
-        baseColorTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        baseColorTexture ifNil: {return: engine resourceCache whiteTexture}.
         baseColorTexture
     }.
 
     method validNormalTexture => TextureWithViewRef := {
-        normalTexture ifNil: {return: engine _ resourceCache _ neutralNormalTexture}.
+        normalTexture ifNil: {return: engine resourceCache neutralNormalTexture}.
         normalTexture
     }.
 
     method validEmissionTexture => TextureWithViewRef := {
-        emissionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        emissionTexture ifNil: {return: engine resourceCache whiteTexture}.
         emissionTexture
     }.
 
     method validOcclusionTexture => TextureWithViewRef := {
-        occlusionTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        occlusionTexture ifNil: {return: engine resourceCache whiteTexture}.
         occlusionTexture
     }.
 
     method validMetallicRoughnessTexture => TextureWithViewRef := {
-        metallicRoughnessTexture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        metallicRoughnessTexture ifNil: {return: engine resourceCache whiteTexture}.
         metallicRoughnessTexture
     }.
 }.
 
-compileTime constant MetallicRoughnessMaterialPtr := MetallicRoughnessMaterial rcPointer.
+compileTime constant MetallicRoughnessMaterialRef := MetallicRoughnessMaterial rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

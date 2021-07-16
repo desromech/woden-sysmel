@@ -17,8 +17,8 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
     public field alphaMode type: ModelAssetMaterialAlphaMode.
     public field alphaCutoff type: Float32.
 
-    virtual method asRenderingMaterialFor: (engine: EnginePtr const ref) ::=> MaterialPtr
-        := engine _ resourceCache _ defaultMaterial.
+    virtual method asRenderingMaterialFor: (engine: EngineRef const ref) ::=> MaterialRef
+        := engine resourceCache defaultMaterial.
 
     virtual method isMetallicRoughnessMaterial => Boolean8
         := false.

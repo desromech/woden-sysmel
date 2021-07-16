@@ -6,30 +6,30 @@ useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
 class GlobalGameState superclass: Std RCObject; definition: {
-    field engine type: EnginePtr.
-    field animationScheduler type: AnimationSchedulerPtr.
+    field engine type: EngineRef.
+    field animationScheduler type: AnimationSchedulerRef.
     field activeSector type: SectorPtr.
     field player type: PlayerPtr.
-    public field scene type: ScenePtr.
-    public field mainCamera type: CameraPtr.
+    public field scene type: SceneRef.
+    public field mainCamera type: CameraRef.
 
     method player => PlayerPtr const ref
         := player.
 
-    method initializeWithEngine: (anEngine: EnginePtr) ::=> Void := {
+    method initializeWithEngine: (anEngine: EngineRef) ::=> Void := {
         engine := anEngine.
-        animationScheduler := AnimationScheduler rcNew.
+        animationScheduler := AnimationScheduler new.
     }.
 
     method update: (delta: Float32) ::=> Void := {
-        animationScheduler _ update: delta.
+        animationScheduler update: delta.
         activeSector ifNotNil: {
             activeSector _ update: delta
         }.
     }.
 
     virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
-        animationScheduler _ applyInterpolationForRendering: alpha.
+        animationScheduler applyInterpolationForRendering: alpha.
         activeSector ifNotNil: {
             activeSector _ applyInterpolationForRendering: alpha
         }.

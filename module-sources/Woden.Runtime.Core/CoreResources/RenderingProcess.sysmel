@@ -31,8 +31,8 @@ class RenderingProcess superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant RenderingProcessPtr := RenderingProcess rcPointer.
-compileTime constant RenderingProcessWeakPtr := RenderingProcess weakRCPointer.
+compileTime constant RenderingProcessRef := RenderingProcess rcRef.
+compileTime constant RenderingProcessWeakRef := RenderingProcess weakRCRef.
 
 
 }. ## End of namespace Runtime

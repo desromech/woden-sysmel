@@ -10,14 +10,14 @@ class SceneLayer superclass: SceneNode; definition: {
     const override method isSceneLayer => Boolean8
         := true.
 
-    override method sceneLayer => SceneLayer pointer
-        := self address.
+    override method sceneLayer => SceneLayer rcRef
+        := self asRCRef.
 
-    method addRenderingSceneObject: (object: RenderingSceneObjectPtr const ref) ::=> Void := {
+    method addRenderingSceneObject: (object: RenderingSceneObjectRef const ref) ::=> Void := {
         renderingSceneObjects add: object
     }.
 
-    method removeRenderingSceneObject: (object: RenderingSceneObjectPtr const ref) ::=> Void := {
+    method removeRenderingSceneObject: (object: RenderingSceneObjectRef const ref) ::=> Void := {
         renderingSceneObjects remove: object
     }.
 
@@ -31,15 +31,15 @@ class SceneLayer superclass: SceneNode; definition: {
 
     method renderingSceneObjectsDo: (aBlock: RenderingSceneObjectIterationBlock) ::=> Void := {
         renderingSceneObjects do: {:each :: Void |
-            each _ validateGlobalTransform.
+            each validateGlobalTransform.
             aBlock(each)
         }.
     }.
 }.
 
-compileTime constant SceneLayerIterationBlock := ((SceneLayer ref) => Void) nativeBlockClosure.
+compileTime constant SceneLayerIterationBlock := ((SceneLayerRef const ref) => Void) nativeBlockClosure.
 
-compileTime constant SceneLayerPtr := SceneLayer rcPointer.
+compileTime constant SceneLayerRef := SceneLayer rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

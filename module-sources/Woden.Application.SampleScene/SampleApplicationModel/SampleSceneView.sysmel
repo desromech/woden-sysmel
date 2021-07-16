@@ -19,9 +19,9 @@ class SampleSceneView superclass: SceneView; definition: {
     override method prepareViewCamera => Void := {
         let camera := self camera.
         camera ifNotNil: {
-            let transform mutable := camera _ transform.
+            let transform mutable := camera transform.
             transform orthonormal: self cameraOrientation.
-            camera _ transform: transform.
+            camera transform: transform.
         }.
 
         super prepareViewCamera.
@@ -38,7 +38,7 @@ class SampleSceneView superclass: SceneView; definition: {
         }.
 
         cameraMovementDirection = 0 ifFalse: {
-            camera _ translateBy: self cameraOrientation * (cameraMovementDirection normalized * cameraMovementSpeed * delta).
+            camera translateBy: self cameraOrientation * (cameraMovementDirection normalized * cameraMovementSpeed * delta).
         }.
     }.
 
@@ -144,7 +144,7 @@ class SampleSceneView superclass: SceneView; definition: {
         }.
 
         event isRightButtonPressed ifTrue: {
-            camera _ translateBy: self cameraOrientation * Float32x3(event delta x, event delta y negated , 0.0f) *0.01f.
+            camera translateBy: self cameraOrientation * Float32x3(event delta x, event delta y negated , 0.0f) *0.01f.
         }.
     }.
 
@@ -154,7 +154,7 @@ class SampleSceneView superclass: SceneView; definition: {
         let camera := self camera.
         camera ifNil: {return: void}.
 
-		camera _ translateBy: self cameraOrientation * Float32x3(0.0f, 0.0f, event scrollDelta y * -0.1f).
+		camera translateBy: self cameraOrientation * Float32x3(0.0f, 0.0f, event scrollDelta y * -0.1f).
     }.
 }.
 

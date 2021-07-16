@@ -54,10 +54,10 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
     virtual method boundingBox => BoxF32
         := BoxF32 empty.
 
-    virtual method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr
-        := SceneNodePtr nil.
+    virtual method createSceneNodeFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodeRef
+        := SceneNodeRef nil.
 
-    method createSceneNodeFor: (engine: EnginePtr) ::=> SceneNodePtr
+    method createSceneNodeFor: (engine: EngineRef) ::=> SceneNodeRef
         := self createSceneNodeFor: engine parentTransform: ReversibleAffineTransform3dF32 identity.
 
     virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void

@@ -8,10 +8,10 @@ useNamespace: Std Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class RenderingSceneObject superclass: Std RCObject; definition: {
-    public field spatialObject type: AbstractSpatialObjectPtr.
+    public field spatialObject type: AbstractSpatialObjectRef.
     public field localBoundingBox type: BoxF32.
     public field boundingBox type: BoxF32.
-    public field node type: SceneNode weakRCPointer.
+    public field node type: SceneNode weakRCRef.
     protected field transformValidated type: Boolean8.
 
     const virtual method isLightSource => Boolean8
@@ -30,24 +30,24 @@ class RenderingSceneObject superclass: Std RCObject; definition: {
 
     method validateGlobalTransform => Void := {
         transformValidated ifFalse: {
-            node lock ifNotNil: {:n :: Void |
-                n _ validateRenderingSceneObjectTransform: self.
+            node ifNotNil: {:n :: Void |
+                n validateRenderingSceneObjectTransform: self.
                 self markTransformValidated
             }.
         }.
     }.
 
     const inline method currentTransform => ReversibleAffineTransform3dF32
-        := spatialObject _ currentTransform.
+        := spatialObject currentTransform.
 
     const virtual method isVisibleInFrustum: (frustum: FrustumF32 const ref) ::=> Boolean8
         := frustum intersectsOrContainsBox: boundingBox.
 }.
 
-compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject rcPointer const ref) => Void) nativeBlockClosure.
-compileTime constant RenderingSceneObjectList := Std Collections Vector(RenderingSceneObject rcPointer).
+compileTime constant RenderingSceneObjectIterationBlock := ((RenderingSceneObject rcRef const ref) => Void) nativeBlockClosure.
+compileTime constant RenderingSceneObjectList := Std Collections Vector(RenderingSceneObject rcRef).
 
-compileTime constant RenderingSceneObjectPtr := RenderingSceneObject rcPointer.
+compileTime constant RenderingSceneObjectRef := RenderingSceneObject rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

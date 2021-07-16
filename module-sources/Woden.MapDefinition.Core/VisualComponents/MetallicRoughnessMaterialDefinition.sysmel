@@ -37,23 +37,23 @@ class MetallicRoughnessMaterialDefinition superclass: MaterialDefinition; defini
     override method isMetallicRoughnessMaterialDefinition => Boolean8
         := true.
 
-    field runtimeMaterial type: MaterialPtr.
+    field runtimeMaterial type: MaterialRef.
 
-    override method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr := {
+    override method getOrCreateMaterialFor: (engine: EngineRef) ::=> MaterialRef := {
         runtimeMaterial ifNil: {
-            let mat := MetallicRoughnessMaterial for: engine.
-            mat _
+            let mat := (MetallicRoughnessMaterial for: engine)
                 baseColorFactor: baseColorFactor;
                 emissionFactor: emissionFactor;
                 occlusionFactor: occlusionFactor;
                 roughnessFactor: roughnessFactor;
-                metallicFactor: metallicFactor.
-            baseColorTexture ifNotNil: { mat _ baseColorTexture: (baseColorTexture _ getOrCreateTextureWithViewFor: engine) }.
-            emissionTexture ifNotNil: { mat _ emissionTexture: (emissionTexture _ getOrCreateTextureWithViewFor: engine) }.
-            normalTexture ifNotNil: { mat _ normalTexture: (normalTexture _ getOrCreateTextureWithViewFor: engine) }.
+                metallicFactor: metallicFactor;
+                yourself.
+            baseColorTexture ifNotNil: { mat baseColorTexture: (baseColorTexture _ getOrCreateTextureWithViewFor: engine) }.
+            emissionTexture ifNotNil: { mat emissionTexture: (emissionTexture _ getOrCreateTextureWithViewFor: engine) }.
+            normalTexture ifNotNil: { mat normalTexture: (normalTexture _ getOrCreateTextureWithViewFor: engine) }.
             occlusionMetallicRougnessTexture ifNotNil: {
                 let textureWithView := occlusionMetallicRougnessTexture _ getOrCreateTextureWithViewFor: engine.
-                mat _
+                mat
                     occlusionTexture: textureWithView;
                     metallicRoughnessTexture: textureWithView
             }.

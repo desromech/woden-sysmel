@@ -16,7 +16,7 @@ class AbstractGPUSpatialObject superclass: AbstractSpatialObject; definition: {
 
 }.
 
-compileTime constant AbstractGPUSpatialObjectPtr := AbstractGPUSpatialObject rcPointer.
+compileTime constant AbstractGPUSpatialObjectRef := AbstractGPUSpatialObject rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

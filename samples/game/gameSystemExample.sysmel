@@ -6,13 +6,13 @@ useNamespace: Woden Runtime.
 useNamespace: Woden GameSystem.
 useNamespace: Woden MapDefinition.
 
-function attemptToLoadLevel(engine: EnginePtr const ref, name: Std ImmutableString) => LevelDefinitionPtr := {
+function attemptToLoadLevel(engine: EngineRef const ref, name: Std ImmutableString) => LevelDefinitionPtr := {
     let extensions mutable := Char8 const arraySlice array(
         "wlevel",
         "wtlevel"
     ).
 
-    let loadedLevel := LevelDefinition loadFromFile: (engine _ resourceCache _ solveResourceFileReference: name asMutableString asNativeFileReference withExtensions: extensions).
+    let loadedLevel := LevelDefinition loadFromFile: (engine resourceCache solveResourceFileReference: name asMutableString asNativeFileReference withExtensions: extensions).
     loadedLevel isNil || loadedLevel _ sectors isEmpty ifTrue: {
         return: LevelDefinitionPtr nil
     }.
@@ -35,12 +35,6 @@ Std MainEntryPoint: {:args :: Int32 |
     let gameModel mutable := SampleGameApplicationModel new.
     (gameModel initializeWithCommandLine: args) ifFalse: {
         return: 1
-    }.
-
-    ## Setup the camera
-    {
-        let camera := gameModel mainCamera.
-        camera _ translateByZ: 10.0.
     }.
 
     let levelDefinition mutable := LevelDefinitionPtr nil.

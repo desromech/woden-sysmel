@@ -8,7 +8,7 @@ class SurfaceDeformationRenderableMesh superclass: MeshWithExtraDeformationRende
 
 }.
 
-compileTime constant SurfaceDeformationRenderableMeshPtr := SurfaceDeformationRenderableMesh rcPointer.
+compileTime constant SurfaceDeformationRenderableMeshRef := SurfaceDeformationRenderableMesh rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -8,17 +8,17 @@ useNamespace: Std Graphics GUI.
  * I am the model that lies underlying a Woden application.
  *#
 class Model superclass: RenderingProcess; definition: {
-    protected field engine type: EnginePtr.
-    protected field views type: Std Collections Vector(View rcPointer).
+    protected field engine type: EngineRef.
+    protected field views type: Std Collections Vector(View rcRef).
 
-    const inline method engine => EnginePtr const ref
+    const inline method engine => EngineRef const ref
         := engine.
 
     virtual method initializeEngineWithCommandLine: (arguments: Std ImmutableString const arraySlice) ::=> Boolean8 := {
         engine ifNotNil: {return: true}.
 
-        let newEngine := Engine rcNew.
-        (newEngine _ initializeEngineWithCommandLine: arguments) ifFalse: {
+        let newEngine := Engine new.
+        (newEngine initializeEngineWithCommandLine: arguments) ifFalse: {
             return: false.
         }.
 
@@ -40,33 +40,33 @@ class Model superclass: RenderingProcess; definition: {
         self initializeModel
     }.
 
-    virtual method createNewView => ViewPtr
-        := View rcNew.
+    virtual method createNewView => ViewRef
+        := View new.
 
-    virtual method createNewSecondaryView => ViewPtr
-        := View rcNew.
+    virtual method createNewSecondaryView => ViewRef
+        := View new.
 
     virtual method openApplication => Boolean8 := {
         self openView: self createNewView
     }.
 
-    virtual method openView: (newView: ViewPtr const ref) ::=> Boolean8 := {
-        newView isNotNil && (newView _ initializeWithModel: self asRCPointer) ifFalse: {
+    virtual method openView: (newView: ViewRef const ref) ::=> Boolean8 := {
+        newView isNotNil && (newView initializeWithModel: self asRCRef) ifFalse: {
             return: false.
         }.
 
-        newView _ open ifFalse: {return: false}.
+        newView open ifFalse: {return: false}.
         views add: newView.
         views size = 1 ifTrue: {
-            engine _ registerRenderingProcess: (self asWeakRCPointer upCastFor: RenderingProcess)
+            engine registerRenderingProcess: (self asWeakRCRef upCastFor: RenderingProcess)
         }.
         true
     }.
 
-    method viewDestroyed: (view: ViewPtr) ::=> Void := {
+    method viewDestroyed: (view: ViewRef) ::=> Void := {
         views remove: view.
         views ifEmpty: {
-            engine _ unregisterRenderingProcess: (self asWeakRCPointer upCastFor: RenderingProcess)
+            engine unregisterRenderingProcess: (self asWeakRCRef upCastFor: RenderingProcess)
         }.
     }.
 
@@ -75,13 +75,13 @@ class Model superclass: RenderingProcess; definition: {
             return: 1
         }.
 
-        engine _ runMainLoop
+        engine runMainLoop
     }.
 
     virtual method shutdown ::=> Void := {
         engine ifNotNil: {
-            engine _ shutdown.
-            engine reset
+            engine shutdown.
+            engine := nil
         }.
     }.
 
@@ -93,7 +93,7 @@ class Model superclass: RenderingProcess; definition: {
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         views do: {:each :: Void |
-            each _
+            each
                 timeSinceLastFrame: (event deltaSeconds castTo: Float32);
                 onStartFrameTick: event.
         }
@@ -101,24 +101,24 @@ class Model superclass: RenderingProcess; definition: {
 
     override method prepareRendering => Void := {
         views do: {:each :: Void |
-            each _ prepareRendering.
+            each prepareRendering.
         }
     }.
 
     override method constructRenderingCommandList => Void := {
         views do: {:each :: Void |
-            each _ constructRenderingCommandList.
+            each constructRenderingCommandList.
         }
     }.
 
     override method commitSurfaces => Void := {
         views do: {:each :: Void |
-            each _ commitSurfaces.
+            each commitSurfaces.
         }
     }.
 }.
 
-compileTime constant ModelPtr := Model rcPointer
+compileTime constant ModelRef := Model rcRef
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

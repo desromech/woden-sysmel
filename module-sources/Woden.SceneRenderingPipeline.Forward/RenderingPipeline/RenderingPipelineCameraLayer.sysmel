@@ -10,7 +10,7 @@ class RenderingPipelineCameraLayer definition: {
     public field cameraTransform type: ReversibleAffineTransform3dF32.
     public field cameraState type: Woden Shaders CameraStateData.
     public field frustum type: FrustumF32.
-    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelineRef.
 
     public field renderableSceneObjects type: Std Collections Vector(ViewportLayerRenderableObject).
 
@@ -18,13 +18,13 @@ class RenderingPipelineCameraLayer definition: {
     public field cameraStateBindings type: FrameBufferedShaderResourcesBindings.
     public field owner type: RenderingPipelineCameraEye pointer.
 
-    const inline method scene => ScenePtr const ref
+    const inline method scene => SceneRef const ref
         := owner _ scene.
 
-    const inline method engine => EnginePtr
-        := sceneRenderingPipeline _ engine.
+    const inline method engine => EngineRef
+        := sceneRenderingPipeline engine.
 
-    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
+    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelineRef const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
         owner := theOwner.
         sceneRenderingPipeline := theSceneRenderingPipeline.
 
@@ -39,7 +39,7 @@ class RenderingPipelineCameraLayer definition: {
                 yourself
             ) initialData: nil.
 
-            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 1.
+            cameraStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline shaderSignature bindingSet: 1.
             cameraStateBindings bindings doWithIndex: {:each :index :: Void |
                 each bindOn: 0 uniformBuffer: cameraStateBuffers buffers[index]
             }.
@@ -54,12 +54,12 @@ class RenderingPipelineCameraLayer definition: {
         cameraStateBuffers current uploadAt: 0 size: Woden Shaders CameraStateData instanceSize data: cameraState address.
     }.
 
-    method renderSceneObject: (renderObject: RenderingSceneRenderable ref) with: (context: SceneRenderingContext ref) ::=> Void := {
-        renderObject spatialObject _ isGPUSpatialObject ifFalse: {return: void}.
+    method renderSceneObject: (renderObject: RenderingSceneRenderableRef const ref) with: (context: SceneRenderingContext ref) ::=> Void := {
+        renderObject spatialObject isGPUSpatialObject ifFalse: {return: void}.
 
         let spatialObject := renderObject spatialObject downCastFor: AbstractGPUSpatialObject.
-        spatialObject _ objectStateBuffers isCreated ifFalse: {
-            spatialObject _ objectStateBuffers for: self engine createWithDescription: (BufferDescription()
+        spatialObject objectStateBuffers isCreated ifFalse: {
+            spatialObject objectStateBuffers for: self engine createWithDescription: (BufferDescription()
                 size: Woden Shaders ObjectStateData instanceSize;
                 heapType: MemoryHeapType HostToDevice;
                 usageModes: BufferUsageMode Uniform;
@@ -68,19 +68,19 @@ class RenderingPipelineCameraLayer definition: {
                 yourself
             ) initialData: nil.
 
-            spatialObject _ objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 3.
-            spatialObject _ objectStateBindings bindings doWithIndex: {:each :index :: Void |
-                each bindOn: 0 uniformBuffer: spatialObject _ objectStateBuffers buffers[index]
+            spatialObject objectStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline shaderSignature bindingSet: 3.
+            spatialObject objectStateBindings bindings doWithIndex: {:each :index :: Void |
+                each bindOn: 0 uniformBuffer: spatialObject objectStateBuffers buffers[index]
             }.
         }.
 
-        spatialObject _ objectStateBuffers current
-            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject _ state address.
+        spatialObject objectStateBuffers current
+            uploadAt: 0 size: Woden Shaders ObjectStateData instanceSize data: spatialObject state address.
 
         context stateTracker
-            useGraphicShaderBindings: spatialObject _ objectStateBindings current.
+            useGraphicShaderBindings: spatialObject objectStateBindings current.
 
-        renderObject renderable _ renderWithContext: context.
+        renderObject renderable renderWithContext: context.
     }.
 
     virtual method renderSceneObjectsWith: (context: SceneRenderingContext ref) ::=> Void := {
@@ -89,7 +89,7 @@ class RenderingPipelineCameraLayer definition: {
 
         renderableSceneObjects do: {:each :: Void |
             context resetObjectAttributes.
-            self renderSceneObject: each object _ with: context
+            self renderSceneObject: each object with: context
         }.
     }.
 }.

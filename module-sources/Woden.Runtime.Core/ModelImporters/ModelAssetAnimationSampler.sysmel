@@ -12,7 +12,7 @@ class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
     public field outputAccessor type: ModelAssetBinaryBufferAccessorPtr.
     public field interpolationMethod type: ModelAssetAnimationInterpolationMethod.
 
-    method asAnimationCurve => AnimationCurvePtr := {
+    method asAnimationCurve => AnimationCurveRef := {
         Std assert: inputAccessor _ format componentCount = 1.
 
         let startTime := inputAccessor _ minValue x castTo: Float32.
@@ -20,44 +20,40 @@ class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
 
         outputAccessor _ format componentCount selectCase: #{
         1 : {
-            let result := InterpolatedAnimationCurveFloat32 rcNew.
-            result _
+            InterpolatedAnimationCurveFloat32 new
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
                 timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32.
-            result upCastFor: AnimationCurve
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32;
+                upCastFor: AnimationCurve
         }.
         2 : {
-            let result := InterpolatedAnimationCurveFloat32x2 rcNew.
-            result _
+            InterpolatedAnimationCurveFloat32x2 new
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
                 timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x2.
-            result upCastFor: AnimationCurve
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x2;
+                upCastFor: AnimationCurve
         }.
         3 : {
-            let result := InterpolatedAnimationCurveFloat32x3 rcNew.
-            result _
+            InterpolatedAnimationCurveFloat32x3 new
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
                 timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x3.
-            result upCastFor: AnimationCurve
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x3;
+                upCastFor: AnimationCurve
         }.
         4 : {
-            let result := InterpolatedAnimationCurveFloat32x4 rcNew.
-            result _
+            InterpolatedAnimationCurveFloat32x4 new
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
                 timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x4.
-            result upCastFor: AnimationCurve
+                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x4;
+                upCastFor: AnimationCurve
         }.
         }.
     }.

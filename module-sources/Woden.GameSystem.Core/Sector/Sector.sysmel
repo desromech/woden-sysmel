@@ -5,8 +5,8 @@ useNamespace: Woden Runtime.
 useNamespace: Woden MapDefinition.
 
 class Sector superclass: Std RCObject; definition: {
-    field engine type: EnginePtr.
-    field scene type: ScenePtr.
+    field engine type: EngineRef.
+    field scene type: SceneRef.
 
     field isSector2D type: Boolean8.
     field physicalSector type: PhysicalSectorPtr.
@@ -16,7 +16,7 @@ class Sector superclass: Std RCObject; definition: {
     field tickingEntities type: Entities.
 
     meta definition: {
-        method for: (engine: EnginePtr const ref) ::=> SectorPtr := {
+        method for: (engine: EngineRef const ref) ::=> SectorPtr := {
             let result := Sector rcNew.
             result _ initializeWithEngine: engine.
             result
@@ -26,7 +26,7 @@ class Sector superclass: Std RCObject; definition: {
     inline method physicalSector => PhysicalSectorPtr const ref
         := physicalSector.
 
-    inline method engine => EnginePtr const ref
+    inline method engine => EngineRef const ref
         := engine.
 
     const inline method isSector2D => Boolean8
@@ -83,7 +83,7 @@ class Sector superclass: Std RCObject; definition: {
         }.
     }.
 
-    method initializeWithEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+    method initializeWithEngine: (anEngine: EngineRef const ref) ::=> Void := {
         engine := anEngine.
     }.
 
@@ -92,10 +92,10 @@ class Sector superclass: Std RCObject; definition: {
             each _ removeFromScene
         }.
 
-        scene reset.
+        scene := nil.
     }.
 
-    method activateAndAddToScene: (newScene: ScenePtr) ::=> Void := {
+    method activateAndAddToScene: (newScene: SceneRef) ::=> Void := {
         scene == newScene ifTrue: {return: void}.
         scene := newScene.
 

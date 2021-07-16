@@ -14,7 +14,7 @@ class SceneRenderingContext superclass: Std Object; definition: {
     public field renderPass type: SceneRenderPass.
     public field renderMode type: SceneRenderMode.
 
-    protected field activeMaterial type: MaterialPtr.
+    protected field activeMaterial type: MaterialRef.
 
     protected field sceneFaceCullingMode type: FaceCullingMode.
     protected field materialFaceCullingMode type: FaceCullingMode.
@@ -33,7 +33,7 @@ class SceneRenderingContext superclass: Std Object; definition: {
     protected field hasSkinningDeformationState type: Boolean8.
 
     virtual method reset => Void := {
-        activeMaterial reset.
+        activeMaterial := nil.
         self resetMaterialAttributes.
         self resetObjectAttributes.
     }.
@@ -59,7 +59,7 @@ class SceneRenderingContext superclass: Std Object; definition: {
 
     method vertexAttributeMask: (newVertexAttributeMask: UInt32) ::=> Void := {
         vertexAttributeMask := newVertexAttributeMask.
-        activeMaterial reset.
+        activeMaterial := nil.
     }.
 
     const method hasColor0VertexAttribute => Boolean8
@@ -74,17 +74,17 @@ class SceneRenderingContext superclass: Std Object; definition: {
     const method hasSkinningParameters => Boolean8
         := hasSkinningDeformationState && self hasSkinningVertexAttributes.
 
-    virtual method activateMaterial: (material: MaterialPtr const ref) ::=> Boolean8 := {
-        activeMaterial = material ifTrue: {
+    virtual method activateMaterial: (material: MaterialRef const ref) ::=> Boolean8 := {
+        activeMaterial == material ifTrue: {
             return: true.
         }.
 
         self resetMaterialAttributes.
-        (material _ activateWithSceneRenderingContext: self) ifTrue: {
+        (material activateWithSceneRenderingContext: self) ifTrue: {
             activeMaterial := material.
             return: true.
         } ifFalse: {
-            activeMaterial reset.
+            activeMaterial := nil.
             return: false.
         }
     }.

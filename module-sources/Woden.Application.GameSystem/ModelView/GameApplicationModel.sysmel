@@ -53,12 +53,12 @@ class GameApplicationModel superclass: SceneModel; definition: {
         super onStartFrameTick: event.
     }.
 
-    override method createNewView => ViewPtr
-        := GameApplicationView rcNew upCastFor: View.
+    override method createNewView => ViewRef
+        := GameApplicationView new upCastFor: View.
 
 }.
 
-compileTime constant GameApplicationModelPtr := GameApplicationModel rcPointer.
+compileTime constant GameApplicationModelRef := GameApplicationModel rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

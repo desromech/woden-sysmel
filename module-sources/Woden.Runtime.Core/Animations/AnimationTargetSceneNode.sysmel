@@ -4,32 +4,32 @@ namespace Runtime definition: {
 useNamespace: Std Math.
 
 class AnimationTargetSceneNode superclass: AnimationTarget; definition: {
-    field sceneNode type: SceneNodePtr.
-    field skeletonPose type: SkeletonPosePtr.
+    field sceneNode type: SceneNodeRef.
+    field skeletonPose type: SkeletonPoseRef.
 
-    method initializeWithSceneNode: (theSceneNode: SceneNodePtr const ref) ::=> Void := {
+    method initializeWithSceneNode: (theSceneNode: SceneNodeRef const ref) ::=> Void := {
         sceneNode := theSceneNode.
         sceneNode ifNotNil: {
-            skeletonPose := sceneNode _ getSkeletonPose
+            skeletonPose := sceneNode getSkeletonPose
         }.
     }.
 
     override method setJoint: (jointIndex: UIntPointer) scale: (scale: Float32x3) ::=> Void := {
-        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+        skeletonPose isNil || jointIndex >= skeletonPose bonePoses size ifTrue: {return: void}.
 
-        skeletonPose _ setJoint: jointIndex scale: scale
+        skeletonPose setJoint: jointIndex scale: scale
     }.
 
     override method setJoint: (jointIndex: UIntPointer) rotationQuaternion: (rotation: QuaternionF32) ::=> Void := {
-        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+        skeletonPose isNil || jointIndex >= skeletonPose bonePoses size ifTrue: {return: void}.
 
-        skeletonPose _ setJoint: jointIndex rotation: rotation
+        skeletonPose setJoint: jointIndex rotation: rotation
     }.
 
     override method setJoint: (jointIndex: UIntPointer) translation: (translation: Float32x3) ::=> Void := {
-        skeletonPose isNil || jointIndex >= skeletonPose _ bonePoses size ifTrue: {return: void}.
+        skeletonPose isNil || jointIndex >= skeletonPose bonePoses size ifTrue: {return: void}.
 
-        skeletonPose _ setJoint: jointIndex translation: translation
+        skeletonPose setJoint: jointIndex translation: translation
     }.
 
     override method scale: (scale: Float32x3) ::=> Void := {
@@ -45,87 +45,86 @@ class AnimationTargetSceneNode superclass: AnimationTarget; definition: {
     }.
 
     override method translation: (translation: Float32x3) ::=> Void := {
-        sceneNode _ translateTo: translation
+        sceneNode translateTo: translation
     }.
 
     override method scaleBy: (scale: Float32x3) ::=> Void := {
-        sceneNode _ scaleBy: scale
+        sceneNode scaleBy: scale
     }.
 
     override method scaleByX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
-        sceneNode _ scaleByX: x y: y z: z
+        sceneNode scaleByX: x y: y z: z
     }.
 
     override method rotateRadiansOnX: (value: Float32) ::=> Void := {
-        sceneNode _ rotateRadiansOnX: value
+        sceneNode rotateRadiansOnX: value
     }.
 
     override method rotateRadiansOnY: (value: Float32) ::=> Void := {
-        sceneNode _ rotateRadiansOnY: value
+        sceneNode rotateRadiansOnY: value
     }.
 
     override method rotateRadiansOnZ: (value: Float32) ::=> Void := {
-        sceneNode _ rotateRadiansOnZ: value
+        sceneNode rotateRadiansOnZ: value
     }.
 
     override method rotateDegreesOnX: (value: Float32) ::=> Void := {
-        sceneNode _ rotateDegreesOnX: value
+        sceneNode rotateDegreesOnX: value
     }.
 
     override method rotateDegreesOnY: (value: Float32) ::=> Void := {
-        sceneNode _ rotateDegreesOnY: value
+        sceneNode rotateDegreesOnY: value
     }.
 
     override method rotateDegreesOnZ: (value: Float32) ::=> Void := {
-        sceneNode _ rotateDegreesOnZ: value
+        sceneNode rotateDegreesOnZ: value
     }.
 
     override method translateBy: (vector3: Float32x3) ::=> Void := {
-        sceneNode _ translateBy: vector3
+        sceneNode translateBy: vector3
     }.
 
     override method translateByX: (x: Float32) ::=> Void := {
-        sceneNode _ translateByX: x
+        sceneNode translateByX: x
     }.
 
     override method translateByY: (y: Float32) ::=> Void := {
-        sceneNode _ translateByY: y
+        sceneNode translateByY: y
     }.
 
     override method translateByZ: (z: Float32) ::=> Void := {
-        sceneNode _ translateByZ: z
+        sceneNode translateByZ: z
     }.
 
     override method translateByX: (x: Float32) y: (y: Float32) z: (z: Float32)::=> Void := {
-        sceneNode _ translateByX: x y: y z: z
+        sceneNode translateByX: x y: y z: z
     }.
 
     override method translateToX: (x: Float32) ::=> Void := {
-        sceneNode _ translateToX: x
+        sceneNode translateToX: x
     }.
 
     override method translateToY: (y: Float32) ::=> Void := {
-        sceneNode _ translateToY: y
+        sceneNode translateToY: y
     }.
 
     override method translateToZ: (z: Float32) ::=> Void := {
-        sceneNode _ translateToZ: z
+        sceneNode translateToZ: z
     }.
 
     override method translateToX: (x: Float32) y: (y: Float32) z: (z: Float32) ::=> Void := {
-        sceneNode _ translateToX: x y: y z: z
+        sceneNode translateToX: x y: y z: z
     }.
 }.
 
-compileTime constant AnimationTargetSceneNodePtr := AnimationTargetSceneNode rcPointer.
+compileTime constant AnimationTargetSceneNodeRef := AnimationTargetSceneNode rcRef.
 
 AnimationTarget extend: {
     meta definition: {
-        method forSceneNode: (sceneNode: SceneNodePtr const ref) ::=> AnimationTarget rcPointer := {
-            let result := AnimationTargetSceneNode rcNew.
-            result _ initializeWithSceneNode: sceneNode.
-            result upCastFor: AnimationTarget
-        }
+        method forSceneNode: (sceneNode: SceneNodeRef const ref) ::=> AnimationTarget rcRef
+            := AnimationTargetSceneNode new
+                initializeWithSceneNode: sceneNode;
+                upCastFor: AnimationTarget.
     }
 }.
 

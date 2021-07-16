@@ -5,8 +5,8 @@ namespace Runtime definition: {
  * An abstract pipeline for rendering a null scene.
  *#
 class NullSceneRenderingPipeline superclass: SceneRenderingPipeline; definition: {
-    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr
-        := NullSceneRenderingPipelineViewport rcNew upCastFor: SceneRenderingPipelineViewport.
+    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportRef
+        := NullSceneRenderingPipelineViewport new upCastFor: SceneRenderingPipelineViewport.
 
 }.
 

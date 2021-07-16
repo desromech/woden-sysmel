@@ -8,11 +8,10 @@ useNamespace: Std Graphics Core.
  *#
 class UnlitMaterial superclass: Material; definition: {
     meta definition: {
-        method for: (anEngine: EnginePtr const ref) ::=> UnlitMaterial rcPointer := {
-            let result := UnlitMaterial rcNew.
-            result _ initializeWithEngine: anEngine.
-            result
-        }.
+        method for: (anEngine: EngineRef const ref) ::=> UnlitMaterial rcRef
+            := UnlitMaterial new
+                initializeWithEngine: anEngine;
+                yourself.
     }.
 
     public field state type: Woden Shaders UnlitMaterialStateData.
@@ -44,7 +43,7 @@ class UnlitMaterial superclass: Material; definition: {
     }.
 
     method validTexture => TextureWithViewRef := {
-        texture ifNil: {return: engine _ resourceCache _ whiteTexture}.
+        texture ifNil: {return: engine resourceCache whiteTexture}.
         texture
     }.
 
@@ -52,7 +51,7 @@ class UnlitMaterial superclass: Material; definition: {
         := context activateUnlitMaterial: self.
 }.
 
-compileTime constant UnlitMaterialPtr := UnlitMaterial rcPointer.
+compileTime constant UnlitMaterialRef := UnlitMaterial rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

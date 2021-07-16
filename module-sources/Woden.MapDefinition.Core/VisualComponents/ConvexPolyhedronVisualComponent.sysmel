@@ -61,25 +61,24 @@ class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
     override method boundingBox => BoxF32
         := boundingBox.
 
-    field renderable type: RenderablePtr.
+    field renderable type: RenderableRef.
 
-    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+    method getOrCreateRenderableFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderableRef := {
         renderable ifNotNil: {return: renderable}.
 
-        let meshBuilder := engine _ newGenericMeshBuilder.
+        let meshBuilder := engine newGenericMeshBuilder.
         faces do: {:each :: Void |
             each _ buildMeshFor: engine with: meshBuilder parentTransform: parentTransform
         }.
-        meshBuilder _ computeTangentsBitangents.
+        meshBuilder computeTangentsBitangents.
 
-        renderable := meshBuilder _ renderable
+        renderable := meshBuilder renderable
     }.
 
-    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode rcNew.
-        node _
-            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
-        node upCastFor: SceneNode
+    override method createSceneNodeFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodeRef := {
+        SpatialObjectNode new
+            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);
+            upCastFor: SceneNode
     }.
 }.
 

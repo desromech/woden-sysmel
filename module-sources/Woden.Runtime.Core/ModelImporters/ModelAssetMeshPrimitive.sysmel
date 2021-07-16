@@ -30,12 +30,12 @@ class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
         }.
     }.
 
-    method asSubmeshFor: (engine: EnginePtr const ref) ::=> GenericSubmesh := {
+    method asSubmeshFor: (engine: EngineRef const ref) ::=> GenericSubmesh := {
         let result mutable :=  GenericSubmesh()
             vertexBinding: (attributes _ asVertexBindingFor: engine);
             vertexAttributeMask: attributes _ vertexAttributeMask;
             material: (material
-                ifNil: {engine _ resourceCache _ defaultMaterial}
+                ifNil: {engine resourceCache defaultMaterial}
                 ifNotNil: {material _ asRenderingMaterialFor: engine});
             primitiveTopology: primitiveTopology;
             yourself.

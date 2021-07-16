@@ -9,31 +9,30 @@ useNamespace: Std Math.
  * converted into a list of matrices that is uploaded onto the GPU.
  *#
 class SkeletonPose superclass: Std RCObject; definition: {
-    public field skeleton type: SkeletonPtr.
+    public field skeleton type: SkeletonRef.
     public field bonePoses type: Std Collections Vector(BonePose).
     public field skinningMatrices type: Std Collections Vector(Float32x4x4).
     field skinningMatricesValidated type: Boolean8.
 
     meta definition: {
-        method for: (skeleton: SkeletonPtr const ref) ::=> SkeletonPose rcPointer := {
-            let result := SkeletonPose rcNew.
-            result _ initializeWithSkeleton: skeleton.
-            result
-        }.
+        method for: (skeleton: SkeletonRef const ref) ::=> SkeletonPose rcRef
+            := SkeletonPose new
+                initializeWithSkeleton: skeleton;
+                yourself.
     }.
 
-    method initializeWithSkeleton: (theSkeleton: SkeletonPtr const ref) ::=> Void := {
+    method initializeWithSkeleton: (theSkeleton: SkeletonRef const ref) ::=> Void := {
         skeleton := theSkeleton.
 
-        let boneCount := skeleton _ bones size.
+        let boneCount := skeleton bones size.
         bonePoses resizeTo: boneCount.
         skinningMatrices resizeTo: boneCount.
     }.
 
     method resetToRestPose => Void := {
-        Std assert: bonePoses size = skeleton _ bones size.
+        Std assert: bonePoses size = skeleton bones size.
         let poseData := bonePoses data.
-        skeleton _ bones doWithIndex: {:each :index :: Void |
+        skeleton bones doWithIndex: {:each :index :: Void |
             poseData[index] := each restPose
         }
     }.
@@ -41,8 +40,8 @@ class SkeletonPose superclass: Std RCObject; definition: {
     method validateSkinningMatrices => Void := {
         skinningMatricesValidated ifTrue: {return: void}.
 
-        Std assert: bonePoses size = skeleton _ bones size.
-        let boneData := skeleton _ bones data.
+        Std assert: bonePoses size = skeleton bones size.
+        let boneData := skeleton bones data.
         let poseData := bonePoses data.
         let skinningData := skinningMatrices data.
         let boneCount := bonePoses size.
@@ -83,7 +82,7 @@ class SkeletonPose superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant SkeletonPosePtr := SkeletonPose rcPointer.
+compileTime constant SkeletonPoseRef := SkeletonPose rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

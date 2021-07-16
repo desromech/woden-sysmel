@@ -2,19 +2,19 @@ namespace Woden definition: {
 namespace Runtime definition: {
 
 class AnimationScheduler superclass: Std RCObject; definition: {
-    field activeAnimations type: Std Collections Vector(AnimationStatePtr).
+    field activeAnimations type: Std Collections Vector(AnimationStateRef).
 
-    method activateAnimationState: (animationState: AnimationStatePtr const ref) ::=> Void := {
+    method activateAnimationState: (animationState: AnimationStateRef const ref) ::=> Void := {
         activeAnimations add: animationState
     }.
 
     method update: (deltaTime: Float32) ::=> Void := {
-        let oldActiveAnimation mutable type: Std Collections Vector(AnimationStatePtr).
+        let oldActiveAnimation mutable type: Std Collections Vector(AnimationStateRef).
         oldActiveAnimation swapWith: activeAnimations.
 
         activeAnimations reserve: oldActiveAnimation size.
         oldActiveAnimation do: {:each :: Void |
-            (each _ update: deltaTime) ifTrue: {
+            (each update: deltaTime) ifTrue: {
                 activeAnimations add: each.
             }
         }.
@@ -22,12 +22,12 @@ class AnimationScheduler superclass: Std RCObject; definition: {
 
     method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
         activeAnimations do: {:each :: Void |
-            each _ applyInterpolationForRendering: alpha
+            each applyInterpolationForRendering: alpha
         }
     }.
 }.
 
-compileTime constant AnimationSchedulerPtr := AnimationScheduler rcPointer.
+compileTime constant AnimationSchedulerRef := AnimationScheduler rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

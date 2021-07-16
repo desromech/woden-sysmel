@@ -26,12 +26,12 @@ class Renderable superclass: Std RCObject; definition: {
         depthWriteMask := OverrideableBoolean False.
     }.
 
-    virtual method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Std Collections Vector(RenderingSceneObject rcPointer) := {
-        let renderingSceneObject := RenderingSceneRenderable rcNew.
-        renderingSceneObject _
+    virtual method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectRef) ::=> Std Collections Vector(RenderingSceneObject rcRef) := {
+        let renderingSceneObject := RenderingSceneRenderable new
             spatialObject: spatialObject;
             localBoundingBox: localBoundingBox;
-            renderable: self asRCPointer.
+            renderable: self asRCRef;
+            yourself.
 
         let result mutable := RenderingSceneObjectList().
         result add: (renderingSceneObject upCastFor: RenderingSceneObject).
@@ -48,16 +48,16 @@ class Renderable superclass: Std RCObject; definition: {
 
     }.
 
-    virtual method getSkeletonPose => SkeletonPosePtr
-        := SkeletonPosePtr nil.
+    virtual method getSkeletonPose => SkeletonPoseRef
+        := SkeletonPoseRef nil.
 
-    virtual method copy => Renderable rcPointer
-        := RenderablePtr nil.
+    virtual method copy => Renderable rcRef
+        := RenderableRef nil.
 
-    virtual method setMaterial: (material: MaterialPtr const ref) ::=> Void := {}.
+    virtual method setMaterial: (material: MaterialRef const ref) ::=> Void := {}.
 }.
 
-compileTime constant RenderablePtr := Renderable rcPointer.
+compileTime constant RenderableRef := Renderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

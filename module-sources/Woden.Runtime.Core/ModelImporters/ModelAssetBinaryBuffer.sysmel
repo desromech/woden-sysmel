@@ -27,9 +27,9 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
         }.
     }.
 
-    method asGpuBufferFor: (engine: EnginePtr const ref) ::=> BufferRef := {
+    method asGpuBufferFor: (engine: EngineRef const ref) ::=> BufferRef := {
         gpuBuffer ifNotNil: {return: gpuBuffer}.
-        gpuBuffer := engine _ renderingDevice createBuffer: (BufferDescription()
+        gpuBuffer := engine renderingDevice createBuffer: (BufferDescription()
             size: dataSize;
             heapType: MemoryHeapType DeviceLocal;
             usageModes: BufferUsageMode Array | BufferUsageMode ElementArray;

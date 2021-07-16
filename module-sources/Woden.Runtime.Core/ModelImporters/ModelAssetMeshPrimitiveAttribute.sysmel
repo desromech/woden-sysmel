@@ -104,7 +104,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
     field convertedVertexBinding type: VertexBindingRef.
     field convertedVertexAttributeMask type: UInt32.
 
-    method asVertexBindingFor: (engine: EnginePtr const ref) ::=> VertexBindingRef := {
+    method asVertexBindingFor: (engine: EngineRef const ref) ::=> VertexBindingRef := {
         convertedVertexBinding ifNotNil: {
             return: convertedVertexBinding
         }.
@@ -152,7 +152,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
             convertedVertexAttributeMask := convertedVertexAttributeMask | each location asAttributeBitMask
         }.
 
-        bindingDescription vertexLayout: (engine _ renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: vertexLayoutDescription).
+        bindingDescription vertexLayout: (engine renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: vertexLayoutDescription).
 
         convertedVertexBinding := self modelAsset _ createVertexBindingFor: engine withDescription: bindingDescription.
     }.

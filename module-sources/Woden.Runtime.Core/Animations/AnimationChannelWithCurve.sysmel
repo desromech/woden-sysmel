@@ -9,14 +9,14 @@ class AnimationChannelWithCurve superclass: AnimationChannel; definition: {
         let curveState ref := state curveStates[curveIndex].
 
         targetProperty selectCase: #{
-        AnimationChannelTargetProperty Rotation : { state target _ rotationQuaternion: curveState rotationQuaternion }.
-        AnimationChannelTargetProperty Scale : { state target _ scale: curveState scale }.
-        AnimationChannelTargetProperty Translation : { state target _ translation: curveState translation }.
+        AnimationChannelTargetProperty Rotation : { state target rotationQuaternion: curveState rotationQuaternion }.
+        AnimationChannelTargetProperty Scale : { state target scale: curveState scale }.
+        AnimationChannelTargetProperty Translation : { state target translation: curveState translation }.
         }.
     }.
 }.
 
-compileTime constant AnimationChannelWithCurvePtr := AnimationChannelWithCurve rcPointer.
+compileTime constant AnimationChannelWithCurveRef := AnimationChannelWithCurve rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

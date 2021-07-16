@@ -14,10 +14,10 @@ class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
     public field stride type: UIntPointer.
     public field usage type: BufferUsageMode.
 
-    method asVertexBufferFor: (engine: EnginePtr) ::=> BufferRef
+    method asVertexBufferFor: (engine: EngineRef) ::=> BufferRef
         := buffer _ asGpuBufferFor: engine.
 
-    method asIndexBufferFor: (engine: EnginePtr) ::=> BufferRef
+    method asIndexBufferFor: (engine: EngineRef) ::=> BufferRef
         := buffer _ asGpuBufferFor: engine.
 
     method asGpuBufferOffset => UIntPointer

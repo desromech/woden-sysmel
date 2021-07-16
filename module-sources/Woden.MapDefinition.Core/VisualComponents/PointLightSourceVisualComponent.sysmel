@@ -12,12 +12,11 @@ class PointLightSourceVisualComponent superclass: LightSourceVisualComponent; de
         radius := 10.
     }.
 
-    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
-        let node := super createLightSourceNodeFor: engine.
-        node _
+    override method createLightSourceNodeFor: (engine: EngineRef) ::=> LightSourceNodeRef := {
+        (super createLightSourceNodeFor: engine)
             makePoint;
-            radius: radius.
-        node
+            radius: radius;
+            yourself
     }.
 }.
 

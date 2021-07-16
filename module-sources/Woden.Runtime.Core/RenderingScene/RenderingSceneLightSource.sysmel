@@ -11,7 +11,7 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     const override method isLightSource => Boolean8
         := true.
 
-    const method lightSourceObject => LightSourceObjectPtr
+    const method lightSourceObject => LightSourceObjectRef
         := spatialObject downCastFor: LightSourceObject.
 
     method volumeChanged => Void := {
@@ -35,16 +35,16 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
         := self lightType = LightSourceType Spot.
 
     const inline method castShadows => Boolean8
-        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ castShadows.
+        := (spatialObject rcObjectAddress reinterpretCastTo: LightSourceObject pointer) _ castShadows.
 
     const inline method lightType => LightSourceType
-        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightType.
+        := (spatialObject rcObjectAddress reinterpretCastTo: LightSourceObject pointer) _ lightType.
 
     const inline method position => Float32x4
-        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightState position.
+        := (spatialObject rcObjectAddress reinterpretCastTo: LightSourceObject pointer) _ lightState position.
 
     const inline method radius => Float32
-        := (spatialObject getPointer reinterpretCastTo: LightSourceObject pointer) _ lightState radius.
+        := (spatialObject rcObjectAddress reinterpretCastTo: LightSourceObject pointer) _ lightState radius.
 
     const override method isVisibleInFrustum: (frustum: FrustumF32 const ref) ::=> Boolean8 := {
         self isDirectional ifTrue: {
@@ -55,7 +55,7 @@ class RenderingSceneLightSource superclass: RenderingSceneObject; definition: {
     }
 }.
 
-compileTime constant RenderingSceneLightSourcePtr := RenderingSceneLightSource rcPointer.
+compileTime constant RenderingSceneLightSourceRef := RenderingSceneLightSource rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

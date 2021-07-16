@@ -6,7 +6,7 @@ useNamespace: Woden Runtime.
 struct ViewportLayerRenderableObject definition: {
     public field priority type: RenderPriority.
     public field cameraDistance type: Float32.
-    public field object type: RenderingSceneRenderablePtr.
+    public field object type: RenderingSceneRenderableRef.
 
     const method < (o: SelfType const ref) ::=> Boolean8 := {
         priority = o priority ifTrue: {

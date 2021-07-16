@@ -5,11 +5,14 @@ namespace Runtime definition: {
  * I am an immutable renderable object. My data in the GPU never changes.
  *#
 class NullRenderable superclass: ImmutableRenderable; definition: {
-    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectPtr) ::=> Std Collections Vector(RenderingSceneObject rcPointer)
+    override method createRenderingSceneObjectsFor: (spatialObject: AbstractSpatialObjectRef) ::=> Std Collections Vector(RenderingSceneObject rcRef)
         := RenderingSceneObjectList().
+
+    override method copy => RenderableRef
+        := self asRCRef upCastFor: Renderable.
 }.
 
-compileTime constant NullRenderablePtr := NullRenderable rcPointer.
+compileTime constant NullRenderableRef := NullRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

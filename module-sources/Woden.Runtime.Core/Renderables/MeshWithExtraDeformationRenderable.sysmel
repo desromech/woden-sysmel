@@ -5,14 +5,14 @@ namespace Runtime definition: {
  * I am a renderable with additional deformation state.
  *#
 class MeshWithExtraDeformationRenderable superclass: DeformableRenderable; definition: {
-    field mesh type: RenderablePtr.
+    field mesh type: RenderableRef.
 
-    const inline method mesh => RenderablePtr const ref
+    const inline method mesh => RenderableRef const ref
         := mesh.
 
-    inline method mesh: (theMesh: RenderablePtr const ref) ::=> Void := {
+    inline method mesh: (theMesh: RenderableRef const ref) ::=> Void := {
         mesh := theMesh.
-        localBoundingBox := mesh _ localBoundingBox.
+        localBoundingBox := mesh localBoundingBox.
     }.
 
     override method renderWithContext: (context: SceneRenderingContext ref) ::=> Void := {
@@ -21,7 +21,7 @@ class MeshWithExtraDeformationRenderable superclass: DeformableRenderable; defin
         }.
 
         mesh ifNotNil: {
-            mesh _ renderWithContext: context
+            mesh renderWithContext: context
         }.
     }.
 }.

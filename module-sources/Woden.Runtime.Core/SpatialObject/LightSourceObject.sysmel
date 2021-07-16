@@ -32,7 +32,7 @@ class LightSourceObject superclass: AbstractSpatialObject; definition: {
     }.
 }.
 
-compileTime constant LightSourceObjectPtr := LightSourceObject rcPointer.
+compileTime constant LightSourceObjectRef := LightSourceObject rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

@@ -5,10 +5,10 @@ namespace Runtime definition: {
  * I am a helper for keeping track of resources that need to be created and handled in a per-frame basis.
  *#
 class FrameBufferedRenderingResource definition: {
-    public field engine type: EnginePtr.
+    public field engine type: EngineRef.
 
     method frameBufferingIndex => UInt32
-        := engine _ frameBufferingIndex.
+        := engine frameBufferingIndex.
 
     const inline method isCreated => Boolean8
         := engine isNotNil.

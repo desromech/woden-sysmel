@@ -5,7 +5,7 @@ class AnimationChannel superclass: Std RCObject; definition: {
     virtual method applyChannelState: (state: MultiChannelAnimationState ref) atTime: (time: Float32) ::=> Void := {}.
 }.
 
-compileTime constant AnimationChannelPtr := AnimationChannel rcPointer.
+compileTime constant AnimationChannelRef := AnimationChannel rcRef.
 
 } ## End of namespace Runtime
 } ## End of namespace Woden

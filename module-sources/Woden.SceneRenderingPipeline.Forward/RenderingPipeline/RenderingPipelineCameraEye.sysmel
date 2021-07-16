@@ -8,18 +8,18 @@ useNamespace: Std Math LinearAlgebra.
 
 class RenderingPipelineCameraEye definition: {
     public field owner type: SceneRenderingPipelineViewport pointer.
-    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelinePtr.
+    public field sceneRenderingPipeline type: ForwardSceneRenderingPipelineRef.
 
-    const inline method scene => ScenePtr const ref
+    const inline method scene => SceneRef const ref
         := owner _ scene.
 
-    const inline method camera => CameraPtr const ref
+    const inline method camera => CameraRef const ref
         := owner _ camera.
 
-    const inline method engine => EnginePtr
-        := sceneRenderingPipeline _ engine.
+    const inline method engine => EngineRef
+        := sceneRenderingPipeline engine.
 
-    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: SceneRenderingPipelineViewport pointer) ::=> Void := {
+    virtual method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelineRef const ref) owner: (theOwner: SceneRenderingPipelineViewport pointer) ::=> Void := {
         owner := theOwner.
         sceneRenderingPipeline := theSceneRenderingPipeline.
     }.

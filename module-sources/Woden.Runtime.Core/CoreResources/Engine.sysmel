@@ -18,10 +18,10 @@ compileTime if: Compiler compilationTarget isDesktopPC then: {
 class Engine superclass: Std RCObject; definition: {
     protected field windowSystem type: WindowSystemRef.
     protected field renderingDevice type: RenderingDeviceRef.
-    protected field resourceCache type: ResourceCachePtr.
+    protected field resourceCache type: ResourceCacheRef.
 
     protected field renderingProcessesMutex type: Std Mutex.
-    protected field renderingProcesses type: Std Collections Vector(RenderingProcessWeakPtr).
+    protected field renderingProcesses type: Std Collections Vector(RenderingProcess weakRCPointer).
 
     protected field frameBufferingIndex type: UInt32.
     protected field syncronizationFences type: (FenceRef array: FrameBufferingCount).
@@ -33,7 +33,7 @@ class Engine superclass: Std RCObject; definition: {
     const inline method renderingDevice => RenderingDeviceRef const ref
         := renderingDevice.
 
-    const inline method resourceCache => ResourceCachePtr const ref
+    const inline method resourceCache => ResourceCacheRef const ref
         := resourceCache.
 
     const inline method mainLoopFrameCount => UInt32
@@ -42,15 +42,15 @@ class Engine superclass: Std RCObject; definition: {
     const inline method frameBufferingIndex => UInt32
         := frameBufferingIndex.
 
-    method registerRenderingProcess: (process: RenderingProcessWeakPtr) ::=> Void := {
+    method registerRenderingProcess: (process: RenderingProcessWeakRef) ::=> Void := {
         renderingProcessesMutex withLock: {
-            renderingProcesses add: process
+            renderingProcesses add: process asWeakRCPointer
         }.
     }.
 
-    method unregisterRenderingProcess: (process: RenderingProcessWeakPtr) ::=> Void := {
+    method unregisterRenderingProcess: (process: RenderingProcessWeakRef) ::=> Void := {
         renderingProcessesMutex withLock: {
-            renderingProcesses remove: process
+            renderingProcesses remove: process asWeakRCPointer
         }.
     }.
 
@@ -82,8 +82,9 @@ class Engine superclass: Std RCObject; definition: {
 
         self queryDeviceCapabilities.
 
-        resourceCache := ResourceCache rcNew.
-        resourceCache _ initializeWithEngine: self asRCPointer.
+        resourceCache := ResourceCache new
+            initializeWithEngine: self asRCRef;
+            yourself.
 
         true
     }.
@@ -135,7 +136,7 @@ class Engine superclass: Std RCObject; definition: {
 
     method shutdown => Void := {
         ## Break the cycle between the resource cache and the engine.
-        resourceCache reset.
+        resourceCache := nil.
     }.
 
     method enqueueCommandList: (commandList: CommandListRef const ref) ::=> Void := {
@@ -162,15 +163,15 @@ class Engine superclass: Std RCObject; definition: {
         lastFrameTime := event deltaSeconds castTo: Float32.
         frameProfiler beginFrame.
 
-        let thisFrameProcesses mutable type: Std Collections Vector(RenderingProcessPtr).
-        let thisFrameRenderingProcesses mutable type: Std Collections Vector(RenderingProcessPtr).
+        let thisFrameProcesses mutable type: Std Collections Vector(RenderingProcessRef).
+        let thisFrameRenderingProcesses mutable type: Std Collections Vector(RenderingProcessRef).
         pendingCommandLists removeAll.
 
         ## Get a copy of the rendering processes for this frame.
         renderingProcessesMutex withLock: {
             thisFrameProcesses reserve: renderingProcesses size.
             renderingProcesses do: {:each :: Void |
-                let process := each lock.
+                let process := each lock asRCRef.
                 process ifNotNil: {
                     thisFrameProcesses add: process
                 }.
@@ -181,20 +182,20 @@ class Engine superclass: Std RCObject; definition: {
         frameProfiler updateTime: (Std Chrono profileTimeToRun: {
             renderingSettingsChanged ifTrue: {
                 thisFrameProcesses do: {:each :: Void |
-                    each _ onEngineRenderingSettingsChanged: renderingSettings
+                    each onEngineRenderingSettingsChanged: renderingSettings
                 }.
                 renderingSettingsChanged := false.
             }.
 
             ## Send the tick event to the rendering processes.
             thisFrameProcesses do: {:each :: Void |
-                each _ onStartFrameTick: event
+                each onStartFrameTick: event
             }.
 
             ## Select the rendering processes that need to render.
             thisFrameRenderingProcesses reserve: renderingProcesses size.
             thisFrameProcesses do: {:each :: Void |
-                each _ needsToRender ifTrue: {
+                each needsToRender ifTrue: {
                     thisFrameRenderingProcesses add: each.
                 }.
             }.
@@ -208,14 +209,14 @@ class Engine superclass: Std RCObject; definition: {
         ## First phase: prepare rendering.
         frameProfiler renderingPreparationTime: (Std Chrono profileTimeToRun: {
             thisFrameRenderingProcesses do: {:each :: Void |
-                each _ prepareRendering.
+                each prepareRendering.
             }
         }).
 
         ## Second phase: command list construction
         frameProfiler commandListConstructionTime: (Std Chrono profileTimeToRun: {
             thisFrameRenderingProcesses do: {:each :: Void |
-                each _ constructRenderingCommandList.
+                each constructRenderingCommandList.
             }
         }).
 
@@ -224,7 +225,7 @@ class Engine superclass: Std RCObject; definition: {
 
         ## Fourth phase: drawing surface commiting
         thisFrameRenderingProcesses do: {:each :: Void |
-            each _ commitSurfaces.
+            each commitSurfaces.
         }.
 
         frameProfiler endFrame.
@@ -258,7 +259,7 @@ class Engine superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant EnginePtr := Engine rcPointer.
+compileTime constant EngineRef := Engine rcRef.
 compileTime constant EngineWeakRef := Engine weakRCRef.
 
 class EngineGlobalEventHandler superclass: EventHandler; definition: {

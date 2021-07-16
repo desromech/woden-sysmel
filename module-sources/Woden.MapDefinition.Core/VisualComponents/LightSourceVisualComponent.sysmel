@@ -19,15 +19,14 @@ class LightSourceVisualComponent superclass: PunctualVisualComponent; definition
 
     override method isLightSourceVisualComponent => Boolean8 := true.
 
-    virtual method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
-        let node := LightSourceNode rcNew.
-        node _
+    virtual method createLightSourceNodeFor: (engine: EngineRef) ::=> LightSourceNodeRef := {
+        LightSourceNode new
             intensity: color * intensity;
-            castShadows: castShadows.
-        node
+            castShadows: castShadows;
+            yourself
     }.
 
-    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
+    override method createSceneNodeFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodeRef := {
         (self createLightSourceNodeFor: engine) upCastFor: SceneNode
     }.
 }.

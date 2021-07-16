@@ -9,11 +9,10 @@ useNamespace: Woden Runtime.
 class ModelAssetScene superclass: ModelAssetElement; definition: {
     public field rootNodes type: Std Collections Vector(ModelAssetNodePtr).
 
-    method createSceneNodesFor: (engine: EnginePtr const ref) in: (scene: ScenePtr const ref) ::=> Void := {
+    method createSceneNodesFor: (engine: EngineRef const ref) in: (scene: SceneRef const ref) ::=> Void := {
         rootNodes do: {:each :: Void |
-            let node := each _ asSceneNodeFor: engine.
-            node ifNotNil: {
-                scene _ add: node
+            (each _ asSceneNodeFor: engine) ifNotNil: {:node :: Void |
+                scene add: node
             }
         }
     }.

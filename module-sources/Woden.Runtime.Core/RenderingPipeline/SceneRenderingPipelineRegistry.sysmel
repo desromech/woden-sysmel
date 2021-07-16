@@ -9,13 +9,13 @@ class SceneRenderingPipelineFactory definition: {
         SceneRenderingPipelineRegistry uniqueInstance registerFactory: self address
     }.
 
-    virtual method createPipeline => SceneRenderingPipelinePtr
-        := SceneRenderingPipelinePtr nil.
+    virtual method createPipeline => SceneRenderingPipelineRef
+        := SceneRenderingPipelineRef nil.
 
     virtual method priority => UInt32
         := 0.
 
-    virtual method canBeUsedWithEngine: (engine: EnginePtr const ref) ::=> Boolean8
+    virtual method canBeUsedWithEngine: (engine: EngineRef const ref) ::=> Boolean8
         := false.
 }.
 
@@ -46,21 +46,21 @@ class SceneRenderingPipelineRegistry definition: {
         }.
     }.
 
-    method createDefaultFor: (engine: EnginePtr const ref) ::=> SceneRenderingPipelinePtr := {
+    method createDefaultFor: (engine: EngineRef const ref) ::=> SceneRenderingPipelineRef := {
         let factory := self findDefaultFactoryFor: engine.
-        let result mutable type: SceneRenderingPipelinePtr.
+        let result mutable type: SceneRenderingPipelineRef.
         factory ifNotNil: {
             result := factory _ createPipeline.
         }.
         result ifNil: {
-            result := NullSceneRenderingPipeline rcNew upCastFor: SceneRenderingPipeline.
+            result := NullSceneRenderingPipeline new upCastFor: SceneRenderingPipeline.
         }.
 
-        result _ initializeForEngine: engine.
+        result initializeForEngine: engine.
         result
     }.
 
-    method findDefaultFactoryFor: (engine: EnginePtr const ref) ::=> SceneRenderingPipelineFactory pointer := {
+    method findDefaultFactoryFor: (engine: EngineRef const ref) ::=> SceneRenderingPipelineFactory pointer := {
         let bestFound mutable type: SceneRenderingPipelineFactory pointer.
         let bestFoundPriority mutable type: UInt32.
 

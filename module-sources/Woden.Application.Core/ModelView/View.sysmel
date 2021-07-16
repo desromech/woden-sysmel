@@ -12,15 +12,15 @@ useNamespace: Std Graphics GUI.
 class View superclass: EventHandler; definition: {
     public field timeSinceLastFrame type: Float32.
     
-    protected field model type: ModelPtr.
-    protected field viewWindow type: ViewWindowPtr.
+    protected field model type: ModelRef.
+    protected field viewWindow type: ViewWindowRef.
     protected field isSecondaryView type: Boolean8.
 
-    const inline method model => ModelPtr const ref
+    const inline method model => ModelRef const ref
         := model.
 
-    const inline method engine => EnginePtr const ref
-        := model _ engine.
+    const inline method engine => EngineRef const ref
+        := model engine.
 
     virtual method defaultClearDepth => Float32
         := 1.0f.
@@ -40,18 +40,18 @@ class View superclass: EventHandler; definition: {
     virtual method isStereoRequested => Boolean8
         := false.
 
-    virtual method initializeWithModel: (theModel: ModelPtr const ref) ::=> Boolean8 := {
+    virtual method initializeWithModel: (theModel: ModelRef const ref) ::=> Boolean8 := {
         model := theModel.
 
         true
     }.
 
-    virtual method newViewWindowInstance => ViewWindowPtr
-        := GenericViewWindow rcNew upCastFor: ViewWindow.
+    virtual method newViewWindowInstance => ViewWindowRef
+        := GenericViewWindow new upCastFor: ViewWindow.
 
     virtual method open ::=> Boolean8 := {
         let newViewWindow := self newViewWindowInstance.
-        (newViewWindow _ openForView: self asRCPointer) ifFalse: {
+        (newViewWindow openForView: self asRCRef) ifFalse: {
             return: false.
         }.
 
@@ -60,16 +60,16 @@ class View superclass: EventHandler; definition: {
     }.
 
     method toggleFullscreen => Void
-        := viewWindow _ toggleFullscreen.
+        := viewWindow toggleFullscreen.
 
     method viewWindowDestroyed => Void := {
-        viewWindow reset.
-        model _ viewDestroyed: self asRCPointer
+        viewWindow := nil.
+        model viewDestroyed: self asRCRef
     }.
 
     virtual method close => Void := {
         viewWindow ifNotNil: {
-            viewWindow _ close
+            viewWindow close
         }
     }.
 
@@ -102,7 +102,7 @@ class View superclass: EventHandler; definition: {
     }.
 }.
 
-compileTime constant ViewPtr := View rcPointer
+compileTime constant ViewRef := View rcRef
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

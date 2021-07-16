@@ -5,13 +5,13 @@ namespace Runtime definition: {
  * I am core engine instance. I hold strong references to the core subsystem registries.
  *#
 class ResourceCache superclass: Std RCObject; definition: {
-    private field unitCubeRenderable type: RenderablePtr.
+    private field unitCubeRenderable type: RenderableRef.
 
-    inline method unitCubeRenderable => RenderablePtr const ref := {
+    inline method unitCubeRenderable => RenderableRef const ref := {
         unitCubeRenderable ifNil: {
             lazyResourceCreationMutex withLock: {
                 unitCubeRenderable ifNil: {
-                    unitCubeRenderable := engine _ newGenericMeshBuilder _
+                    unitCubeRenderable := engine newGenericMeshBuilder
                         addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
                         renderable.
                 }.

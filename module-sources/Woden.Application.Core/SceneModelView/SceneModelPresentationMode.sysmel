@@ -8,8 +8,8 @@ class SceneModelPresentationMode superclass: Std RCObject; definition: {
     meta definition: {
 
         compileTime if: Compiler compilationTarget isDesktopPC || Compiler compilationTarget isWebAssembly || Compiler compilationTarget isWindowsStore then: {
-            static method default => SceneModelPresentationMode rcPointer
-                := SingleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
+            static method default => SceneModelPresentationMode rcRef
+                := SingleViewSceneModelPresentationMode new upCastFor: SceneModelPresentationMode
         }.
     }.
 
@@ -18,7 +18,7 @@ class SceneModelPresentationMode superclass: Std RCObject; definition: {
     abstract method openApplicationForModel: (model: SceneModel ref) ::=> Boolean8.
 }.
 
-compileTime constant SceneModelPresentationModePtr := SceneModelPresentationMode rcPointer.
+compileTime constant SceneModelPresentationModeRef := SceneModelPresentationMode rcRef.
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

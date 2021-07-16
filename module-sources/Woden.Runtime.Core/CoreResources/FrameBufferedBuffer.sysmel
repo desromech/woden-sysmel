@@ -9,13 +9,13 @@ useNamespace: Std Graphics Core.
 class FrameBufferedBuffer superclass: FrameBufferedRenderingResource; definition: {
     public field buffers type: (BufferRef array: FrameBufferingCount).
 
-    method for: (anEngine: EnginePtr const ref) createWithDescription: (description: BufferDescription const ref) ::=> Void
+    method for: (anEngine: EngineRef const ref) createWithDescription: (description: BufferDescription const ref) ::=> Void
         := self for: anEngine createWithDescription: description initialData: nil.
 
-    method for: (anEngine: EnginePtr const ref) createWithDescription: (description: BufferDescription const ref) initialData: (initialData: Void const pointer) ::=> Void := {
+    method for: (anEngine: EngineRef const ref) createWithDescription: (description: BufferDescription const ref) initialData: (initialData: Void const pointer) ::=> Void := {
         engine := anEngine.
 
-        let device ref := engine _ renderingDevice.
+        let device ref := engine renderingDevice.
         0 until: FrameBufferingCount do: {:i :: Void |
             buffers[i] := device createBuffer: description initialData: initialData.
         }

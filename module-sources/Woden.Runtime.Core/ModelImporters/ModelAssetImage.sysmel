@@ -14,11 +14,11 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     public field bufferView type: ModelAssetBinaryBufferViewPtr.
     public field usageMode type: ModelAssetImageUsageMode.
 
-    method asTextureDataFromFileFor: (engine: EnginePtr const ref) ::=> TextureDataRef := {
+    method asTextureDataFromFileFor: (engine: EngineRef const ref) ::=> TextureDataRef := {
         uri ifEmpty: {return: TextureDataRef nil}.
 
         let fileReference := self modelAsset _ parentFolder resolve: uri asNativeFileReference.
-        let solvedFileReference := engine _ resourceCache _ solveTextureFileReference: fileReference.
+        let solvedFileReference := engine resourceCache solveTextureFileReference: fileReference.
         TextureData readFromFileReference: solvedFileReference
     }.
 
@@ -29,7 +29,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
         TextureData readFromStream: memoryStream withMimeType: mimeType asArraySlice.
     }.
 
-    method asTextureDataFor: (engine: EnginePtr const ref) ::=> TextureDataRef := {
+    method asTextureDataFor: (engine: EngineRef const ref) ::=> TextureDataRef := {
         let result := bufferView ifNil: {
             self asTextureDataFromFileFor: engine
         } ifNotNil: {

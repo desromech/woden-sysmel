@@ -9,14 +9,14 @@ useNamespace: Std Graphics Core.
 class SceneRenderingPipelineViewport superclass: Std RCObject; definition: {
     public field timeSinceLastFrame type: Float32.
 
-    protected field camera type: CameraPtr.
-    protected field scene type: ScenePtr.
+    protected field camera type: CameraRef.
+    protected field scene type: SceneRef.
     protected field stereoPresentationMode type: StereoPresentationMode.
 
-    const inline method camera => CameraPtr const ref
+    const inline method camera => CameraRef const ref
         := camera.
 
-    const inline method scene => ScenePtr const ref
+    const inline method scene => SceneRef const ref
         := scene.
 
     const inline method stereoPresentationMode => StereoPresentationMode
@@ -26,11 +26,11 @@ class SceneRenderingPipelineViewport superclass: Std RCObject; definition: {
 
     }.
 
-    virtual method camera: (theCamera: CameraPtr const ref) ::=> Void := {
+    virtual method camera: (theCamera: CameraRef const ref) ::=> Void := {
         camera := theCamera
     }.
 
-    virtual method scene: (theScene: ScenePtr const ref) ::=> Void := {
+    virtual method scene: (theScene: SceneRef const ref) ::=> Void := {
         scene := theScene
     }.
 
@@ -64,7 +64,7 @@ class SceneRenderingPipelineViewport superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant SceneRenderingPipelineViewportPtr := SceneRenderingPipelineViewport rcPointer.
+compileTime constant SceneRenderingPipelineViewportRef := SceneRenderingPipelineViewport rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

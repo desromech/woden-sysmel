@@ -8,9 +8,9 @@ useNamespace: Std Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class SceneNode superclass: Std RCObject; definition: {
-    protected field parentWeakPtr type: SceneNode weakRCPointer.
-    protected field sceneWeakPtr type: Scene weakRCPointer.
-    protected field children type: Std Collections Vector(SceneNodePtr).
+    protected field parentWeakRef type: SceneNode weakRCRef.
+    protected field sceneWeakRef type: Scene weakRCRef.
+    protected field children type: Std Collections Vector(SceneNodeRef).
     protected field transform type: ReversibleAffineTransform3dF32.
 
     private field globalTransform type: ReversibleAffineTransform3dF32.
@@ -26,19 +26,19 @@ class SceneNode superclass: Std RCObject; definition: {
         transform setIdentity.
     }.
 
-    const inline method parent => SceneNodePtr
-        := parentWeakPtr lock.
+    const inline method parent => SceneNodeRef
+        := parentWeakRef asRCRef.
 
-    const inline method scene => ScenePtr
-        := sceneWeakPtr lock.
+    const inline method scene => SceneRef
+        := sceneWeakRef asRCRef.
 
-    virtual method sceneLayer => SceneLayer pointer := {
+    virtual method sceneLayer => SceneLayer rcRef := {
         let p := self parent.
         p ifNotNil: {
-            return: p _ sceneLayer
+            return: p sceneLayer
         }.
 
-        nil
+        SceneLayerRef nil
     }.
 
     const inline method transform => ReversibleAffineTransform3dF32
@@ -51,7 +51,7 @@ class SceneNode superclass: Std RCObject; definition: {
 
     method transformChanged => Void := {
         self parent ifNotNil: {:p :: Void |
-            p _ childTransformChanged: self
+            p childTransformChanged: self
         }.
 
         self boundingBoxChanged.
@@ -69,7 +69,7 @@ class SceneNode superclass: Std RCObject; definition: {
     method parentTransformChanged => Void := {
         self globalTransformChanged.
         children do: {:each :: Void |
-            each _ parentTransformChanged
+            each parentTransformChanged
         }
     }.
 
@@ -82,7 +82,7 @@ class SceneNode superclass: Std RCObject; definition: {
         self parent ifNil: {
             globalTransform := transform.
         } ifNotNil: {:p :: Void |
-            globalTransform := p _ globalTransform transformTransform: transform
+            globalTransform := p globalTransform transformTransform: transform
         }.
 
         globalTransformIsValid := true.
@@ -98,7 +98,7 @@ class SceneNode superclass: Std RCObject; definition: {
     method validateLocalBoundingBox => Void := {
         localBoundingBox := self localInternalBoundingBox.
         children do: {:each :: Void |
-            localBoundingBox := localBoundingBox unionWith: each _ boundingBox
+            localBoundingBox := localBoundingBox unionWith: each boundingBox
         }.
 
         localBoundingBoxIsValid := true.
@@ -127,66 +127,66 @@ class SceneNode superclass: Std RCObject; definition: {
         boundingBoxIsValid := false.
     }.
 
-    virtual method addedToScene: (aScene: ScenePtr const ref) ::=> Void := {
-        sceneWeakPtr := aScene asWeakRCPointer.
+    virtual method addedToScene: (aScene: SceneRef const ref) ::=> Void := {
+        sceneWeakRef := aScene asWeakRCRef.
         self sceneLayer ifNotNil: {:layer :: Void |
-            self addRenderingSceneObjectsToSceneLayer: layer _
+            self addRenderingSceneObjectsToSceneLayer: layer
         }.
 
         children do: {:each :: Void |
-            each _ addedToScene: aScene
+            each addedToScene: aScene
         }.
     }.
 
-    virtual method removedFromScene: (aScene: ScenePtr const ref) ::=> Void := {
+    virtual method removedFromScene: (aScene: SceneRef const ref) ::=> Void := {
         self sceneLayer ifNotNil: {:layer :: Void |
-            self removeRenderingSceneObjectsFromSceneLayer: layer _
+            self removeRenderingSceneObjectsFromSceneLayer: layer
         }.
 
         children do: {:each :: Void |
-            each _ removedFromScene: aScene
+            each removedFromScene: aScene
         }.
 
-        sceneWeakPtr reset.
+        sceneWeakRef := nil.
     }.
 
-    virtual method addedToNode: (newParentNode: SceneNodePtr const ref) ::=> Void := {
-        parentWeakPtr := newParentNode asWeakRCPointer.
-        let parentScene := newParentNode _ scene.
+    virtual method addedToNode: (newParentNode: SceneNodeRef const ref) ::=> Void := {
+        parentWeakRef := newParentNode asWeakRCRef.
+        let parentScene := newParentNode scene.
         parentScene ifNotNil: {
             self addedToScene: parentScene
         }.
     }.
 
-    virtual method removedFromNode: (newParentNode: SceneNodePtr const ref) ::=> Void := {
+    virtual method removedFromNode: (newParentNode: SceneNodeRef const ref) ::=> Void := {
         let oldScene := self scene.
         oldScene ifNotNil: { self removedFromScene: oldScene }.
-        parentWeakPtr reset
+        parentWeakRef := nil.
     }.
 
-    virtual method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
-
-    }.
-
-    virtual method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+    virtual method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
 
     }.
 
-    method addChild: (aChild: SceneNodePtr const ref) ::=> Void := {
-        aChild _ addedToNode: self asRCPointer.
+    virtual method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
+
+    }.
+
+    method addChild: (aChild: SceneNodeRef const ref) ::=> Void := {
+        aChild addedToNode: self asRCRef.
         children add: aChild.
     }.
 
-    method removeChild: (aChild: SceneNodePtr const ref) ::=> Void := {
+    method removeChild: (aChild: SceneNodeRef const ref) ::=> Void := {
         (children includes: aChild) ifFalse: {return: void}.
         children remove: aChild.
-        aChild _ removedFromNode: self asRCPointer.
+        aChild removedFromNode: self asRCRef.
     }.
 
     method removeFromScene => Void := {
         let p := self parent.
         p ifNotNil: {
-            p _ removeChild: self asRCPointer
+            p removeChild: self asRCRef
         }
     }.
 
@@ -312,12 +312,12 @@ class SceneNode superclass: Std RCObject; definition: {
 
     method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
         children do: {:each :: Void |
-            each _ withAllNodesDo: aBlock
+            each withAllNodesDo: aBlock
         }
     }.
 
     method withAllNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
-        aBlock(self).
+        aBlock(self rcObjectAddress _).
         self allNodesDo: aBlock
     }.
 
@@ -336,19 +336,19 @@ class SceneNode superclass: Std RCObject; definition: {
     const virtual method isSpatialObjectNode => Boolean8
         := false.
 
-    virtual const method getSkeletonPose => SkeletonPosePtr
-        := SkeletonPosePtr nil.
+    virtual const method getSkeletonPose => SkeletonPoseRef
+        := SkeletonPoseRef nil.
 
     virtual method validateRenderingSceneObjectTransform: (renderingSceneObject: RenderingSceneObject ref) ::=> Void := {
-        renderingSceneObject spatialObject _ setCurrentTransform: self globalTransform.
+        renderingSceneObject spatialObject setCurrentTransform: self globalTransform.
         renderingSceneObject boundingBox: (renderingSceneObject localBoundingBox transformedWith: globalTransform)
     }.
 }.
 
 compileTime constant SceneNodeIterationBlock := ((SceneNode ref) => Void) nativeBlockClosure.
 
-compileTime constant SceneNodePtr := SceneNode rcPointer.
-compileTime constant SceneNodeWeakPtr := SceneNode weakRCPointer.
+compileTime constant SceneNodeRef := SceneNode rcRef.
+compileTime constant SceneNodeWeakRef := SceneNode weakRCRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

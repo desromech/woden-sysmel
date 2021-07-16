@@ -198,9 +198,9 @@ class ModelAsset superclass: Std RCObject; definition: {
         ModelAssetNodePtr nil
     }.
 
-    method createSceneNodeNamed: (name: Std String const ref) for: (engine: EnginePtr const ref) ::=> SceneNodePtr := {
+    method createSceneNodeNamed: (name: Std String const ref) for: (engine: EngineRef const ref) ::=> SceneNodeRef := {
         let node := self getNodeNamed: name.
-        node ifNil: {return: SceneNodePtr nil}.
+        node ifNil: {return: SceneNodeRef nil}.
 
         node _ asSceneNodeFor: engine
     }.
@@ -237,9 +237,9 @@ class ModelAsset superclass: Std RCObject; definition: {
 
     field vertexBindingCache type: Std Collections Dictionary(ModelAssetPrimitiveAttributesBindingDescription, VertexBindingRef).
 
-    method createVertexBindingFor: (engine: EnginePtr const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingRef := {
+    method createVertexBindingFor: (engine: EngineRef const ref) withDescription: (bindingDescription: ModelAssetPrimitiveAttributesBindingDescription const ref) ::=> VertexBindingRef := {
         vertexBindingCache at: bindingDescription ifAbsentPut: { :: VertexBindingRef |
-            let vertexBinding := engine _ renderingDevice createVertexBindingFor: bindingDescription vertexLayout.
+            let vertexBinding := engine renderingDevice createVertexBindingFor: bindingDescription vertexLayout.
             vertexBinding bindVertexBuffers: bindingDescription buffers asArraySlice offset: bindingDescription offsets asArraySlice.
             vertexBinding.
         }.

@@ -8,8 +8,8 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 	compileTime constant DefaultSpotOuterCutoff := 45.0f.
 	compileTime constant DefaultSpotInnerCutoff := 40.0f.
 
-    private field objectState type: LightSourceObjectPtr.
-    private field renderingSceneObject type: RenderingSceneLightSourcePtr.
+    private field objectState type: LightSourceObjectRef.
+    private field renderingSceneObject type: RenderingSceneLightSourceRef.
     private field spotOuterCutoff type: Float32.
     private field spotInnerCutoff type: Float32.
     private field spotExponent type: Float32.
@@ -19,48 +19,48 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
         spotInnerCutoff := DefaultSpotInnerCutoff.
         spotExponent := 1.0f.
 
-        objectState := LightSourceObject rcNew.
-        objectState _ lightState
+        objectState := LightSourceObject new.
+        objectState lightState
             intensity: Float32x4 ones;
             shadowNormalBias: 0.05f;
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1;
             radius: 3.0f.
-        objectState _ spotOuterCutoff: spotOuterCutoff.
+        objectState spotOuterCutoff: spotOuterCutoff.
 
-        renderingSceneObject := RenderingSceneLightSource rcNew.
-        renderingSceneObject _
+        renderingSceneObject := RenderingSceneLightSource new
             spatialObject: (objectState upCastFor: AbstractSpatialObject);
-            node: (self asWeakRCPointer upCastFor: SceneNode);
-            volumeChanged
+            node: (self asWeakRCRef upCastFor: SceneNode);
+            volumeChanged;
+            yourself
     }.
 
     method makePoint => Void := {
-        objectState _ lightType: LightSourceType Point.
-        objectState _ lightState
+        objectState lightType: LightSourceType Point.
+        objectState lightState
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1.
-        renderingSceneObject _ volumeChanged.
+        renderingSceneObject volumeChanged.
     }.
 
     method makeDirectional => Void := {
-        objectState _ lightType: LightSourceType Directional.
-        objectState _ lightState
+        objectState lightType: LightSourceType Directional.
+        objectState lightState
             innerCosCutoff: -1;
             outerCosCutoff: -1;
             spotExponent: 1.
-        renderingSceneObject _ volumeChanged.
+        renderingSceneObject volumeChanged.
     }.
 
     method makeSpot => Void := {
-        objectState _ lightType: LightSourceType Spot.
-        objectState _ lightState
+        objectState lightType: LightSourceType Spot.
+        objectState lightState
             innerCosCutoff: spotInnerCutoff degreesToRadians cos;
             outerCosCutoff: spotOuterCutoff degreesToRadians cos;
             spotExponent: spotExponent.
-        renderingSceneObject _ volumeChanged.
+        renderingSceneObject volumeChanged.
     }.
 
     method spotExponent ::=> Float32
@@ -68,7 +68,7 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method spotExponent: (exponent: Float32) ::=> Void := {
         spotExponent := exponent.
-        objectState _ lightState
+        objectState lightState
             spotExponent: exponent.
     }.
 
@@ -77,8 +77,8 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method spotOuterCutoff: (cutoffAngle: Float32) ::=> Void := {
         spotOuterCutoff := cutoffAngle.
-        objectState _ spotOuterCutoff: spotOuterCutoff.
-        objectState _ lightState outerCosCutoff: spotOuterCutoff degreesToRadians cos.
+        objectState spotOuterCutoff: spotOuterCutoff.
+        objectState lightState outerCosCutoff: spotOuterCutoff degreesToRadians cos.
     }.
 
     method spotInnerCutoff ::=> Float32
@@ -86,56 +86,56 @@ class LightSourceNode superclass: AbstractSpatialObjectNode; definition: {
 
     method spotInnerCutoff: (cutoffAngle: Float32) ::=> Void := {
         spotInnerCutoff := cutoffAngle.
-        objectState _ lightState innerCosCutoff: spotInnerCutoff degreesToRadians cos.
+        objectState lightState innerCosCutoff: spotInnerCutoff degreesToRadians cos.
     }.
 
     method radius ::=> Float32
-        := objectState _ lightState radius.
+        := objectState lightState radius.
 
     method radius: (radius: Float32) ::=> Void := {
-        objectState _ lightState radius: radius.
-        renderingSceneObject _ volumeChanged.
+        objectState lightState radius: radius.
+        renderingSceneObject volumeChanged.
     }.
 
     method intensity ::=> Float32x3
-        := objectState _ lightState intensity xyz.
+        := objectState lightState intensity xyz.
 
     method intensity: (intensity: Float32x3) ::=> Void := {
-        objectState _ lightState intensity: Float32x4(intensity, 0.0f)
+        objectState lightState intensity: Float32x4(intensity, 0.0f)
     }.
 
     const override method isLightSourceNode => Boolean8
         := true.
 
     method shadowNormalBias ::=> Float32
-        := objectState _ lightState shadowNormalBias.
+        := objectState lightState shadowNormalBias.
 
     method shadowNormalBias: (shadowNormalBias: Float32) ::=> Void := {
-        objectState _ lightState shadowNormalBias: shadowNormalBias.
+        objectState lightState shadowNormalBias: shadowNormalBias.
     }.
 
     method castShadows ::=> Boolean8
-        := objectState _ castShadows.
+        := objectState castShadows.
 
     method castShadows: (value: Boolean8) ::=> Void := {
-        objectState _ castShadows: value
+        objectState castShadows: value
     }.
 
     override method globalTransformChanged => Void := {
         super globalTransformChanged.
-        renderingSceneObject _ transformChanged.
+        renderingSceneObject transformChanged.
     }.
 
-    override method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+    override method addRenderingSceneObjectsToSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
         sceneLayer addRenderingSceneObject: (renderingSceneObject upCastFor: RenderingSceneObject).
     }.
 
-    override method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayer ref) ::=> Void := {
+    override method removeRenderingSceneObjectsFromSceneLayer: (sceneLayer: SceneLayerRef const ref) ::=> Void := {
         sceneLayer removeRenderingSceneObject: (renderingSceneObject upCastFor: RenderingSceneObject).
     }.
 }.
 
-compileTime constant LightSourceNodePtr := LightSourceNode rcPointer.
+compileTime constant LightSourceNodeRef := LightSourceNode rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

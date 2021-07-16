@@ -49,11 +49,11 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     override method defaultClearDepth => Float32
         := 0.0f.
 
-    override method initializeForEngine: (anEngine: EnginePtr const ref) ::=> Void := {
+    override method initializeForEngine: (anEngine: EngineRef const ref) ::=> Void := {
         super initializeForEngine: anEngine.
 
-        let device := anEngine _ renderingDevice.
-        let renderingSettings ref := anEngine _ renderingSettings.
+        let device := anEngine renderingDevice.
+        let renderingSettings ref := anEngine renderingSettings.
         shadowMapTextureSize := renderingSettings shadowMapSize max: 256.
 
         ## Get or create the shader signature.
@@ -287,14 +287,13 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
         }.
     }.
 
-    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportPtr := {
-        let result := ForwardSceneRenderingPipelineViewport rcNew.
-        result _ initializeWithSceneRenderingPipeline: self asRCPointer.
-        result upCastFor: SceneRenderingPipelineViewport
-    }.
+    override method createSceneRenderingPipelineViewport => SceneRenderingPipelineViewportRef
+        := ForwardSceneRenderingPipelineViewport new
+            initializeWithSceneRenderingPipeline: self asRCRef;
+            upCastFor: SceneRenderingPipelineViewport.
 
     method screenQuadShader => GPU ShaderEntryPointInfo const pointer := {
-        self engine _ renderingDevice shouldInvertProjectionY ifTrue: {
+        self engine renderingDevice shouldInvertProjectionY ifTrue: {
             Woden Shaders CompositionMaterialShaders screenQuad shaderEntryPointInfo address
         } ifFalse: {
             Woden Shaders CompositionMaterialShaders screenQuadFlippedY shaderEntryPointInfo address
@@ -340,7 +339,7 @@ class ForwardSceneRenderingPipeline superclass: SceneRenderingPipeline; definiti
     }.
 }.
 
-compileTime constant ForwardSceneRenderingPipelinePtr := ForwardSceneRenderingPipeline rcPointer.
+compileTime constant ForwardSceneRenderingPipelineRef := ForwardSceneRenderingPipeline rcRef.
 
 }. ## End of namespace ForwardRenderer
 }. ## End of namespace Woden

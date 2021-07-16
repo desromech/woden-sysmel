@@ -11,7 +11,7 @@ class DeformableRenderable superclass: MutableRenderable; definition: {
         := false.
 }.
 
-compileTime constant DeformableRenderablePtr := DeformableRenderable rcPointer.
+compileTime constant DeformableRenderableRef := DeformableRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

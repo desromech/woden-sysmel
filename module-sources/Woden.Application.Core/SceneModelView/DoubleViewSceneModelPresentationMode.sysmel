@@ -11,7 +11,7 @@ class DoubleViewSceneModelPresentationMode superclass: SceneModelPresentationMod
         (model openView: model createNewView) ifFalse: {return: false}.
 
         let secondaryView := model createNewSecondaryView.
-        secondaryView _ makeSecondary.
+        secondaryView makeSecondary.
         model openView: secondaryView
     }.
 }.

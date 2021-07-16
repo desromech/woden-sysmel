@@ -22,7 +22,7 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
         sideFaceAttributes setMaterial: newMaterial.
     }.
 
-    field renderable type: RenderablePtr.
+    field renderable type: RenderableRef.
 
     method faceAttributesForNormal: (normal: Float32x3) ::=> PolygonFaceAttributes const ref := {
         normal y > 0 ifTrue: {
@@ -36,44 +36,43 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
         sideFaceAttributes
     }.
 
-    method getOrCreateRenderableFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderablePtr := {
+    method getOrCreateRenderableFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> RenderableRef := {
         renderable ifNotNil: {return: renderable}.
 
-        let meshBuilder := engine _ newGenericMeshBuilder.
+        let meshBuilder := engine newGenericMeshBuilder.
         self generateExtrudedFacesFor: engine with: meshBuilder parentTransform: parentTransform.
-        meshBuilder _
-            computeTangentsBitangents.
 
-        renderable := meshBuilder _ renderable
+        renderable := meshBuilder computeTangentsBitangents;
+            renderable
     }.
 
-    method generateExtrudedFaceVertices: (faceVertices: Float32x3 arraySlice) normal: (faceNormal: Float32x3) for: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+    method generateExtrudedFaceVertices: (faceVertices: Float32x3 arraySlice) normal: (faceNormal: Float32x3) for: (engine: EngineRef) with: (meshBuilder: GenericMeshBuilderRef const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         let faceAttributes ref := self faceAttributesForNormal: faceNormal.
 
         faceAttributes materialAttributes material ifNotNil: {
-            meshBuilder _ currentMaterial: (faceAttributes materialAttributes material _ getOrCreateMaterialFor: engine)
+            meshBuilder currentMaterial: (faceAttributes materialAttributes material _ getOrCreateMaterialFor: engine)
         }.
-        meshBuilder _
+        meshBuilder
             beginTriangles.
 
-        let normalAxis := meshBuilder _ computeNormalAxis: faceNormal.
-        let tangent := meshBuilder _ tangentForAxis: normalAxis.
-        let bitangent := meshBuilder _ bitangentForAxis: normalAxis.
+        let normalAxis := meshBuilder computeNormalAxis: faceNormal.
+        let tangent := meshBuilder tangentForAxis: normalAxis.
+        let bitangent := meshBuilder bitangentForAxis: normalAxis.
         let textureMatrix := faceAttributes materialAttributes textureTransform.
 
         faceVertices do: {:each :: Void |
             let worldVertex := parentTransform transformPosition: each.
             
             let uv := Float32x2 x: (tangent dot: worldVertex) y: (bitangent dot: worldVertex).
-            meshBuilder _ addP: each N: faceNormal TC: (textureMatrix * Float32x3(uv, 1)) xy
+            meshBuilder addP: each N: faceNormal TC: (textureMatrix * Float32x3(uv, 1)) xy
         }.
 
         2 until: (faceVertices size castTo: UInt32) do: {:(UInt32)index :: Void |
-            meshBuilder _ addI1: 0 i2: index - 1 i3: index
+            meshBuilder addI1: 0 i2: index - 1 i3: index
         }.
     }.
 
-    method generateExtrudedFacesFor: (engine: EnginePtr) with: (meshBuilder: GenericMeshBuilderPtr const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
+    method generateExtrudedFacesFor: (engine: EngineRef) with: (meshBuilder: GenericMeshBuilderRef const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         ## Front face.
         let frontVertices mutable type: Std Collections Vector(Float32x3).
         frontVertices reserve: vertices size.
@@ -108,11 +107,10 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
         }.
     }.
 
-    override method createSceneNodeFor: (engine: EnginePtr) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodePtr := {
-        let node := SpatialObjectNode rcNew.
-        node _
-            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform).
-        node upCastFor: SceneNode
+    override method createSceneNodeFor: (engine: EngineRef) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> SceneNodeRef := {
+        SpatialObjectNode new
+            renderable: (self getOrCreateRenderableFor: engine parentTransform: parentTransform);
+            upCastFor: SceneNode
     }.
 }.
 

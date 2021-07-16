@@ -16,14 +16,13 @@ class SpotLightSourceVisualComponent superclass: PointLightSourceVisualComponent
     	exponent := 1.
     }.
 
-    override method createLightSourceNodeFor: (engine: EnginePtr) ::=> LightSourceNodePtr := {
-        let node := super createLightSourceNodeFor: engine.
-        node _
+    override method createLightSourceNodeFor: (engine: EngineRef) ::=> LightSourceNodeRef := {
+        (super createLightSourceNodeFor: engine)
             makeSpot;
             spotInnerCutoff: innerCutOffAngle;
             spotOuterCutoff: outerCutOffAngle;
-            spotExponent: exponent.
-        node
+            spotExponent: exponent;
+            yourself
     }.
 }.
 

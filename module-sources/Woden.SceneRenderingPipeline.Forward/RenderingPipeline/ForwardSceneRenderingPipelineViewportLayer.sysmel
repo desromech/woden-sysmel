@@ -16,7 +16,7 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
     const inline method layerLightSourceCount => UIntPointer
         := lightSources size min: Woden Shaders MaxNumberOfLights .
 
-    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelinePtr const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
+    override method ensureResourcesAreCreatedFor: (theSceneRenderingPipeline: ForwardSceneRenderingPipelineRef const ref) owner: (theOwner: RenderingPipelineCameraEye pointer) ::=> Void := {
         super ensureResourcesAreCreatedFor: theSceneRenderingPipeline owner: theOwner.
 
         ## Create the lighting state buffer and binding.
@@ -30,12 +30,12 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
                 yourself
             ) initialData: nil.
 
-            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline _ shaderSignature bindingSet: 2.
+            lightingStateBindings for: self engine createForShaderSignature: sceneRenderingPipeline shaderSignature bindingSet: 2.
             lightingStateBindings bindings doWithIndex: {:each :index :: Void |
                 each
                     bindOn: 0 uniformBuffer: lightingStateBuffers buffers[index];
-                    bindOn: 1 sampledTextureView: sceneRenderingPipeline _ shadowMapTextureView;
-                    bindOn: 4 sampledTextureView: sceneRenderingPipeline _ specularBRDFLutTextureView
+                    bindOn: 1 sampledTextureView: sceneRenderingPipeline shadowMapTextureView;
+                    bindOn: 4 sampledTextureView: sceneRenderingPipeline specularBRDFLutTextureView
             }.
         }.
     }.
@@ -57,17 +57,17 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
 
         lightingState := Woden Shaders GlobalLightingStateData().
 
-        let shadowMapExtent := sceneRenderingPipeline _ shadowMapTextureExtent castTo: Float32x2.
+        let shadowMapExtent := sceneRenderingPipeline shadowMapTextureExtent castTo: Float32x2.
         lightingState
-            groundLighting: Float32x4(scene _ groundLighting, 0.0f);
-            skyLighting: Float32x4(scene _ skyLighting, 0.0f);
-            sunDirection: scene _ sunDirection;
+            groundLighting: Float32x4(scene groundLighting, 0.0f);
+            skyLighting: Float32x4(scene skyLighting, 0.0f);
+            sunDirection: scene sunDirection;
 
             shadowMapExtent: shadowMapExtent;
             shadowMapInverseExtent: 1.0f/shadowMapExtent.
 
         ## TODO: Support light probes properly.
-        let blackTexture := self engine _ resourceCache _ blackTextureCube.
+        let blackTexture := self engine resourceCache blackTextureCube.
         lightingStateBindings current
             bindOn: 5 sampledTextureWithView: blackTexture;
             bindOn: 6 sampledTextureWithView: blackTexture.
@@ -76,7 +76,7 @@ sealed class ForwardSceneRenderingPipelineViewportLayer superclass: RenderingPip
         lightingState numberOfLights: (lightCount castTo: Int32).
         0 until: lightCount do: {:i :: Void |
             let lightSourceObject ref := lightSources[i] object.
-            let lightSourceObjectState ref := lightSourceObject _ lightSourceObject _.
+            let lightSourceObjectState ref := lightSourceObject lightSourceObject.
             let lightSourceState mutable := lightSourceObjectState lightState.
 
             lightSourceState shadowMapLayer: -1.

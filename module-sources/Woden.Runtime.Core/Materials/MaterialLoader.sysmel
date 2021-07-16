@@ -6,10 +6,10 @@ useNamespace: Std Graphics Core.
 
 class MaterialLoader definition: {
     field parentFolder type: Std FileReference.
-    field engine type: EnginePtr.
+    field engine type: EngineRef.
 
     method loadColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
-        let result := engine _ resourceCache _ loadColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        let result := engine resourceCache loadColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
         }.
@@ -21,7 +21,7 @@ class MaterialLoader definition: {
         := self loadColorTextureFrom: relativePath default: TextureWithViewRef nil.
 
     method loadNonColorTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
-        let result := engine _ resourceCache _ loadNonColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        let result := engine resourceCache loadNonColorTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
         }.
@@ -33,7 +33,7 @@ class MaterialLoader definition: {
         := self loadNonColorTextureFrom: relativePath default: TextureWithViewRef nil.
 
     method loadNormalTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
-        let result := engine _ resourceCache _ loadNormalTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        let result := engine resourceCache loadNormalTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
         }.
@@ -89,7 +89,7 @@ class MaterialLoader definition: {
     }.
 
     method loadColorCubeTextureFrom: (relativePath: Std String const ref) default: (default: TextureWithViewRef const ref) ::=> TextureWithViewRef := {
-        let result := engine _ resourceCache _ loadColorCubeTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
+        let result := engine resourceCache loadColorCubeTextureFrom: (parentFolder resolve: relativePath asNativeFileReference).
         result ifNil: {
             return: default.
         }.
@@ -101,20 +101,20 @@ class MaterialLoader definition: {
         := self loadColorCubeTextureFrom: relativePath default: TextureWithViewRef nil.
 
 
-    method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+    method parseMetallicRoughnessMaterialFrom: (object: DOM Object const ref) ::=> MaterialRef := {
         let result := MetallicRoughnessMaterial for: engine.
-        self parseMetallicRoughnessMaterialFrom: object into: result _.
+        self parseMetallicRoughnessMaterialFrom: object into: result rcObjectAddress _.
         result upCastFor: Material.
     }.
 
-    method parseUnlitMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+    method parseUnlitMaterialFrom: (object: DOM Object const ref) ::=> MaterialRef := {
         let result := UnlitMaterial for: engine.
 
         object at: "texture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            result _ texture: (self loadColorTextureFrom: (value get: Std String))
+            result texture: (self loadColorTextureFrom: (value get: Std String))
         }.
 
-        result _
+        result
             colorFactor: Std Math Color decodeSRGB(object getFloat32x4: "colorFactor" asMutableString default: 1.0f);
             alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.0f);
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
@@ -123,39 +123,39 @@ class MaterialLoader definition: {
         result upCastFor: Material.
     }.
 
-    method parseSkyMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+    method parseSkyMaterialFrom: (object: DOM Object const ref) ::=> MaterialRef := {
         let result := SkyMaterial for: engine.
 
         object at: "texture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            result _ texture: (self loadColorCubeTextureFrom: (value get: Std String))
+            result texture: (self loadColorCubeTextureFrom: (value get: Std String))
         }.
 
         result upCastFor: Material.
     }.
 
-    method parseWaterMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+    method parseWaterMaterialFrom: (object: DOM Object const ref) ::=> MaterialRef := {
         let result := WaterMaterial for: engine.
-        self parseMetallicRoughnessMaterialFrom: object into: result _.
+        self parseMetallicRoughnessMaterialFrom: object into: result rcObjectAddress _.
         result upCastFor: Material.
     }.
 
-    method parseMaterialFrom: (object: DOM Object const ref) ::=> MaterialPtr := {
+    method parseMaterialFrom: (object: DOM Object const ref) ::=> MaterialRef := {
         let materialType := object getString: "type" asMutableString default: "MetallicRoughness" asMutableString.
         materialType asArraySlice selectCase: #{
         "MetallicRoughness" : (self parseMetallicRoughnessMaterialFrom: object).
         "Unlit" : (self parseUnlitMaterialFrom: object).
         "Sky" : (self parseSkyMaterialFrom: object).
         "Water" : (self parseWaterMaterialFrom: object).
-        _ : MaterialPtr nil
+        _ : MaterialRef nil
         }.
     }.
 
-    method parseMaterialFromFileReference: (fileReference: Std FileReference const ref) for: (anEngine: EnginePtr const ref) ::=> MaterialPtr := {
+    method parseMaterialFromFileReference: (fileReference: Std FileReference const ref) for: (anEngine: EngineRef const ref) ::=> MaterialRef := {
         parentFolder := fileReference parent.
         engine := anEngine.
 
         let inputReadStream mutable := fileReference binaryReadStream.
-        inputReadStream ifNil: {return: MaterialPtr nil}.
+        inputReadStream ifNil: {return: MaterialRef nil}.
 
         let domValue := fileReference extension asArraySlice = "wtmat"
             ifTrue: { JSON ValueParser parseStream: inputReadStream getPointer }

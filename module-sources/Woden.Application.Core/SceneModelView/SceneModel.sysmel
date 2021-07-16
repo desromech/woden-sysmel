@@ -8,23 +8,23 @@ useNamespace: Std Graphics GUI.
  * I am the model that lies underlying a Woden application.
  *#
 class SceneModel superclass: Model; definition: {
-    protected field scene type: ScenePtr.
-    protected field mainCamera type: CameraPtr.
-    protected field sceneRenderingPipeline type: SceneRenderingPipelinePtr.
-    protected field presentationMode type: SceneModelPresentationModePtr.
+    protected field scene type: SceneRef.
+    protected field mainCamera type: CameraRef.
+    protected field sceneRenderingPipeline type: SceneRenderingPipelineRef.
+    protected field presentationMode type: SceneModelPresentationModeRef.
     protected field stereoPresentationMode type: StereoPresentationMode.
 
-    const inline method scene => ScenePtr const ref
+    const inline method scene => SceneRef const ref
         := scene.
 
-    const inline method mainCamera => CameraPtr const ref
+    const inline method mainCamera => CameraRef const ref
         := mainCamera.
 
-    virtual method secondaryScene => ScenePtr
-        := ScenePtr nil.
+    virtual method secondaryScene => SceneRef
+        := SceneRef nil.
 
-    virtual method secondarySceneMainCamera => CameraPtr
-        := CameraPtr nil.
+    virtual method secondarySceneMainCamera => CameraRef
+        := CameraRef nil.
 
     method stereoPresentationMode => StereoPresentationMode
         := stereoPresentationMode.
@@ -53,40 +53,41 @@ class SceneModel superclass: Model; definition: {
     override method initializeModel => Boolean8 := {
         ## Ask the scene rendering pipeline about the default stereo presentation mode.
         stereoPresentationMode isMonoscopic ifTrue: {
-            stereoPresentationMode := self sceneRenderingPipeline _ defaultStereoPresentationMode
+            stereoPresentationMode := self sceneRenderingPipeline defaultStereoPresentationMode
         }.
 
         super initializeModel ifFalse: {return: false}.
 
-        scene := Scene rcNew.
+        scene := Scene new.
         true.
     }.
 
-    override method createNewView => ViewPtr
-        := SceneView rcNew upCastFor: View.
+    override method createNewView => ViewRef
+        := SceneView new upCastFor: View.
 
-    override method createNewSecondaryView => ViewPtr
+    override method createNewSecondaryView => ViewRef
         := self createNewView.
 
-    virtual method newScene => ScenePtr := {
-        let newScene := Scene rcNew.
-        newScene _ engine: self engine.
-        let newCamera := Camera rcNew.
+    virtual method newScene => SceneRef := {
+        let newScene := Scene new
+            engine: self engine;
+            yourself.
+        let newCamera := Camera new.
 
         mainCamera := newCamera.
-        newScene _ add: (mainCamera upCastFor: SceneNode).
+        newScene add: (mainCamera upCastFor: SceneNode).
 
         scene := newScene.
         newScene
     }.
 
-    virtual method createSceneRenderingPipeline => SceneRenderingPipelinePtr
+    virtual method createSceneRenderingPipeline => SceneRenderingPipelineRef
         := SceneRenderingPipelineRegistry uniqueInstance createDefaultFor: self engine.
 
     override method openApplication => Boolean8
-        := self presentationMode _ openApplicationForModel: self.
+        := self presentationMode openApplicationForModel: self.
 
-    method presentationMode => SceneModelPresentationModePtr := {
+    method presentationMode => SceneModelPresentationModeRef := {
         presentationMode ifNil: {self useDefaultViewPresentationMode}.
         presentationMode
     }.
@@ -132,19 +133,19 @@ class SceneModel superclass: Model; definition: {
     }.
 
     method useSingleViewPresentationMode => Void := {
-        presentationMode := SingleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
+        presentationMode := SingleViewSceneModelPresentationMode new upCastFor: SceneModelPresentationMode
     }.
 
     method useDoubleViewPresentationMode => Void := {
-        presentationMode := DoubleViewSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
+        presentationMode := DoubleViewSceneModelPresentationMode new upCastFor: SceneModelPresentationMode
     }.
 
     method useVRPresentationMode => Void := {
         stereoPresentationMode := StereoPresentationMode VR.
-        presentationMode := VRSceneModelPresentationMode rcNew upCastFor: SceneModelPresentationMode
+        presentationMode := VRSceneModelPresentationMode new upCastFor: SceneModelPresentationMode
     }.
 
-    method sceneRenderingPipeline => SceneRenderingPipelinePtr const ref := {
+    method sceneRenderingPipeline => SceneRenderingPipelineRef const ref := {
         sceneRenderingPipeline ifNil: { sceneRenderingPipeline := self createSceneRenderingPipeline }.
         sceneRenderingPipeline
     }.
@@ -158,14 +159,14 @@ class SceneModel superclass: Model; definition: {
 
     override method onStartFrameTick: (event: TickEvent ref) ::=> Void := {
         scene ifNotNil: {
-            scene _ currentTime: (event seconds castTo: Float32)
+            scene currentTime: (event seconds castTo: Float32)
         }.
 
         super onStartFrameTick: event.
     }.
 }.
 
-compileTime constant SceneModelPtr := SceneModel rcPointer
+compileTime constant SceneModelRef := SceneModel rcRef
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

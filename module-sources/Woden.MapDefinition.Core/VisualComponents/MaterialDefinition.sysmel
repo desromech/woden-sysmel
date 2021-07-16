@@ -6,8 +6,8 @@ useNamespace: Woden Runtime.
 class MaterialDefinition superclass: LevelElementDefinition; definition: {
     override method isMaterialDefinition => Boolean8 := true.
 
-    virtual method getOrCreateMaterialFor: (engine: EnginePtr) ::=> MaterialPtr
-        := engine _ resourceCache _ defaultMaterial.
+    virtual method getOrCreateMaterialFor: (engine: EngineRef) ::=> MaterialRef
+        := engine resourceCache defaultMaterial.
 }.
 
 compileTime constant MaterialDefinitionPtr := MaterialDefinition rcPointer.

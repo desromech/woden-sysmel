@@ -7,7 +7,7 @@ useNamespace: Std Math LinearAlgebra.
  * I represent a 3D scene with rendering only objects.
  *#
 class Scene superclass: Std RCObject; definition: {
-    public field engine type: EnginePtr.
+    public field engine type: EngineRef.
 
     public field backgroundColor type: Float32x4.
     public field groundLighting type: Float32x3.
@@ -16,17 +16,17 @@ class Scene superclass: Std RCObject; definition: {
 
     public field currentTime type: Float32.
 
-    field backgroundLayer type: SceneLayerPtr.
-    field normalLayer type: SceneLayerPtr.
-    field foregroundLayer type: SceneLayerPtr.
+    field backgroundLayer type: SceneLayerRef.
+    field normalLayer type: SceneLayerRef.
+    field foregroundLayer type: SceneLayerRef.
 
-    const inline method backgroundLayer => SceneLayerPtr const ref
+    const inline method backgroundLayer => SceneLayerRef const ref
         := backgroundLayer.
 
-    const inline method normalLayer => SceneLayerPtr const ref
+    const inline method normalLayer => SceneLayerRef const ref
         := normalLayer.
 
-    const inline method foregroundLayer => SceneLayerPtr const ref
+    const inline method foregroundLayer => SceneLayerRef const ref
         := foregroundLayer.
 
     method backgroundLighting: (lighting: Float32x3) ::=> Void := {
@@ -40,34 +40,34 @@ class Scene superclass: Std RCObject; definition: {
         groundLighting := 0.05f.
         sunDirection := Float32x3(0, 1, 0).
 
-        backgroundLayer := SceneLayer rcNew.
-        normalLayer := SceneLayer rcNew.
-        foregroundLayer := SceneLayer rcNew.
+        backgroundLayer := SceneLayer new.
+        normalLayer := SceneLayer new.
+        foregroundLayer := SceneLayer new.
 
-        backgroundLayer _ addedToScene: self asRCPointer.
-        normalLayer _ addedToScene: self asRCPointer.
-        foregroundLayer _ addedToScene: self asRCPointer.
+        backgroundLayer addedToScene: self asRCRef.
+        normalLayer addedToScene: self asRCRef.
+        foregroundLayer addedToScene: self asRCRef.
     }.
 
-    method add: (node: SceneNodePtr const ref) ::=> Void := {
-        normalLayer _ addChild: node
+    method add: (node: SceneNodeRef const ref) ::=> Void := {
+        normalLayer addChild: node
     }.
 
     method allNodesDo: (aBlock: SceneNodeIterationBlock) ::=> Void := {
-        backgroundLayer _ withAllNodesDo: aBlock.
-        normalLayer _ withAllNodesDo: aBlock.
-        foregroundLayer _ withAllNodesDo: aBlock.
+        backgroundLayer withAllNodesDo: aBlock.
+        normalLayer withAllNodesDo: aBlock.
+        foregroundLayer withAllNodesDo: aBlock.
     }.
 
     method sceneLayersDo: (aBlock: SceneLayerIterationBlock) ::=> Void := {
-        aBlock(backgroundLayer _).
-        aBlock(normalLayer _).
-        aBlock(foregroundLayer _).
+        aBlock(backgroundLayer).
+        aBlock(normalLayer).
+        aBlock(foregroundLayer).
     }.
 }.
 
-compileTime constant ScenePtr := Scene rcPointer.
-compileTime constant SceneWeakPtr := Scene weakRCPointer.
+compileTime constant SceneRef := Scene rcRef.
+compileTime constant SceneWeakRef := Scene weakRCRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

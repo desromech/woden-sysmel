@@ -7,7 +7,7 @@ namespace Runtime definition: {
 class MutableRenderable superclass: Renderable; definition: {
 }.
 
-compileTime constant MutableRenderablePtr := MutableRenderable rcPointer.
+compileTime constant MutableRenderablePtr := MutableRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden
