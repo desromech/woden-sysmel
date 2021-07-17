@@ -5,10 +5,10 @@ class ModelImporterExporter superclass: Std RCObject; definition: {
     const virtual method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := false.
 
-    const virtual method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr
-        := ModelAssetPtr nil.
+    const virtual method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetRef
+        := ModelAssetRef nil.
 
-    const virtual method write: (model: ModelAssetPtr const ref) intoFileReference: (fileReference: Std FileReference const ref) ::=> Boolean8
+    const virtual method write: (model: ModelAssetRef const ref) intoFileReference: (fileReference: Std FileReference const ref) ::=> Boolean8
         := false.
 }.
 

@@ -11,226 +11,226 @@ useNamespace: Std Graphics Core.
  *#
 class ModelAsset superclass: Std RCObject; definition: {
     meta definition: {
-        method readFromFileNamed: (fileName: Std String const ref) ::=> ModelAsset rcPointer
+        method readFromFileNamed: (fileName: Std String const ref) ::=> ModelAsset rcRef
             := self readFromFileReference: fileName asNativeFileReference.
 
-        method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAsset rcPointer := {
+        method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAsset rcRef := {
             let importerExporter := ModelImporterExporterRegistry uniqueInstance findForFileReference: fileReference.
-            importerExporter ifNil: {return: ModelAssetPtr nil}.
+            importerExporter ifNil: {return: ModelAssetRef nil}.
 
-            importerExporter _ readFromFileReference: fileReference.
+            importerExporter readFromFileReference: fileReference.
         }.
     }.
 
     public field parentFolder type: Std FileReference.
-    public field buffers type: Std Collections Vector(ModelAssetBinaryBufferPtr).
+    public field buffers type: Std Collections Vector(ModelAssetBinaryBufferRef).
 
-    method addBuffer: (buffer: ModelAssetBinaryBufferPtr const ref) ::=> Void := {
-        buffer _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addBuffer: (buffer: ModelAssetBinaryBufferRef const ref) ::=> Void := {
+        buffer
+            modelAssetWeakPointer: self asWeakRCRef;
             index: buffers size.
         buffers add: buffer
     }.
 
-    method newBuffer => ModelAssetBinaryBufferPtr := {
-        let buffer := ModelAssetBinaryBuffer rcNew.
+    method newBuffer => ModelAssetBinaryBufferRef := {
+        let buffer := ModelAssetBinaryBuffer new.
         self addBuffer: buffer.
         buffer
     }.
 
-    public field bufferViews type: Std Collections Vector(ModelAssetBinaryBufferViewPtr).
+    public field bufferViews type: Std Collections Vector(ModelAssetBinaryBufferViewRef).
 
-    method addBufferView: (bufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
-        bufferView _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addBufferView: (bufferView: ModelAssetBinaryBufferViewRef const ref) ::=> Void := {
+        bufferView
+            modelAssetWeakPointer: self asWeakRCRef;
             index: bufferViews size.
         bufferViews add: bufferView
     }.
 
-    method newBufferView => ModelAssetBinaryBufferViewPtr := {
-        let bufferView := ModelAssetBinaryBufferView rcNew.
+    method newBufferView => ModelAssetBinaryBufferViewRef := {
+        let bufferView := ModelAssetBinaryBufferView new.
         self addBufferView: bufferView.
         bufferView
     }.
 
-    public field bufferAccessors type: Std Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+    public field bufferAccessors type: Std Collections Vector(ModelAssetBinaryBufferAccessorRef).
 
-    method addBufferAccessor: (bufferAccesor: ModelAssetBinaryBufferAccessorPtr const ref) ::=> Void := {
-        bufferAccesor _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addBufferAccessor: (bufferAccesor: ModelAssetBinaryBufferAccessorRef const ref) ::=> Void := {
+        bufferAccesor
+            modelAssetWeakPointer: self asWeakRCRef;
             index: bufferAccessors size.
         bufferAccessors add: bufferAccesor
     }.
 
-    method newBufferAccessor => ModelAssetBinaryBufferAccessorPtr := {
-        let bufferAccesor := ModelAssetBinaryBufferAccessor rcNew.
+    method newBufferAccessor => ModelAssetBinaryBufferAccessorRef := {
+        let bufferAccesor := ModelAssetBinaryBufferAccessor new.
         self addBufferAccessor: bufferAccesor.
         bufferAccesor
     }.
 
-    public field images type: Std Collections Vector(ModelAssetImagePtr).
+    public field images type: Std Collections Vector(ModelAssetImageRef).
 
-    method addImage: (image: ModelAssetImagePtr const ref) ::=> Void := {
-        image _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addImage: (image: ModelAssetImageRef const ref) ::=> Void := {
+        image
+            modelAssetWeakPointer: self asWeakRCRef;
             index: images size.
         images add: image
     }.
 
-    method newImage => ModelAssetImagePtr := {
-        let image := ModelAssetImage rcNew.
+    method newImage => ModelAssetImageRef := {
+        let image := ModelAssetImage new.
         self addImage: image.
         image
     }.
 
-    public field samplers type: Std Collections Vector(ModelAssetSamplerPtr).
+    public field samplers type: Std Collections Vector(ModelAssetSamplerRef).
 
-    method addSampler: (sampler: ModelAssetSamplerPtr const ref) ::=> Void := {
-        sampler _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addSampler: (sampler: ModelAssetSamplerRef const ref) ::=> Void := {
+        sampler
+            modelAssetWeakPointer: self asWeakRCRef;
             index: samplers size.
         samplers add: sampler
     }.
 
-    method newSampler => ModelAssetSamplerPtr := {
-        let sampler := ModelAssetSampler rcNew.
+    method newSampler => ModelAssetSamplerRef := {
+        let sampler := ModelAssetSampler new.
         self addSampler: sampler.
         sampler
     }.
 
-    public field textures type: Std Collections Vector(ModelAssetTexturePtr).
+    public field textures type: Std Collections Vector(ModelAssetTextureRef).
 
-    method addTexture: (texture: ModelAssetTexturePtr const ref) ::=> Void := {
-        texture _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addTexture: (texture: ModelAssetTextureRef const ref) ::=> Void := {
+        texture
+            modelAssetWeakPointer: self asWeakRCRef;
             index: textures size.
         textures add: texture
     }.
 
-    method newTexture => ModelAssetTexturePtr := {
-        let texture := ModelAssetTexture rcNew.
+    method newTexture => ModelAssetTextureRef := {
+        let texture := ModelAssetTexture new.
         self addTexture: texture.
         texture
     }.
 
-    public field materials type: Std Collections Vector(ModelAssetMaterialPtr).
+    public field materials type: Std Collections Vector(ModelAssetMaterialRef).
 
-    method addMaterial: (material: ModelAssetMaterialPtr const ref) ::=> Void := {
-        material _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addMaterial: (material: ModelAssetMaterialRef const ref) ::=> Void := {
+        material
+            modelAssetWeakPointer: self asWeakRCRef;
             index: materials size.
         materials add: material
     }.
 
-    method newMetallicRoughnessMaterial => ModelAssetMetallicRoughnessMaterialPtr := {
-        let material := ModelAssetMetallicRoughnessMaterial rcNew.
+    method newMetallicRoughnessMaterial => ModelAssetMetallicRoughnessMaterialRef := {
+        let material := ModelAssetMetallicRoughnessMaterial new.
         self addMaterial: (material upCastFor: ModelAssetMaterial).
         material
     }.
 
-    public field meshPrimitiveAttributes type: Std Collections Vector(ModelAssetMeshPrimitiveAttributesPtr).
+    public field meshPrimitiveAttributes type: Std Collections Vector(ModelAssetMeshPrimitiveAttributesRef).
 
-    method addMeshPrimitiveAttributes: (primitiveAttributes: ModelAssetMeshPrimitiveAttributesPtr const ref) ::=> Void := {
-        primitiveAttributes _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addMeshPrimitiveAttributes: (primitiveAttributes: ModelAssetMeshPrimitiveAttributesRef const ref) ::=> Void := {
+        primitiveAttributes
+            modelAssetWeakPointer: self asWeakRCRef;
             index: meshPrimitiveAttributes size.
         meshPrimitiveAttributes add: primitiveAttributes
     }.
 
-    method newMeshPrimitiveAttributes => ModelAssetMeshPrimitiveAttributesPtr := {
-        let primitiveAttributes := ModelAssetMeshPrimitiveAttributes rcNew.
+    method newMeshPrimitiveAttributes => ModelAssetMeshPrimitiveAttributesRef := {
+        let primitiveAttributes := ModelAssetMeshPrimitiveAttributes new.
         self addMeshPrimitiveAttributes: primitiveAttributes.
         primitiveAttributes
     }.
 
-    public field meshes type: Std Collections Vector(ModelAssetMeshPtr).
+    public field meshes type: Std Collections Vector(ModelAssetMeshRef).
 
-    method addMesh: (mesh: ModelAssetMeshPtr const ref) ::=> Void := {
-        mesh _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addMesh: (mesh: ModelAssetMeshRef const ref) ::=> Void := {
+        mesh
+            modelAssetWeakPointer: self asWeakRCRef;
             index: meshes size.
         meshes add: mesh
     }.
 
-    method newMesh => ModelAssetMeshPtr := {
-        let mesh := ModelAssetMesh rcNew.
+    method newMesh => ModelAssetMeshRef := {
+        let mesh := ModelAssetMesh new.
         self addMesh: mesh.
         mesh
     }.
 
-    public field skeletons type: Std Collections Vector(ModelAssetSkeletonPtr).
+    public field skeletons type: Std Collections Vector(ModelAssetSkeletonRef).
 
-    method addSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) ::=> Void := {
-        skeleton _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addSkeleton: (skeleton: ModelAssetSkeletonRef const ref) ::=> Void := {
+        skeleton
+            modelAssetWeakPointer: self asWeakRCRef;
             index: skeletons size.
         skeletons add: skeleton
     }.
 
-    method newSkeleton => ModelAssetSkeletonPtr := {
-        let skeleton := ModelAssetSkeleton rcNew.
+    method newSkeleton => ModelAssetSkeletonRef := {
+        let skeleton := ModelAssetSkeleton new.
         self addSkeleton: skeleton.
         skeleton
     }.
 
-    public field nodes type: Std Collections Vector(ModelAssetNodePtr).
+    public field nodes type: Std Collections Vector(ModelAssetNodeRef).
 
-    method addNode: (node: ModelAssetNodePtr const ref) ::=> Void := {
-        node _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addNode: (node: ModelAssetNodeRef const ref) ::=> Void := {
+        node
+            modelAssetWeakPointer: self asWeakRCRef;
             index: nodes size.
         nodes add: node
     }.
 
-    method newNode => ModelAssetNodePtr := {
-        let node := ModelAssetNode rcNew.
+    method newNode => ModelAssetNodeRef := {
+        let node := ModelAssetNode new.
         self addNode: node.
         node
     }.
 
-    method getNodeNamed: (name: Std String const ref) ::=> ModelAssetNodePtr := {
+    method getNodeNamed: (name: Std String const ref) ::=> ModelAssetNodeRef := {
         nodes do: {:each :: Void |
-            each _ name = name ifTrue: {
+            each name = name ifTrue: {
                 return: each
             }
         }.
 
-        ModelAssetNodePtr nil
+        ModelAssetNodeRef nil
     }.
 
     method createSceneNodeNamed: (name: Std String const ref) for: (engine: EngineRef const ref) ::=> SceneNodeRef := {
         let node := self getNodeNamed: name.
         node ifNil: {return: SceneNodeRef nil}.
 
-        node _ asSceneNodeFor: engine
+        node asSceneNodeFor: engine
     }.
 
-    public field scenes type: Std Collections Vector(ModelAssetScenePtr).
+    public field scenes type: Std Collections Vector(ModelAssetSceneRef).
 
-    method addScene: (scene: ModelAssetScenePtr const ref) ::=> Void := {
-        scene _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addScene: (scene: ModelAssetSceneRef const ref) ::=> Void := {
+        scene
+            modelAssetWeakPointer: self asWeakRCRef;
             index: scenes size.
         scenes add: scene
     }.
 
-    method newScene => ModelAssetScenePtr := {
-        let scene := ModelAssetScene rcNew.
+    method newScene => ModelAssetSceneRef := {
+        let scene := ModelAssetScene new.
         self addScene: scene.
         scene
     }.
 
-    public field animations type: Std Collections Vector(ModelAssetAnimationPtr).
+    public field animations type: Std Collections Vector(ModelAssetAnimationRef).
 
-    method addAnimation: (animation: ModelAssetAnimationPtr const ref) ::=> Void := {
-        animation _
-            modelAssetWeakPointer: self asWeakRCPointer;
+    method addAnimation: (animation: ModelAssetAnimationRef const ref) ::=> Void := {
+        animation
+            modelAssetWeakPointer: self asWeakRCRef;
             index: animations size.
         animations add: animation
     }.
 
-    method newAnimation => ModelAssetAnimationPtr := {
-        let animation := ModelAssetAnimation rcNew.
+    method newAnimation => ModelAssetAnimationRef := {
+        let animation := ModelAssetAnimation new.
         self addAnimation: animation.
         animation
     }.
@@ -245,20 +245,20 @@ class ModelAsset superclass: Std RCObject; definition: {
         }.
     }.
 
-    compileTime constant VertexDataWithPendingAttributes := Std Collections Dictionary(ModelAssetMeshPrimitiveAttributesPtr, Std Collections Vector(ModelAssetMeshPrimitivePtr)).
+    compileTime constant VertexDataWithPendingAttributes := Std Collections Dictionary(ModelAssetMeshPrimitiveAttributesRef, Std Collections Vector(ModelAssetMeshPrimitiveRef)).
 
-    method generateNormals: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)
-        into: (encodedNormals: Std Collections Vector(GpuStructures CompactFloat32x3) ref) withBufferView: (normalsBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+    method generateNormals: (attributes: ModelAssetMeshPrimitiveAttributesRef const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitiveRef) ref)
+        into: (encodedNormals: Std Collections Vector(GpuStructures CompactFloat32x3) ref) withBufferView: (normalsBufferView: ModelAssetBinaryBufferViewRef const ref) ::=> Void := {
 
-        let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
-        Std assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Normal) isNil.
-        positionsAccessors isNil || positionsAccessors _ count = 0 ifTrue: {
+        let positionsAccessors := attributes getAccessorWithLocation: VertexAttributeLocation Position.
+        Std assert: (attributes getAccessorWithLocation: VertexAttributeLocation Normal) isNil.
+        positionsAccessors isNil || positionsAccessors count = 0 ifTrue: {
             return: void
         }.
 
         ## Create linear buffers that are more convenient to process.
-        let vertexCount := positionsAccessors _ count.
-        let positions mutable := positionsAccessors _ decodeAsVectorOfFloat32x3.
+        let vertexCount := positionsAccessors count.
+        let positions mutable := positionsAccessors decodeAsVectorOfFloat32x3.
 
         positions ifEmpty: {
             return: void
@@ -269,7 +269,7 @@ class ModelAsset superclass: Std RCObject; definition: {
 
         ## Process all of the triangles.
         primitives do: {:each :: Void |
-            each _ trianglesDo: {:i1 :i2 :i3 :: Void |
+            each trianglesDo: {:(UInt32)i1 :(UInt32)i2 :(UInt32)i3 :: Void |
                 let p1 := positions[i1].
                 let p2 := positions[i2].
                 let p3 := positions[i3].
@@ -295,12 +295,12 @@ class ModelAsset superclass: Std RCObject; definition: {
         }.
 
         let normalsAccessors := self newBufferAccessor.
-        normalsAccessors _
+        normalsAccessors
             bufferView: normalsBufferView;
             offset: firstNormalIndex * 12;
             count: vertexCount;
             format: PixelFormat R32G32B32_Float.
-        attributes _ attributes add: (ModelAssetMeshPrimitiveAttribute()
+        attributes attributes add: (ModelAssetMeshPrimitiveAttribute()
             accessor: normalsAccessors;
             location: VertexAttributeLocation Normal;
             yourself
@@ -311,25 +311,26 @@ class ModelAsset superclass: Std RCObject; definition: {
         let normals mutable := Std Collections Vector(GpuStructures CompactFloat32x3)().
         let normalsBufferView mutable := self newBufferView.
 
-        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesRef const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitiveRef) ref)primitives :: Void |
             self generateNormals: attributes primitives: primitives into: normals withBufferView: normalsBufferView
         }.
 
         normals ifEmpty: {return: void}.
 
         let normalBuffer mutable := self newBuffer.
-        normalBuffer _ dataSize: normals size * GpuStructures CompactFloat32x3 instanceSize.
-        normalBuffer _ data reset: (Std malloc(normalBuffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-        Std memcpy(normalBuffer _ data getPointer, normals data, normalBuffer _ dataSize).
-        normalsBufferView _ buffer: normalBuffer.
+        normalBuffer dataSize: normals size * GpuStructures CompactFloat32x3 instanceSize.
+        normalBuffer data reset: (Std malloc(normalBuffer dataSize) reinterpretCastTo: UInt8 pointer).
+        Std memcpy(normalBuffer data getPointer, normals data, normalBuffer dataSize).
+        normalsBufferView buffer: normalBuffer.
     }.
 
     method generateNormals => Void := {
         let vertexDataToGenerateNormals mutable := VertexDataWithPendingAttributes().
         meshes do: {:each :: Void |
-            each _ primitives do: {:eachPrimitive :: Void |
-                eachPrimitive _ attributes _ hasNormal not ifTrue: {
-                    let primitiveList ref := vertexDataToGenerateNormals at: eachPrimitive _ attributes ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitivePtr)) | Std Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+            each primitives do: {:eachPrimitive :: Void |
+                eachPrimitive attributes hasNormal not ifTrue: {
+                    let primitiveList ref := vertexDataToGenerateNormals at: eachPrimitive attributes
+                        ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitiveRef)) | Std Collections Vector(ModelAssetMeshPrimitiveRef) () }.
                     primitiveList add: eachPrimitive
                 }.
             }.
@@ -339,25 +340,25 @@ class ModelAsset superclass: Std RCObject; definition: {
         self generateMissingNormals: vertexDataToGenerateNormals
     }.
 
-    method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesPtr const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)
-        into: (encodedTangent4: Std Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> Void := {
+    method generateVertexDataTangentSpaceFrame: (attributes: ModelAssetMeshPrimitiveAttributesRef const ref) primitives: (primitives: Std Collections Vector(ModelAssetMeshPrimitiveRef) ref)
+        into: (encodedTangent4: Std Collections Vector(Float32x4) ref) withBufferView: (tangent4BufferView: ModelAssetBinaryBufferViewRef const ref) ::=> Void := {
 
-        let positionsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Position.
-        let normalsAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Normal.
-        let texcoordAccessors := attributes _ getAccessorWithLocation: VertexAttributeLocation Texcoord0.
-        Std assert: (attributes _ getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
+        let positionsAccessors := attributes getAccessorWithLocation: VertexAttributeLocation Position.
+        let normalsAccessors := attributes getAccessorWithLocation: VertexAttributeLocation Normal.
+        let texcoordAccessors := attributes getAccessorWithLocation: VertexAttributeLocation Texcoord0.
+        Std assert: (attributes getAccessorWithLocation: VertexAttributeLocation Tangent4) isNil.
         positionsAccessors isNil || normalsAccessors isNil || texcoordAccessors isNil ||
-        positionsAccessors _ count = 0 ||
-        positionsAccessors _ count ~= normalsAccessors _ count || normalsAccessors _ count ~= texcoordAccessors _ count
+        positionsAccessors count = 0 ||
+        positionsAccessors count ~= normalsAccessors count || normalsAccessors count ~= texcoordAccessors count
           ifTrue: {
             return: void
         }.
 
         ## Create linear buffers that are more convenient to process.
-        let vertexCount := positionsAccessors _ count.
-        let positions mutable := positionsAccessors _ decodeAsVectorOfFloat32x3.
-        let texcoords mutable := texcoordAccessors _ decodeAsVectorOfFloat32x2.
-        let normals mutable := normalsAccessors _ decodeAsVectorOfFloat32x3.
+        let vertexCount := positionsAccessors count.
+        let positions mutable := positionsAccessors decodeAsVectorOfFloat32x3.
+        let texcoords mutable := texcoordAccessors decodeAsVectorOfFloat32x2.
+        let normals mutable := normalsAccessors decodeAsVectorOfFloat32x3.
 
         positions isEmpty || texcoords isEmpty || normals isEmpty ifTrue: {
             return: void
@@ -371,7 +372,7 @@ class ModelAsset superclass: Std RCObject; definition: {
         ## Process all of the triangles.
         ## FIXME: Use Mikktspace here.
         primitives do: {:each :: Void |
-            each _ trianglesDo: {:i1 :i2 :i3 :: Void |
+            each trianglesDo: {:(UInt32)i1 :(UInt32)i2 :(UInt32)i3 :: Void |
                 let p1 := positions[i1].
                 let p2 := positions[i2].
                 let p3 := positions[i3].
@@ -427,12 +428,12 @@ class ModelAsset superclass: Std RCObject; definition: {
         }.
 
         let tangents4Accessors := self newBufferAccessor.
-        tangents4Accessors _
+        tangents4Accessors
             bufferView: tangent4BufferView;
             offset: firstTangentIndex * 16;
             count: vertexCount;
             format: PixelFormat R32G32B32A32_Float.
-        attributes _ attributes add: (ModelAssetMeshPrimitiveAttribute()
+        attributes attributes add: (ModelAssetMeshPrimitiveAttribute()
             accessor: tangents4Accessors;
             location: VertexAttributeLocation Tangent4;
             yourself
@@ -443,25 +444,25 @@ class ModelAsset superclass: Std RCObject; definition: {
         let tangent4 mutable := Std Collections Vector(Float32x4)().
         let tangent4BufferView mutable := self newBufferView.
 
-        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesPtr const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitivePtr) ref)primitives :: Void |
+        vertexDataWithSubmeshes keysAndValuesDo: {:(ModelAssetMeshPrimitiveAttributesRef const ref)attributes :(Std Collections Vector(ModelAssetMeshPrimitiveRef) ref)primitives :: Void |
             self generateVertexDataTangentSpaceFrame: attributes primitives: primitives into: tangent4 withBufferView: tangent4BufferView
         }.
 
         tangent4 ifEmpty: {return: void}.
 
         let tangent4Buffer mutable := self newBuffer.
-        tangent4Buffer _ dataSize: tangent4 size * Float32x4 instanceSize.
-        tangent4Buffer _ data reset: (Std malloc(tangent4Buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-        Std memcpy(tangent4Buffer _ data getPointer, tangent4 data, tangent4Buffer _ dataSize).
-        tangent4BufferView _ buffer: tangent4Buffer.
+        tangent4Buffer dataSize: tangent4 size * Float32x4 instanceSize.
+        tangent4Buffer data reset: (Std malloc(tangent4Buffer dataSize) reinterpretCastTo: UInt8 pointer).
+        Std memcpy(tangent4Buffer data getPointer, tangent4 data, tangent4Buffer dataSize).
+        tangent4BufferView buffer: tangent4Buffer.
     }.
 
     method generateTangentSpaceFrames => Void := {
         let vertexDataToGenerateTangentSpace mutable := VertexDataWithPendingAttributes().
         meshes do: {:each :: Void |
-            each _ primitives do: {:eachPrimitive :: Void |
-                eachPrimitive _ material isNotNil && eachPrimitive _ material _ normalTexture isNotNil && eachPrimitive _ attributes _ hasTangent4 not ifTrue: {
-                    let primitiveList ref := vertexDataToGenerateTangentSpace at: eachPrimitive _ attributes ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitivePtr)) | Std Collections Vector(ModelAssetMeshPrimitivePtr) () }.
+            each primitives do: {:eachPrimitive :: Void |
+                eachPrimitive material isNotNil && eachPrimitive material normalTexture isNotNil && eachPrimitive attributes hasTangent4 not ifTrue: {
+                    let primitiveList ref := vertexDataToGenerateTangentSpace at: eachPrimitive attributes ifAbsentPut: { :: (Std Collections Vector(ModelAssetMeshPrimitiveRef)) | Std Collections Vector(ModelAssetMeshPrimitiveRef) () }.
                     primitiveList add: eachPrimitive
                 }.
             }.
@@ -479,20 +480,20 @@ class ModelAsset superclass: Std RCObject; definition: {
 
     method cleanupSkeletons => Void := {
         skeletons do: {:each :: Void |
-            each _ cleanupSkeleton.
+            each cleanupSkeleton.
         }.
 
         ## We should permutate an accessor only one time.
-        let processedAccessors mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorPtr).
+        let processedAccessors mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorRef).
 
         nodes do: {:eachNode :: Void |
-            eachNode _ skeleton isNotNil && eachNode _ mesh isNotNil ifTrue: {
-                eachNode _ mesh _ primitives do: {:eachPrimitive :: Void |
-                    eachPrimitive _ attributes _ attributes do: {:eachAttribute :: Void |
+            eachNode skeleton isNotNil && eachNode mesh isNotNil ifTrue: {
+                eachNode mesh primitives do: {:eachPrimitive :: Void |
+                    eachPrimitive attributes attributes do: {:eachAttribute :: Void |
                         eachAttribute location = VertexAttributeLocation Joints0 ifTrue: {
                             (processedAccessors includes: eachAttribute accessor) ifFalse: {
                                 processedAccessors add: eachAttribute accessor.
-                                eachNode _ skeleton _ permutateBoneIndicesInVertices: eachAttribute accessor
+                                eachNode skeleton permutateBoneIndicesInVertices: eachAttribute accessor
                             }
                         }
                     }
@@ -502,33 +503,33 @@ class ModelAsset superclass: Std RCObject; definition: {
     }.
 
     method optimizeIndexBuffers => Void := {
-        let processedIndices mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorPtr).
+        let processedIndices mutable type: Std Collections Set(ModelAssetBinaryBufferAccessorRef).
         let convertedIndices mutable type: Std Collections Vector(UInt16).
-        let convertedIndicesAccessors mutable type: Std Collections Vector(ModelAssetBinaryBufferAccessorPtr).
+        let convertedIndicesAccessors mutable type: Std Collections Vector(ModelAssetBinaryBufferAccessorRef).
 
         ## Create the accessors for the new index buffers.
         meshes do: {:eachMesh :: Void |
-            eachMesh _ primitives do: {:eachPrimitive :: Void |
-                let indices := eachPrimitive _ indices.
+            eachMesh primitives do: {:eachPrimitive :: Void |
+                let indices := eachPrimitive indices.
                 indices isNotNil && (processedIndices includes: indices) not ifTrue: {
                     processedIndices add: indices.
 
-                    indices _ format = PixelFormat R32_UInt && indices _ maxValue <= 16rFFFF ifTrue: {
+                    indices format = PixelFormat R32_UInt && indices maxValue <= 16rFFFF ifTrue: {
                         let newAccessor := self newBufferAccessor.
-                        newAccessor _
+                        newAccessor
                             offset: convertedIndices size * 2;
-                            count: indices _ count;
-                            columnCount: indices _ columnCount;
+                            count: indices count;
+                            columnCount: indices columnCount;
                             format: PixelFormat R16_UInt.
                         convertedIndicesAccessors add: newAccessor.
 
-                        let sourceData := indices _ asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
-                        convertedIndices reserve: indices _ count.
-                        0 until: indices _ count do: {:i :: Void |
+                        let sourceData := indices asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
+                        convertedIndices reserve: indices count.
+                        0 until: indices count do: {:i :: Void |
                             convertedIndices add: (sourceData[i] castTo: UInt16)
                         }.
 
-                        eachPrimitive _ indices: newAccessor
+                        eachPrimitive indices: newAccessor
                     }
                 }
             }
@@ -540,20 +541,20 @@ class ModelAsset superclass: Std RCObject; definition: {
         }.
 
         ## Create the new buffer and buffer view.
-        let newBuffer := self newBuffer.
-        newBuffer _
-            setContent: ((convertedIndices data reinterpretCastTo: UInt8 pointer) until: convertedIndices size * 4).
+        let newBuffer := self newBuffer
+            setContent: ((convertedIndices data reinterpretCastTo: UInt8 pointer) until: convertedIndices size * 4);
+            yourself.
 
-        let newBufferView := self newBufferView.
-        newBufferView _
+        let newBufferView := self newBufferView
             buffer: newBuffer;
-            size: newBuffer _ dataSize;
+            size: newBuffer dataSize;
             stride: 2;
-            usage: BufferUsageMode ElementArray.
+            usage: BufferUsageMode ElementArray;
+            yourself.
 
         ## Use the new buffer view in the new accessors.
         convertedIndicesAccessors do: {:each :: Void |
-            each _ bufferView: newBufferView
+            each bufferView: newBufferView
         }
     }.
 
@@ -562,7 +563,7 @@ class ModelAsset superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant ModelAssetPtr := ModelAsset rcPointer.
+compileTime constant ModelAssetRef := ModelAsset rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

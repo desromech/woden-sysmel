@@ -18,13 +18,13 @@ class Converter definition: {
         targetProfile
     }.
 
-    method processModel: (modelAsset: Woden Assets ModelAssetPtr const ref) image: (image: Woden Assets ModelAssetImagePtr const ref) ontoDirectory: (outputDirectory: Std FileReference const ref) ::=> Boolean8 := {
+    method processModel: (modelAsset: Woden Assets ModelAssetRef const ref) image: (image: Woden Assets ModelAssetImageRef const ref) ontoDirectory: (outputDirectory: Std FileReference const ref) ::=> Boolean8 := {
         ## Load the model texture data.
-        let textureData := image _ asOfflineTextureData.
+        let textureData := image asOfflineTextureData.
         textureData ifNil: {
-            Std stderr << "Failed to load model image " << image _ name.
-            image _ uri ifNotEmpty: {
-                Std stderr << " uri: " << image _ uri.
+            Std stderr << "Failed to load model image " << image name.
+            image uri ifNotEmpty: {
+                Std stderr << " uri: " << image uri.
             }.
             Std stderr nl.
             return: false
@@ -39,7 +39,7 @@ class Converter definition: {
             yourself.
 
         ## Set the texture usage type.
-        image _ usageMode selectCase: #{
+        image usageMode selectCase: #{
             Woden Assets ModelAssetImageUsageMode Color : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType Color}.
             Woden Assets ModelAssetImageUsageMode Linear : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType NonColorData}.
             Woden Assets ModelAssetImageUsageMode Normal : {textureConversionParameters usageType: Sysmel Tools TextureConverter TextureUsageType NormalMap}.
@@ -56,27 +56,27 @@ class Converter definition: {
             return: false
         }.
 
-        image _ uri isEmpty || parameters embedTextures ifTrue: {
+        image uri isEmpty || parameters embedTextures ifTrue: {
             let memoryStream mutable := Std IO MemoryStream().
             let imageReadWriter := Std Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
             imageReadWriter _ putTextureData: convertedTextureData  onStream: memoryStream.
 
-            let buffer := modelAsset _ newBuffer.
-            buffer _ setContent: memoryStream contents.
+            let buffer := modelAsset newBuffer.
+            buffer setContent: memoryStream contents.
 
-            let bufferView := modelAsset _ newBufferView.
-            bufferView _
+            let bufferView := modelAsset newBufferView.
+            bufferView
                 buffer: buffer;
                 offset: 0;
-                size: buffer _ dataSize.
-            image _
+                size: buffer dataSize.
+            image
                 mimeType: "image/vnd-sysmel.stx" asMutableString;
                 bufferView: bufferView
         } ifFalse: {
-            let outputBasename := image _ uri asNativeFileReference basenameWithoutExtension asMutableString -- ".stx".
+            let outputBasename := image uri asNativeFileReference basenameWithoutExtension asMutableString -- ".stx".
             let outputFileReference := outputDirectory / outputBasename asArraySlice.
             convertedTextureData writeToFileNamed: outputFileReference fullName asMutableString.
-            image _ uri: outputBasename
+            image uri: outputBasename
         }.
 
         true
@@ -97,7 +97,7 @@ class Converter definition: {
                 return: false
             }.
 
-            inputModelImporterExporter _ readFromFileReference: inputFileReference.
+            inputModelImporterExporter readFromFileReference: inputFileReference.
         }.
 
         modelAsset ifNil: {
@@ -105,12 +105,12 @@ class Converter definition: {
         }.
 
         ## Process the model asset textures.
-        modelAsset _ images do: {:image :: Void |
+        modelAsset images do: {:image :: Void |
             self processModel: modelAsset image: image ontoDirectory: parentOutputDirectoryFileReference
         }.
 
         ## Optimize the buffers in the asset.
-        modelAsset _
+        modelAsset
             optimizeIndexBuffers;
             optimizeBuffers.
 
@@ -120,7 +120,7 @@ class Converter definition: {
             return: false
         }.
 
-        outputModelImporterExporter _ write: modelAsset intoFileReference: outputFileReference
+        outputModelImporterExporter write: modelAsset intoFileReference: outputFileReference
     }.
 }.
 

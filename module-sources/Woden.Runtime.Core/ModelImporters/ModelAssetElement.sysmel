@@ -9,13 +9,13 @@ useNamespace: Woden Runtime.
 class ModelAssetElement superclass: Std RCObject; definition: {
     public field index type: UIntPointer.
     public field name type: Std String.
-    public field modelAssetWeakPointer type: ModelAsset weakRCPointer.
+    public field modelAssetWeakPointer type: ModelAsset rcRef.
 
-    method modelAsset => ModelAsset rcPointer
-        := modelAssetWeakPointer lock.
+    method modelAsset => ModelAsset rcRef
+        := modelAssetWeakPointer asRCRef.
 }.
 
-compileTime constant ModelAssetElementPtr := ModelAssetElement rcPointer.
+compileTime constant ModelAssetElementRef := ModelAssetElement rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

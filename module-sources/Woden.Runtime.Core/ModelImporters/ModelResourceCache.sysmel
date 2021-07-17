@@ -17,9 +17,9 @@ ResourceCache extend: {
         self solveResourceFileReference: fileReference withExtensions: extensions
     }.
 
-    method loadModelAssetFrom: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
+    method loadModelAssetFrom: (fileReference: Std FileReference const ref) ::=> ModelAssetRef := {
         let solvedFileReference := self solveModelAssetFileReference: fileReference.
-        solvedFileReference exists ifFalse: {return: ModelAssetPtr nil}.
+        solvedFileReference exists ifFalse: {return: ModelAssetRef nil}.
 
         ModelAsset readFromFileReference: solvedFileReference.
     }.

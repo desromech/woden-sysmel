@@ -7,18 +7,18 @@ useNamespace: Woden Runtime.
  * I am a scene in a model asset.
  *#
 class ModelAssetScene superclass: ModelAssetElement; definition: {
-    public field rootNodes type: Std Collections Vector(ModelAssetNodePtr).
+    public field rootNodes type: Std Collections Vector(ModelAssetNodeRef).
 
     method createSceneNodesFor: (engine: EngineRef const ref) in: (scene: SceneRef const ref) ::=> Void := {
         rootNodes do: {:each :: Void |
-            (each _ asSceneNodeFor: engine) ifNotNil: {:node :: Void |
+            (each asSceneNodeFor: engine) ifNotNil: {:node :: Void |
                 scene add: node
             }
         }
     }.
 }.
 
-compileTime constant ModelAssetScenePtr := ModelAssetScene rcPointer.
+compileTime constant ModelAssetSceneRef := ModelAssetScene rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

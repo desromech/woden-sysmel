@@ -7,24 +7,24 @@ useNamespace: Std Math.
 
 class WodenModelImporter definition: {
     field parentFolder type: Std FileReference.
-    field modelAsset type: ModelAssetPtr.
+    field modelAsset type: ModelAssetRef.
 
     method parseBuffer: (object: DOM Object const ref) ::=> Void := {
-        let buffer := modelAsset _ newBuffer.
-        buffer _
+        let buffer := modelAsset newBuffer.
+        buffer
             name: (object getString: "name" asMutableString default: "" asMutableString);
             dataSize: (object getUIntPointer: "dataSize" asMutableString).
 
         object at: "data" asMutableString ifPresent: {:(DOM Value const ref)dataValue :: Void |
             let content := DOM valueToByteArray(dataValue).
-            Std assert: content size = buffer _ dataSize.
+            Std assert: content size = buffer dataSize.
 
-            buffer _ data reset: (Std malloc(content size) reinterpretCastTo: UInt8 pointer).
-            Std memcpy(buffer _ data getPointer, content data, content size)
+            buffer data reset: (Std malloc(content size) reinterpretCastTo: UInt8 pointer).
+            Std memcpy(buffer data getPointer, content data, content size)
         } ifAbsent: {
             object at: "dataSize" asMutableString ifPresent: {:(DOM Value const ref)dataSizeValue :: Void |
                 let dataSize := DOM valueToUIntPointer(dataSizeValue).
-                buffer _ data reset: (Std zmalloc(dataSize) reinterpretCastTo: UInt8 pointer).
+                buffer data reset: (Std zmalloc(dataSize) reinterpretCastTo: UInt8 pointer).
             } ifAbsent: {
                 object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
                     let uri := uriValue get: Std String.
@@ -33,8 +33,8 @@ class WodenModelImporter definition: {
                         let readStream := uriFileRef binaryUnbufferedReadStream.
                         readStream ifNil: {return: void}.
 
-                        buffer _ data reset: (Std zmalloc(buffer _ dataSize) reinterpretCastTo: UInt8 pointer).
-                        readStream _ read: buffer _ data getPointer size: buffer _ dataSize
+                        buffer data reset: (Std zmalloc(buffer dataSize) reinterpretCastTo: UInt8 pointer).
+                        readStream _ read: buffer data getPointer size: buffer dataSize
                     }.
                 }.
             }
@@ -47,23 +47,22 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method readBinaryBufferData: (buffer: ModelAssetBinaryBufferPtr const ref) from: (input: Std IO Stream ref) ::=> Void := {
-        buffer _ dataSize > 0 ifTrue: {
-            input read: buffer _ data getPointer size: buffer _ dataSize
+    method readBinaryBufferData: (buffer: ModelAssetBinaryBufferRef const ref) from: (input: Std IO Stream ref) ::=> Void := {
+        buffer dataSize > 0 ifTrue: {
+            input read: buffer data getPointer size: buffer dataSize
         }
     }.
 
     method readBinaryBuffersDataFrom: (input: Std IO Stream ref) ::=> Void := {
-        modelAsset _ buffers do: {:each :: Void |
+        modelAsset buffers do: {:each :: Void |
             self readBinaryBufferData: each from: input
         }.
     }.
 
     method parseBufferView: (object: DOM Object const ref) ::=> Void := {
-        let bufferView := modelAsset _ newBufferView.
-        bufferView _
+        modelAsset newBufferView
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            buffer: (modelAsset _ buffers[object getUIntPointer: "buffer" asMutableString]);
+            buffer: (modelAsset buffers[object getUIntPointer: "buffer" asMutableString]);
             offset: (object getUIntPointer: "offset" asMutableString default: 0);
             size: (object getUIntPointer: "size" asMutableString);
             stride: (object getUIntPointer: "stride" asMutableString default: 0);
@@ -77,10 +76,9 @@ class WodenModelImporter definition: {
     }.
 
     method parseAccessor: (object: DOM Object const ref) ::=> Void := {
-        let bufferAccessor := modelAsset _ newBufferAccessor.
-        bufferAccessor _
+        modelAsset newBufferAccessor
             name: (object getString: "name" asMutableString default: "" asMutableString);
-            bufferView: (modelAsset _ bufferViews[object getUIntPointer: "bufferView" asMutableString]);
+            bufferView: (modelAsset bufferViews[object getUIntPointer: "bufferView" asMutableString]);
             offset: (object getUIntPointer: "offset" asMutableString default: 0);
             count: (object getUIntPointer: "count" asMutableString);
             minValue: (object getFloat64x4: "minValue" asMutableString default: 0);
@@ -96,14 +94,14 @@ class WodenModelImporter definition: {
     }.
 
     method parseImage: (object: DOM Object const ref) ::=> Void := {
-        let image := modelAsset _ newImage.
-        image _
+        let image := modelAsset newImage
             name: (object getString: "name" asMutableString default: "" asMutableString);
             uri: (object getString: "uri" asMutableString default: "" asMutableString);
             mimeType: (object getString: "mimeType" asMutableString default: "" asMutableString);
-            usageMode: ((object getUInt32: "usageMode" asMutableString default: 0) castTo: ModelAssetImageUsageMode).
+            usageMode: ((object getUInt32: "usageMode" asMutableString default: 0) castTo: ModelAssetImageUsageMode);
+            yourself.
         object at: "bufferView" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            image _ bufferView: (modelAsset _ bufferViews[DOM valueToUIntPointer(value)])
+            image bufferView: (modelAsset bufferViews[DOM valueToUIntPointer(value)])
         }.
     }.
 
@@ -114,10 +112,8 @@ class WodenModelImporter definition: {
     }.
 
     method parseSampler: (object: DOM Object const ref) ::=> Void := {
-        let sampler := modelAsset _ newSampler.
-        sampler _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
-        ##Std stdout << "TODO: parseSampler " << sampler _ name; nl.
+        modelAsset newSampler
+            name: (object getString: "name" asMutableString default: "" asMutableString)
     }.
 
     method parseSamplers: (list: DOM List const ref) ::=> Void := {
@@ -127,15 +123,15 @@ class WodenModelImporter definition: {
     }.
 
     method parseTexture: (object: DOM Object const ref) ::=> Void := {
-        let texture := modelAsset _ newTexture.
-        texture _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+        let texture := modelAsset newTexture
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            yourself.
 
         object at: "sampler" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            texture _ sampler: (modelAsset _ samplers[DOM valueToUIntPointer(value)])
+            texture sampler: (modelAsset samplers[DOM valueToUIntPointer(value)])
         }.
         object at: "image" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            texture _ image: (modelAsset _ images[DOM valueToUIntPointer(value)])
+            texture image: (modelAsset images[DOM valueToUIntPointer(value)])
         }.
     }.
 
@@ -145,36 +141,35 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseMetallicRoughnessMaterial: (object: DOM Object const ref) ::=> ModelAssetMaterialPtr := {
-        let material := modelAsset _ newMetallicRoughnessMaterial.
-
-        material _
+    method parseMetallicRoughnessMaterial: (object: DOM Object const ref) ::=> ModelAssetMaterialRef := {
+        let material := modelAsset newMetallicRoughnessMaterial
             baseColorFactor: (object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
             metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
-            roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
+            roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f);
+            yourself.
         object at: "baseColorTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ baseColorTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ baseColorTexture _ setColorUsage
+            material baseColorTexture: modelAsset textures[DOM valueToUIntPointer(value)].
+            material baseColorTexture setColorUsage
         }.
         object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ metallicRoughnessTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ metallicRoughnessTexture _ setLinearUsage
+            material metallicRoughnessTexture: modelAsset textures[DOM valueToUIntPointer(value)].
+            material metallicRoughnessTexture setLinearUsage
         }.
 
         material upCastFor: ModelAssetMaterial.
     }.
 
     method parseMaterial: (object: DOM Object const ref) ::=> Void := {
-        let material mutable := ModelAssetMaterialPtr nil.
+        let material mutable := ModelAssetMaterialRef nil.
         object at: "metallicRoughness" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             material := self parseMetallicRoughnessMaterial: (value get: DOM ObjectPtr) _.
         }.
 
         material ifNil: {
-            material := modelAsset _ newMetallicRoughnessMaterial upCastFor: ModelAssetMaterial.
+            material := modelAsset newMetallicRoughnessMaterial upCastFor: ModelAssetMaterial.
         }.
 
-        material _
+        material
             name: (object getString: "name" asMutableString default: "" asMutableString);
             emissionFactor: (object getFloat32x3: "emissionFactor" asMutableString default: 0);
             doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
@@ -182,18 +177,18 @@ class WodenModelImporter definition: {
             alphaMode: ((object getUInt32: "alphaMode" asMutableString default: 0) castTo: ModelAssetMaterialAlphaMode).
 
         object at: "occlusionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ occlusionTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ occlusionTexture _ setLinearUsage
+            material occlusionTexture: modelAsset textures[DOM valueToUIntPointer(value)].
+            material occlusionTexture setLinearUsage
         }.
 
         object at: "emissionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ emissionTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ emissionTexture _ setColorUsage
+            material emissionTexture: modelAsset textures[DOM valueToUIntPointer(value)].
+            material emissionTexture setColorUsage
         }.
 
         object at: "normalTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material _ normalTexture: modelAsset _ textures[DOM valueToUIntPointer(value)].
-            material _ normalTexture _ setNormalUsage
+            material normalTexture: modelAsset textures[DOM valueToUIntPointer(value)].
+            material normalTexture setNormalUsage
         }.
     }.
 
@@ -203,13 +198,13 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseMeshPrimitiveAttributes: (list: DOM List const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
+    method parseMeshPrimitiveAttributes: (list: DOM List const ref) ::=> ModelAssetMeshPrimitiveAttributesRef := {
         let attributeList mutable := ModelAssetMeshPrimitiveAttributeList().
 
         list do: {:(DOM Value const ref)attribute :: Void |
             let attributeObject ref := (attribute get: DOM ObjectPtr) _.
             let location := (attributeObject getUInt32: "location" asMutableString default: 0) castTo: VertexAttributeLocation.
-            let accessor := modelAsset _ bufferAccessors[attributeObject getUInt32: "accessor" asMutableString default: 0].
+            let accessor := modelAsset bufferAccessors[attributeObject getUInt32: "accessor" asMutableString default: 0].
             attributeList add: (ModelAssetMeshPrimitiveAttribute()
                 accessor: accessor;
                 location: location;
@@ -217,33 +212,33 @@ class WodenModelImporter definition: {
             )
         }.
 
-        let result := modelAsset _ newMeshPrimitiveAttributes.
-        result _ attributes: attributeList.
-        result
+        modelAsset newMeshPrimitiveAttributes
+            attributes: attributeList;
+            yourself
     }.
 
-    method parseMesh: (mesh: ModelAssetMeshPtr const ref) primitive: (object: DOM Object const ref) ::=> Void := {
+    method parseMesh: (mesh: ModelAssetMeshRef const ref) primitive: (object: DOM Object const ref) ::=> Void := {
 
-        let primitive := ModelAssetMeshPrimitive rcNew.
-        mesh _ primitives add: primitive.
+        let primitive := ModelAssetMeshPrimitive new.
+        mesh primitives add: primitive.
 
-        primitive _
+        primitive
             attributes: (self parseMeshPrimitiveAttributes: (object getList: "attributes" asMutableString) _ );
             primitiveTopology: ((object getUInt32: "primitiveTopology" asMutableString default: 0) castTo: PrimitiveTopology).
 
         object at: "indices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            primitive _ indices: (modelAsset _ bufferAccessors[DOM valueToUIntPointer(value)])
+            primitive indices: (modelAsset bufferAccessors[DOM valueToUIntPointer(value)])
         }.
 
         object at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            primitive _ material: (modelAsset _ materials[DOM valueToUIntPointer(value)])
+            primitive material: (modelAsset materials[DOM valueToUIntPointer(value)])
         }.
     }.
 
     method parseMesh: (object: DOM Object const ref) ::=> Void := {
-        let mesh := modelAsset _ newMesh.
-        mesh _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+        let mesh := modelAsset newMesh
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            yourself.
 
         object at: "primitives" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             (value get: DOM ListPtr) _ do: {:each :: Void |
@@ -259,12 +254,12 @@ class WodenModelImporter definition: {
     }.
 
     method parseSkeleton: (object: DOM Object const ref) ::=> Void := {
-        let skeleton := modelAsset _ newSkeleton.
-        skeleton _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+        let skeleton := modelAsset newSkeleton
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            yourself.
 
         object at: "inverseBindMatrices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            skeleton _ inverseBindMatricesAccessor: modelAsset _ bufferAccessors[DOM valueToUIntPointer(value)]
+            skeleton inverseBindMatricesAccessor: modelAsset bufferAccessors[DOM valueToUIntPointer(value)]
         }.
     }.
 
@@ -274,55 +269,55 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseSkeleton: (skeleton: ModelAssetSkeletonPtr const ref) nodes:(object: DOM Object const ref) ::=> Void := {
+    method parseSkeleton: (skeleton: ModelAssetSkeletonRef const ref) nodes:(object: DOM Object const ref) ::=> Void := {
         let joints := object getList: "joints" asMutableString.
-        skeleton _ joints reserve: joints _ size.
+        skeleton joints reserve: joints _ size.
         joints _ do: {:(DOM Value const ref)value :: Void |
-            skeleton _ joints add: modelAsset _ nodes[DOM valueToUIntPointer(value)]
+            skeleton joints add: modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
 
         object at: "rootJoint" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            skeleton _ rootJoint := modelAsset _ nodes[DOM valueToUIntPointer(value)]
+            skeleton rootJoint := modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
     }.
 
     method parseSkeletonNodes: (list: DOM List const ref) ::=> Void := {
         list doWithIndex: {:each :index :: Void |
-            self parseSkeleton: modelAsset _ skeletons[index] nodes: (each get: DOM ObjectPtr) _
+            self parseSkeleton: modelAsset skeletons[index] nodes: (each get: DOM ObjectPtr) _
         }.
     }.
 
     method parseNode: (object: DOM Object const ref) ::=> Void := {
-        let node := modelAsset _ newNode.
-        node _
+        let node := modelAsset newNode
             name: (object getString: "name" asMutableString default: "" asMutableString);
             isJoint: (object getBoolean8: "isJoint" asMutableString default: false);
             hasValidJointIndex: (object getBoolean8: "hasValidJointIndex" asMutableString default: false);
             jointIndex: (object getUIntPointer: "jointIndex" asMutableString default: 0);
-            parentJointIndex: (object getIntPointer: "parentJointIndex" asMutableString default: -1).
+            parentJointIndex: (object getIntPointer: "parentJointIndex" asMutableString default: -1);
+            yourself.
 
         object at: "mesh" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            node _ mesh: (modelAsset _ meshes[DOM valueToUIntPointer(value)])
+            node mesh: (modelAsset meshes[DOM valueToUIntPointer(value)])
         }.
 
         object at: "skeleton" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            node _ skeleton: (modelAsset _ skeletons[DOM valueToUIntPointer(value)])
+            node skeleton: (modelAsset skeletons[DOM valueToUIntPointer(value)])
         }.
 
         object at: "scale" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let scale := DOM valueToFloat32x3(value, 1).
-            node _ scale: scale.
-            node _ transform scaleBy: scale.
+            node scale: scale.
+            node transform scaleBy: scale.
         }.
         object at: "rotation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let rotation := QuaternionF32 xyzw: DOM valueToFloat32x4(value, Float32x4(0, 0, 0, 1)).
-            node _ rotationQuaternion: rotation.
-            node _ transform applyOrthonormalMatrix: rotation asFloat32x3x3.
+            node rotationQuaternion: rotation.
+            node transform applyOrthonormalMatrix: rotation asFloat32x3x3.
         }.
         object at: "translation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let translation := DOM valueToFloat32x3(value, 0).
-            node _ translation: translation.
-            node _ transform translateBy: translation.
+            node translation: translation.
+            node transform translateBy: translation.
         }.
 
         object at: "matrix" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
@@ -336,12 +331,12 @@ class WodenModelImporter definition: {
 
     }.
 
-    method parseNode: (node: ModelAssetNodePtr const ref) children: (object: DOM Object const ref) ::=> Void := {
+    method parseNode: (node: ModelAssetNodeRef const ref) children: (object: DOM Object const ref) ::=> Void := {
         object at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let children ref := (value get: DOM ListPtr) _.
-            node _ children reserve: children size.
+            node children reserve: children size.
             0 until: children size do: {:i :: Void |
-                node _ children add: (modelAsset _ nodes[children getUIntPointer: i])
+                node children add: (modelAsset nodes[children getUIntPointer: i])
             }
         }
     }.
@@ -352,20 +347,20 @@ class WodenModelImporter definition: {
         }.
 
         list doWithIndex: {:each :index :: Void |
-            self parseNode: modelAsset _ nodes[index] children: (each get: DOM ObjectPtr) _
+            self parseNode: modelAsset nodes[index] children: (each get: DOM ObjectPtr) _
         }.
     }.
 
     method parseScene: (object: DOM Object const ref) ::=> Void := {
-        let scene := modelAsset _ newScene.
-        scene _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+        let scene := modelAsset newScene
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            yourself.
 
         object at: "rootNodes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             let nodeList ref := (value get: DOM ListPtr) _.
-            scene _ rootNodes reserve: nodeList size.
+            scene rootNodes reserve: nodeList size.
             0 until: nodeList size do: {:i :: Void |
-                scene _ rootNodes add: (modelAsset _ nodes[nodeList getUIntPointer: i])
+                scene rootNodes add: (modelAsset nodes[nodeList getUIntPointer: i])
             }.
         }.
     }.
@@ -376,42 +371,41 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) sampler: (object: DOM Object const ref) ::=> Void := {
-        let sampler := ModelAssetAnimationSampler rcNew.
-        sampler _
-            index: animation _ samplers size;
-            inputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "inputAccessor" asMutableString]);
-            outputAccessor: (modelAsset _ bufferAccessors[object getUIntPointer: "outputAccessor" asMutableString]);
-            interpolationMethod: ((object getUInt32: "interpolationMethod" asMutableString) castTo: ModelAssetAnimationInterpolationMethod).
-        animation _ samplers add: sampler.
+    method parseAnimation: (animation: ModelAssetAnimationRef const ref) sampler: (object: DOM Object const ref) ::=> Void := {
+        animation samplers add: (ModelAssetAnimationSampler new
+            index: animation samplers size;
+            inputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "inputAccessor" asMutableString]);
+            outputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "outputAccessor" asMutableString]);
+            interpolationMethod: ((object getUInt32: "interpolationMethod" asMutableString) castTo: ModelAssetAnimationInterpolationMethod);
+            yourself).
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationPtr const ref) channel: (object: DOM Object const ref) ::=> Void := {
-        let channel := ModelAssetAnimationChannel rcNew.
-        channel _
-            sampler: (animation _ samplers[object getUIntPointer: "sampler" asMutableString]);
-            targetProperty: ((object getUInt32: "targetProperty" asMutableString) castTo: ModelAssetAnimationTargetProperty).
+    method parseAnimation: (animation: ModelAssetAnimationRef const ref) channel: (object: DOM Object const ref) ::=> Void := {
+        let channel := ModelAssetAnimationChannel new
+            sampler: (animation samplers[object getUIntPointer: "sampler" asMutableString]);
+            targetProperty: ((object getUInt32: "targetProperty" asMutableString) castTo: ModelAssetAnimationTargetProperty);
+            yourself.
 
         object at: "targetNode" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            channel _ targetNode: modelAsset _ nodes[DOM valueToUIntPointer(value)]
+            channel targetNode: modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
 
-        animation _ channels add: channel.
+        animation channels add: channel.
     }.
 
     method parseAnimation: (object: DOM Object const ref) ::=> Void := {
-        let animation := modelAsset _ newAnimation.
-        animation _
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+        let animation := modelAsset newAnimation
+            name: (object getString: "name" asMutableString default: "" asMutableString);
+            yourself.
 
         let samplers := object getList: "samplers" asMutableString.
-        animation _ samplers reserve: samplers _ size.
+        animation samplers reserve: samplers _ size.
         samplers _ do: {:each :: Void |
             self parseAnimation: animation sampler: (each get: DOM ObjectPtr) _
         }.
 
         let channels := object getList: "channels" asMutableString.
-        animation _ channels reserve: channels _ size.
+        animation channels reserve: channels _ size.
         channels _ do: {:each :: Void |
             self parseAnimation: animation channel: (each get: DOM ObjectPtr) _
         }.
@@ -423,9 +417,9 @@ class WodenModelImporter definition: {
         }.
     }.
 
-    method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetPtr := {
-        modelAsset := ModelAsset rcNew.
-        modelAsset _ parentFolder: parentFolder.
+    method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetRef := {
+        modelAsset := ModelAsset new.
+        modelAsset parentFolder: parentFolder.
         object at: "buffers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             self parseBuffers: (value get: DOM ListPtr) _
         }.
@@ -469,11 +463,11 @@ class WodenModelImporter definition: {
         modelAsset
     }.
 
-    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetRef := {
         parentFolder := fileReference parent.
 
         let inputReadStream mutable := fileReference binaryReadStream.
-        inputReadStream ifNil: {return: ModelAssetPtr nil}.
+        inputReadStream ifNil: {return: ModelAssetRef nil}.
 
         let isReadingTextModel := fileReference extension asArraySlice = "wtmdl".
         let domValue := isReadingTextModel

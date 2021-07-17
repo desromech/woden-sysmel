@@ -34,12 +34,11 @@ class ModelAssetBinaryBuffer superclass: ModelAssetElement; definition: {
             heapType: MemoryHeapType DeviceLocal;
             usageModes: BufferUsageMode Array | BufferUsageMode ElementArray;
             mainUsageMode: BufferUsageMode Array | BufferUsageMode ElementArray;
-            yourself) initialData: data getPointer.
-        gpuBuffer
+            yourself) initialData: data getPointer
     }.
 }.
 
-compileTime constant ModelAssetBinaryBufferPtr := ModelAssetBinaryBuffer rcPointer.
+compileTime constant ModelAssetBinaryBufferRef := ModelAssetBinaryBuffer rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

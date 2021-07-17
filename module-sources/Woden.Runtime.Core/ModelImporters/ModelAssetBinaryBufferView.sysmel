@@ -8,29 +8,29 @@ useNamespace: Std Graphics Core.
  * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
  *#
 class ModelAssetBinaryBufferView superclass: ModelAssetElement; definition: {
-    public field buffer type: ModelAssetBinaryBufferPtr.
+    public field buffer type: ModelAssetBinaryBufferRef.
     public field offset type: UIntPointer.
     public field size type: UIntPointer.
     public field stride type: UIntPointer.
     public field usage type: BufferUsageMode.
 
     method asVertexBufferFor: (engine: EngineRef) ::=> BufferRef
-        := buffer _ asGpuBufferFor: engine.
+        := buffer asGpuBufferFor: engine.
 
     method asIndexBufferFor: (engine: EngineRef) ::=> BufferRef
-        := buffer _ asGpuBufferFor: engine.
+        := buffer asGpuBufferFor: engine.
 
     method asGpuBufferOffset => UIntPointer
         := offset.
 
     method asFixedMemoryStream => Std IO FixedMemoryStream
-        := Std IO FixedMemoryStream for: buffer _ data getPointer + offset withSize: size.
+        := Std IO FixedMemoryStream for: buffer data getPointer + offset withSize: size.
 
     method asCPUBufferPointer => UInt8 pointer
-        := buffer _ data getPointer + offset.
+        := buffer data getPointer + offset.
 }.
 
-compileTime constant ModelAssetBinaryBufferViewPtr := ModelAssetBinaryBufferView rcPointer.
+compileTime constant ModelAssetBinaryBufferViewRef := ModelAssetBinaryBufferView rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

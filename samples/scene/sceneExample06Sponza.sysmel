@@ -22,7 +22,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/Sponza/glTF/Sponza" asNativeFileReference.
         modelAsset ifNotNil: {
-            modelAsset _ scenes first _ createSceneNodesFor: model engine in: scene
+            modelAsset scenes first createSceneNodesFor: model engine in: scene
         }.
     }.
 

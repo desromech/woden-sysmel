@@ -15,11 +15,11 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
     }.
 
     public field baseColorFactor type: Float32x4.
-    public field baseColorTexture type: ModelAssetTexturePtr.
+    public field baseColorTexture type: ModelAssetTextureRef.
 
     public field metallicFactor type: Float32.
     public field roughnessFactor type: Float32.
-    public field metallicRoughnessTexture type: ModelAssetTexturePtr.
+    public field metallicRoughnessTexture type: ModelAssetTextureRef.
 
     field renderingMaterial type: MaterialRef.
 
@@ -43,30 +43,30 @@ class ModelAssetMetallicRoughnessMaterial superclass: ModelAssetMaterial; defini
             roughnessFactor: roughnessFactor.
 
         baseColorTexture ifNotNil: {
-            convertedMaterial baseColorTexture: (baseColorTexture _ asTextureWithViewFor: engine)
+            convertedMaterial baseColorTexture: (baseColorTexture asTextureWithViewFor: engine)
         }.
 
         emissionTexture ifNotNil: {
-            convertedMaterial emissionTexture: (emissionTexture _ asTextureWithViewFor: engine)
+            convertedMaterial emissionTexture: (emissionTexture asTextureWithViewFor: engine)
         }.
 
         normalTexture ifNotNil: {
-            convertedMaterial normalTexture: (normalTexture _ asTextureWithViewFor: engine)
+            convertedMaterial normalTexture: (normalTexture asTextureWithViewFor: engine)
         }.
 
         metallicRoughnessTexture ifNotNil: {
-            convertedMaterial metallicRoughnessTexture: (metallicRoughnessTexture _ asTextureWithViewFor: engine)
+            convertedMaterial metallicRoughnessTexture: (metallicRoughnessTexture asTextureWithViewFor: engine)
         }.
 
         occlusionTexture ifNotNil: {
-            convertedMaterial occlusionTexture: (occlusionTexture _ asTextureWithViewFor: engine)
+            convertedMaterial occlusionTexture: (occlusionTexture asTextureWithViewFor: engine)
         }.
 
         renderingMaterial := convertedMaterial upCastFor: Material
     }.
 }.
 
-compileTime constant ModelAssetMetallicRoughnessMaterialPtr := ModelAssetMetallicRoughnessMaterial rcPointer.
+compileTime constant ModelAssetMetallicRoughnessMaterialRef := ModelAssetMetallicRoughnessMaterial rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

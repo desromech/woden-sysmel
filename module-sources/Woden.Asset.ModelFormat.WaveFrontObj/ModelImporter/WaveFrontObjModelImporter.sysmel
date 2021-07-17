@@ -33,19 +33,19 @@ class WaveFrontObjModelImporter definition: {
 
     field faceVerticesDictionary type: Std Collections Dictionary(WaveFrontFaceVertexIndices, UInt32).
 
-    field parsedMaterials type: Std Collections Dictionary(Std String, ModelAssetMaterialPtr).
+    field parsedMaterials type: Std Collections Dictionary(Std String, ModelAssetMaterialRef).
 
-    field modelAsset type: ModelAssetPtr.
-    field currentMesh type: ModelAssetMeshPtr.
+    field modelAsset type: ModelAssetRef.
+    field currentMesh type: ModelAssetMeshRef.
 
-    field vertexBufferView type: ModelAssetBinaryBufferViewPtr.
-    field vertexAttributeAccessors type: ModelAssetMeshPrimitiveAttributesPtr.
+    field vertexBufferView type: ModelAssetBinaryBufferViewRef.
+    field vertexAttributeAccessors type: ModelAssetMeshPrimitiveAttributesRef.
 
-    field indexBufferView type: ModelAssetBinaryBufferViewPtr.
-    field currentMeshPrimitive type: ModelAssetMeshPrimitivePtr.
+    field indexBufferView type: ModelAssetBinaryBufferViewRef.
+    field currentMeshPrimitive type: ModelAssetMeshPrimitiveRef.
     field currentMeshPrimitiveFirstIndex type: UIntPointer.
 
-    field textureNameDictiory type: Std Collections Dictionary(Std String, ModelAssetTexturePtr).
+    field textureNameDictiory type: Std Collections Dictionary(Std String, ModelAssetTextureRef).
 
     method parseFaceVertex: (faceVertex: Std String const ref) ::=> WaveFrontFaceVertexIndices := {
         let positionIndex mutable type: UInt32.
@@ -109,11 +109,11 @@ class WaveFrontObjModelImporter definition: {
     }.
 
     method createBufferViewsAndAccessors => Void := {
-        vertexBufferView := modelAsset _ newBufferView.
-        vertexBufferView _ stride: VertexType instanceSize.
+        vertexBufferView := modelAsset newBufferView.
+        vertexBufferView stride: VertexType instanceSize.
 
-        indexBufferView := modelAsset _ newBufferView.
-        indexBufferView _ stride: IndexType instanceSize.
+        indexBufferView := modelAsset newBufferView.
+        indexBufferView stride: IndexType instanceSize.
 
         vertexAttributeAccessors := Woden GpuStructures GenericVertex modelAssetMeshPrimitiveAttributesFor: vertexBufferView.
     }.
@@ -124,15 +124,15 @@ class WaveFrontObjModelImporter definition: {
 
     method startNewMeshNamed: (meshName: Std String const ref) ::=> Void := {
         ## If this is the first mesh, then just set its name.
-        modelAsset _ meshes size = 1 && modelAsset _ meshes first _ name isEmpty ifTrue: {
-            modelAsset _ meshes first _ name: meshName.
+        modelAsset meshes size = 1 && modelAsset meshes first name isEmpty ifTrue: {
+            modelAsset meshes first name: meshName.
             return: void
         }.
 
         self finishLastSubmesh.
 
-        currentMesh := modelAsset _ newMesh.
-        currentMesh _ name: meshName.
+        currentMesh := modelAsset newMesh.
+        currentMesh name: meshName.
     }.
 
     method finishLastSubmesh => Void := {
@@ -148,14 +148,14 @@ class WaveFrontObjModelImporter definition: {
             maxIndex := maxIndex max: index.
         }.
 
-        let indices := currentMeshPrimitive _ indices.
-        indices _
+        let indices := currentMeshPrimitive indices.
+        indices
             offset: currentMeshPrimitiveFirstIndex * IndexType instanceSize;
             count: indexCount;
             minValue: minIndex;
             maxValue: maxIndex.
 
-        currentMeshPrimitive reset.
+        currentMeshPrimitive := nil.
     }.
 
     method computeBoundingBox => Void := {
@@ -166,16 +166,16 @@ class WaveFrontObjModelImporter definition: {
             boundingBox := boundingBox unionWith: each
         }.
 
-        vertexAttributeAccessors _ boundingBox: boundingBox.
+        vertexAttributeAccessors boundingBox: boundingBox.
     }.
 
     method beginSubmeshWithMaterialNamed: (materialName: Std String const ref) ::=> Void := {
-        let material := parsedMaterials at: materialName ifAbsent: ModelAssetMaterialPtr nil.
-        currentMeshPrimitive isNotNil && currentMeshPrimitive _ material = material ifTrue: {return: void}.
+        let material := parsedMaterials at: materialName ifAbsent: ModelAssetMaterialRef nil.
+        currentMeshPrimitive isNotNil && currentMeshPrimitive material == material ifTrue: {return: void}.
         self finishLastSubmesh.
 
-        let indexBufferAccessor := modelAsset _ newBufferAccessor.
-        indexBufferAccessor _
+        let indexBufferAccessor := modelAsset newBufferAccessor.
+        indexBufferAccessor
             bufferView: indexBufferView;
             format: (LargestSupportedIndexType instanceSize selectCase: #{
             1 : PixelFormat R8_UInt.
@@ -184,13 +184,13 @@ class WaveFrontObjModelImporter definition: {
             }).
 
         currentMeshPrimitiveFirstIndex := indexBufferContent size.
-        currentMeshPrimitive := ModelAssetMeshPrimitive rcNew.
-        currentMeshPrimitive _
+        currentMeshPrimitive := ModelAssetMeshPrimitive new.
+        currentMeshPrimitive
             attributes: vertexAttributeAccessors;
             indices: indexBufferAccessor;
             material: material;
             primitiveTopology: PrimitiveTopology Triangles.
-        currentMesh _ primitives add: currentMeshPrimitive
+        currentMesh primitives add: currentMeshPrimitive
     }.
 
     method ensureValidSubmesh ::=> Void := {
@@ -204,34 +204,35 @@ class WaveFrontObjModelImporter definition: {
         let indexBufferByteSize := indexBufferContent size * IndexType instanceSize.
         let binaryBufferByteSize := vertexBufferByteSize + indexBufferByteSize.
 
-        let binaryBuffer := modelAsset _ newBuffer.
-        binaryBuffer _ data reset: (Std malloc(binaryBufferByteSize) reinterpretCastTo: UInt8 pointer).
-        binaryBuffer _ dataSize: binaryBufferByteSize.
+        let binaryBuffer := modelAsset newBuffer.
+        binaryBuffer data reset: (Std malloc(binaryBufferByteSize) reinterpretCastTo: UInt8 pointer).
+        binaryBuffer dataSize: binaryBufferByteSize.
 
-        let bufferData := binaryBuffer _ data getPointer.
+        let bufferData := binaryBuffer data getPointer.
         vertexBufferByteSize > 0 ifTrue: {
             Std memcpy(bufferData, vertexBufferContent data, vertexBufferByteSize).
         }.
-        vertexBufferView _
+        vertexBufferView
             buffer: binaryBuffer;
             offset: 0.
 
         indexBufferByteSize > 0 ifTrue: {
             Std memcpy(bufferData + vertexBufferByteSize, indexBufferContent data, indexBufferByteSize).
         }.
-        indexBufferView _
+        indexBufferView
             buffer: binaryBuffer;
             offset: vertexBufferByteSize.
     }.
 
-    method getOrCreateTextureNamed: (name: Std String const ref) ::=> ModelAssetTexturePtr := {
-        textureNameDictiory at: name ifAbsentPut: { :: ModelAssetTexturePtr |
-            let image := modelAsset _ newImage.
-            image _ uri: name.
+    method getOrCreateTextureNamed: (name: Std String const ref) ::=> ModelAssetTextureRef := {
+        textureNameDictiory at: name ifAbsentPut: { :: ModelAssetTextureRef |
+            let image := modelAsset newImage
+                uri: name;
+                yourself.
 
-            let texture := modelAsset _ newTexture.
-            texture _ image: image.
-            texture
+            modelAsset newTexture
+                image: image;
+                yourself
         }
     }.
 
@@ -240,7 +241,7 @@ class WaveFrontObjModelImporter definition: {
         inStream ifNil: {return: void}.
 
         let inTextReader mutable := Std IO TextStreamReader for: inStream getPointer.
-        let currentMaterial mutable := ModelAssetMetallicRoughnessMaterialPtr nil.
+        let currentMaterial mutable := ModelAssetMetallicRoughnessMaterialRef nil.
         inTextReader linesDo: {:each :: Void |
             let commandString := each copyUpTo: '#'.
             let commandReader mutable := commandString textStreamReader.
@@ -249,18 +250,18 @@ class WaveFrontObjModelImporter definition: {
             command asArraySlice selectCase: #{
             "newmtl" : {
                 let materialName := commandReader nextToken.
-                currentMaterial := modelAsset _ newMetallicRoughnessMaterial.
-                currentMaterial _ name: materialName.
+                currentMaterial := modelAsset newMetallicRoughnessMaterial.
+                currentMaterial name: materialName.
                 parsedMaterials at: materialName put: (currentMaterial upCastFor: ModelAssetMaterial).
             }.
             "Ns" : {
                 let shininess := commandReader nextFloat32.
-                currentMaterial _ roughnessFactor := 1.0f - (shininess / 1000.0f clampMin: 0.0f max: 1.0f)
+                currentMaterial roughnessFactor := 1.0f - (shininess / 900.0f clampMin: 0.0f max: 1.0f) sqrt
             }.
             "Ka" : {}.
             "Ks" : {}.
             "Kd" : {
-                currentMaterial _ baseColorFactor := Float32x4(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32, 1.0f).
+                currentMaterial baseColorFactor := Float32x4(commandReader nextFloat32, commandReader nextFloat32, commandReader nextFloat32, 1.0f).
             }.
             "d" : {
                 ## TODO: Support transparency.
@@ -273,15 +274,15 @@ class WaveFrontObjModelImporter definition: {
             "map_Kd" : {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
-                    currentMaterial _ baseColorTexture: (self getOrCreateTextureNamed: textureName).
-                    currentMaterial _ baseColorTexture _ setColorUsage.
+                    currentMaterial baseColorTexture: (self getOrCreateTextureNamed: textureName).
+                    currentMaterial baseColorTexture setColorUsage.
                 }.
             }.
             "bump" : {
                 let textureName := commandReader nextToken.
                 textureName ifNotEmpty: {
-                    currentMaterial _ normalTexture: (self getOrCreateTextureNamed: textureName).
-                    currentMaterial _ normalTexture _ setNormalUsage.
+                    currentMaterial normalTexture: (self getOrCreateTextureNamed: textureName).
+                    currentMaterial normalTexture setNormalUsage.
                 }.
             }.
             _ : {
@@ -291,12 +292,12 @@ class WaveFrontObjModelImporter definition: {
         }.
     }.
 
-    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
+    method importFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetRef := {
         let inStream := fileReference binaryReadStream.
-        inStream ifNil: {return: ModelAssetPtr nil}.
+        inStream ifNil: {return: ModelAssetRef nil}.
 
-        modelAsset := ModelAsset rcNew.
-        modelAsset _ parentFolder := fileReference parent.
+        modelAsset := ModelAsset new.
+        modelAsset parentFolder := fileReference parent.
         self createBufferViewsAndAccessors.
         self startFirstMesh.
 
@@ -310,7 +311,7 @@ class WaveFrontObjModelImporter definition: {
             "mtllib" : {
                 let mtllibName := commandReader nextToken.
                 mtllibName ifNotEmpty: {
-                    self loadMaterialLibFromFileReference: modelAsset _ parentFolder / mtllibName asArraySlice
+                    self loadMaterialLibFromFileReference: modelAsset parentFolder / mtllibName asArraySlice
                 }.
             }.
 
@@ -367,7 +368,7 @@ class WaveFrontObjModelImporter definition: {
         self finishLastSubmesh.
         self computeBoundingBox.
         self encodeBinaryBuffers.
-        modelAsset _ cleanupMeshes.
+        modelAsset cleanupMeshes.
         modelAsset
     }.
 }.
@@ -376,7 +377,7 @@ class WaveFrontObjModelImporterExporter superclass: ModelImporterExporter; defin
     const override method supportsExtension: (extension: Char8 const arraySlice) ::=> Boolean8
         := extension = "obj".
 
-    const override method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetPtr := {
+    const override method readFromFileReference: (fileReference: Std FileReference const ref) ::=> ModelAssetRef := {
         let importer mutable := WaveFrontObjModelImporter().
         importer importFromFileReference: fileReference.
     }.

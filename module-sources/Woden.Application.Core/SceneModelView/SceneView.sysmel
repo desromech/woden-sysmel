@@ -152,7 +152,7 @@ class SceneView superclass: View; definition: {
     }.
 }.
 
-compileTime constant SceneViewPtr := SceneView rcPointer
+compileTime constant SceneViewRef := SceneView rcRef.
 
 }. ## End of namespace Application
 }. ## End of namespace Woden

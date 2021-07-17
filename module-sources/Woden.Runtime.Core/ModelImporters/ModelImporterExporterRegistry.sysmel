@@ -16,27 +16,27 @@ class ModelImporterExporterRegistry definition: {
     }.
 
     private field mutex type: Std Mutex.
-    private field registeredModelImporterExporters type: Std Collections Vector(ModelImporterExporter rcPointer).
+    private field registeredModelImporterExporters type: Std Collections Vector(ModelImporterExporter rcRef).
 
-    method addModelImporterExporter: (modelImporterExporter: ModelImporterExporter rcPointer) ::=> Void := {
+    method addModelImporterExporter: (modelImporterExporter: ModelImporterExporter rcRef) ::=> Void := {
         mutex withLock: {
             registeredModelImporterExporters add: modelImporterExporter
         }
     }.
 
-    method findForFileReference: (fileReference: Std FileReference const ref) ::=> ModelImporterExporter pointer
+    method findForFileReference: (fileReference: Std FileReference const ref) ::=> ModelImporterExporter rcRef
         := self findWithExtension: fileReference extension.
 
-    method findWithExtension: (extension: Char8 const arraySlice) ::=> ModelImporterExporter pointer := {
+    method findWithExtension: (extension: Char8 const arraySlice) ::=> ModelImporterExporter rcRef := {
         mutex withLock: {
             registeredModelImporterExporters do: {:each :: Void |
-                (each _ supportsExtension: extension) ifTrue: {
-                    return: each getPointer
+                (each supportsExtension: extension) ifTrue: {
+                    return: each
                 }
             }
         }.
 
-        nil
+        ModelImporterExporter rcRef nil
     }.
 }.
 
@@ -44,7 +44,7 @@ template ModelImporterExporterRegisterer(T: Type)
     := class definition: {
 
     method initialize => Void := {
-        ModelImporterExporterRegistry uniqueInstance addModelImporterExporter: (T rcNew upCastFor: ModelImporterExporter)
+        ModelImporterExporterRegistry uniqueInstance addModelImporterExporter: (T new upCastFor: ModelImporterExporter)
     }.
 }.
 

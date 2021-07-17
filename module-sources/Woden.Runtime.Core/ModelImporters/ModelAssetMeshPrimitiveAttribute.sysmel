@@ -9,7 +9,7 @@ compileTime constant VertexAttributeLocation := Woden GpuStructures VertexAttrib
 
 
 struct ModelAssetMeshPrimitiveAttribute definition: {
-    public field accessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field accessor type: ModelAssetBinaryBufferAccessorRef.
     public field location type: VertexAttributeLocation.
 
     const method = (o: SelfType const ref) ::=> Boolean8
@@ -19,10 +19,10 @@ struct ModelAssetMeshPrimitiveAttribute definition: {
         := accessor hash ^ location hash.
 
     const method < (o: SelfType const ref) ::=> Boolean8 := {
-        accessor _ bufferView = o accessor _ bufferView ifTrue: {
+        accessor bufferView == o accessor bufferView ifTrue: {
             location < o location
         } ifFalse: {
-            accessor _ bufferView getPointer < o accessor _ bufferView getPointer
+            accessor bufferView rcObjectAddress < o accessor bufferView rcObjectAddress
         }
     }.
 }.
@@ -45,9 +45,9 @@ struct ModelAssetPrimitiveAttributesBindingDescription definition: {
 class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definition: {
     public field attributes type: ModelAssetMeshPrimitiveAttributeList.
 
-    method createAccessorFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) offset: (offset: UIntPointer) format: (format: PixelFormat) location: (location: VertexAttributeLocation) ::=> Void := {
-        let accessor := vertexBufferView _ modelAsset _ newBufferAccessor.
-        accessor _
+    method createAccessorFor: (vertexBufferView: ModelAssetBinaryBufferViewRef const ref) offset: (offset: UIntPointer) format: (format: PixelFormat) location: (location: VertexAttributeLocation) ::=> Void := {
+        let accessor := vertexBufferView modelAsset newBufferAccessor.
+        accessor
             bufferView: vertexBufferView;
             offset: offset;
             format: format.
@@ -60,7 +60,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
 
     const method vertexCount => UIntPointer := {
         attributes ifEmpty: {return: 0}.
-        attributes first accessor _ count.
+        attributes first accessor count.
     }.
 
     const method hasNormal => Boolean8 := {
@@ -86,7 +86,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
     method boundingBox => BoxF32 := {
         attributes do: {:each :: Void |
             each location = VertexAttributeLocation Position ifTrue: {
-                return: each accessor _ boundingBox.
+                return: each accessor boundingBox.
             }
         }.
 
@@ -96,7 +96,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
     method boundingBox: (box: BoxF32 const ref) ::=> Void := {
         attributes do: {:each :: Void |
             each location = VertexAttributeLocation Position ifTrue: {
-                each accessor _ boundingBox: box.
+                each accessor boundingBox: box.
             }
         }.
     }.
@@ -112,7 +112,7 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
         attributes sort.
 
         let vertexLayoutDescription mutable := VertexLayoutDescription().
-        let lastBufferView mutable := ModelAssetBinaryBufferViewPtr nil.
+        let lastBufferView mutable := ModelAssetBinaryBufferViewRef nil.
 
         let bindingDescription mutable := ModelAssetPrimitiveAttributesBindingDescription().
         let lastBufferAccessorStartOffset mutable type: UIntPointer.
@@ -120,11 +120,11 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
 
         convertedVertexAttributeMask := 0.
         attributes do: {:each :: Void |
-            let newView := each accessor _ bufferView.
-            let newViewStride := newView _ stride.
-            let attributeStride := each accessor _ format bytesPerPixel.
-            lastBufferView ~= newView || newViewStride = 0 ||
-            ((each accessor _ offset - lastBufferAccessorStartOffset castTo: IntPointer) abs >= (lastBufferStride castTo: IntPointer)) ifTrue: {
+            let newView := each accessor bufferView.
+            let newViewStride := newView stride.
+            let attributeStride := each accessor format bytesPerPixel.
+            lastBufferView ~~ newView || newViewStride = 0 ||
+            ((each accessor offset - lastBufferAccessorStartOffset castTo: IntPointer) abs >= (lastBufferStride castTo: IntPointer)) ifTrue: {
                 newViewStride = 0 ifTrue: {
                     vertexLayoutDescription addBufferWithStride: attributeStride
                 } ifFalse: {
@@ -132,11 +132,11 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
                 }.
                 let newBufferStride := vertexLayoutDescription strides last.
                 lastBufferStride := newBufferStride.
-                lastBufferAccessorStartOffset := (each accessor _ offset / newBufferStride) * newBufferStride.
+                lastBufferAccessorStartOffset := (each accessor offset / newBufferStride) * newBufferStride.
 
-                bindingDescription buffers add: (newView _ asVertexBufferFor: engine).
+                bindingDescription buffers add: (newView asVertexBufferFor: engine).
                 bindingDescription bufferPointers add: bindingDescription buffers last rcObjectAddress.
-                bindingDescription offsets add: (newView _ asGpuBufferOffset + lastBufferAccessorStartOffset castTo: UInt32).
+                bindingDescription offsets add: (newView asGpuBufferOffset + lastBufferAccessorStartOffset castTo: UInt32).
 
                 lastBufferView := newView.
             }.
@@ -144,8 +144,8 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
             vertexLayoutDescription addAttribute: (VertexAttributeDescription()
                 bufferIndex: (vertexLayoutDescription strides size - 1u castTo: UInt32);
                 location: each location value;
-                format: each accessor _ format;
-                offset: (each accessor _ offset % vertexLayoutDescription strides last castTo: UInt32);
+                format: each accessor format;
+                offset: (each accessor offset % vertexLayoutDescription strides last castTo: UInt32);
                 yourself
             ).
 
@@ -154,39 +154,35 @@ class ModelAssetMeshPrimitiveAttributes superclass: ModelAssetElement; definitio
 
         bindingDescription vertexLayout: (engine renderingDevice getDefaultVertexLayoutCache getOrCreateWithDescription: vertexLayoutDescription).
 
-        convertedVertexBinding := self modelAsset _ createVertexBindingFor: engine withDescription: bindingDescription.
+        convertedVertexBinding := self modelAsset createVertexBindingFor: engine withDescription: bindingDescription.
     }.
 
     method vertexAttributeMask => UInt32
         := convertedVertexAttributeMask.
 
-    method getAccessorWithLocation: (location: VertexAttributeLocation) ::=> ModelAssetBinaryBufferAccessorPtr := {
+    method getAccessorWithLocation: (location: VertexAttributeLocation) ::=> ModelAssetBinaryBufferAccessorRef := {
         attributes do: {:each :: Void |
             each location = location ifTrue: {
                 return: each accessor
             }
         }.
 
-        ModelAssetBinaryBufferAccessorPtr nil
+        ModelAssetBinaryBufferAccessorRef nil
     }.
 }.
 
-compileTime constant ModelAssetMeshPrimitiveAttributesPtr := ModelAssetMeshPrimitiveAttributes rcPointer.
+compileTime constant ModelAssetMeshPrimitiveAttributesRef := ModelAssetMeshPrimitiveAttributes rcRef.
 
 Woden GpuStructures GenericVertex extend: {
     meta definition: {
-        method modelAssetMeshPrimitiveAttributesFor: (vertexBufferView: ModelAssetBinaryBufferViewPtr const ref) ::=> ModelAssetMeshPrimitiveAttributesPtr := {
-            let modelAsset := vertexBufferView _ modelAsset.
-            let result mutable := modelAsset _ newMeshPrimitiveAttributes.
-
-            result _
+        method modelAssetMeshPrimitiveAttributesFor: (vertexBufferView: ModelAssetBinaryBufferViewRef const ref) ::=> ModelAssetMeshPrimitiveAttributesRef := {
+            vertexBufferView modelAsset newMeshPrimitiveAttributes
                 createAccessorFor: vertexBufferView offset: positionData byteOffset format: PixelFormat R32G32B32_Float location: VertexAttributeLocation Position;
                 createAccessorFor: vertexBufferView offset: normalData byteOffset format: PixelFormat R32G32B32_Float location: VertexAttributeLocation Normal;
                 createAccessorFor: vertexBufferView offset: texcoord byteOffset format: PixelFormat R32G32_Float location: VertexAttributeLocation Texcoord0;
                 createAccessorFor: vertexBufferView offset: tangent4 byteOffset format: PixelFormat R32G32B32A32_Float location: VertexAttributeLocation Tangent4;
-                createAccessorFor: vertexBufferView offset: color byteOffset format: PixelFormat R32G32B32A32_Float location: VertexAttributeLocation Color0.
-
-            result
+                createAccessorFor: vertexBufferView offset: color byteOffset format: PixelFormat R32G32B32A32_Float location: VertexAttributeLocation Color0;
+                yourself
         }.
     }.
 }.

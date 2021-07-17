@@ -9,13 +9,13 @@ useNamespace: Std Graphics Core.
  * I represent a skeleton which is composed of a hierarchy of unions.
  *#
 class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
-    public field inverseBindMatricesAccessor type: ModelAssetBinaryBufferAccessorPtr.
-    public field joints type: Std Collections Vector(ModelAssetNodePtr).
-    public field rootJoint type: ModelAssetNodePtr.
+    public field inverseBindMatricesAccessor type: ModelAssetBinaryBufferAccessorRef.
+    public field joints type: Std Collections Vector(ModelAssetNodeRef).
+    public field rootJoint type: ModelAssetNodeRef.
 
     method cleanupSkeleton => Void := {
         joints do: {:each :: Void |
-            each _
+            each
                 isJoint: true;
                 hasValidJointIndex: false.
         }.
@@ -31,14 +31,14 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
         Std assert: nextJointIndex = joints size.
     }.
 
-    method cleanUpJoint: (joint: ModelAssetNodePtr const ref) parentIndex: (parentIndex: IntPointer) joinIndex: (nextJointIndex: UIntPointer) ::=> UIntPointer := {
-        joint _ hasValidJointIndex ifTrue: {return: nextJointIndex}.
+    method cleanUpJoint: (joint: ModelAssetNodeRef const ref) parentIndex: (parentIndex: IntPointer) joinIndex: (nextJointIndex: UIntPointer) ::=> UIntPointer := {
+        joint hasValidJointIndex ifTrue: {return: nextJointIndex}.
 
         let childrenParentIndex mutable := parentIndex.
         let result mutable := nextJointIndex.
 
-        joint _ isJoint ifTrue: {
-            joint _
+        joint isJoint ifTrue: {
+            joint
                 jointIndex: nextJointIndex;
                 parentJointIndex: parentIndex;
                 hasValidJointIndex: true.
@@ -46,7 +46,7 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
             result := nextJointIndex + 1u
         }.
 
-        joint _ children do: {:child :: Void |
+        joint children do: {:child :: Void |
             result := self cleanUpJoint: child parentIndex: childrenParentIndex joinIndex: result
         }.
 
@@ -56,43 +56,43 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     field skeleton type: SkeletonRef.
 
     method permutateBoneIndex: (boneIndex: UInt32) ::=> UInt32
-        := joints[boneIndex] _ jointIndex castTo: UInt32.
+        := joints[boneIndex] jointIndex castTo: UInt32.
 
-    method permutateBoneIndicesInVertices: (vertexData: ModelAssetBinaryBufferAccessorPtr const ref) ::=> Void := {
-        vertexData _ format selectCase: #{
+    method permutateBoneIndicesInVertices: (vertexData: ModelAssetBinaryBufferAccessorRef const ref) ::=> Void := {
+        vertexData format selectCase: #{
         PixelFormat R32G32B32A32_UInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: UInt32 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt32
             }
         }.
         PixelFormat R32G32B32A32_SInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int32 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: Int32 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int32
             }
         }.
         PixelFormat R16G16B16A16_UInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt16 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: UInt16 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt16
             }
         }.
         PixelFormat R16G16B16A16_SInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int16 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: Int16 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int16
             }
         }.
         PixelFormat R8G8B8A8_UInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: UInt8 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: UInt8 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: UInt8
             }
         }.
         PixelFormat R8G8B8A8_SInt : {
-            let data := vertexData _ asCPUBufferPointer reinterpretCastTo: Int8 pointer.
-            0 until: vertexData _ count * 4 do: {:i :: Void |
+            let data := vertexData asCPUBufferPointer reinterpretCastTo: Int8 pointer.
+            0 until: vertexData count * 4 do: {:i :: Void |
                 data[i] := (self permutateBoneIndex: (data[i] castTo: UInt32)) castTo: Int8
             }
         }.
@@ -103,22 +103,22 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
         skeleton ifNotNil: {return: skeleton}.
 
         let boneCount := joints size.
-        let inverseBindMatrices := inverseBindMatricesAccessor _ decodeAsVectorOfFloat32x4x4.
+        let inverseBindMatrices := inverseBindMatricesAccessor decodeAsVectorOfFloat32x4x4.
         Std assert: inverseBindMatrices size = boneCount.
 
         skeleton := Skeleton new.
         skeleton bones resizeTo: boneCount.
         joints doWithIndex: {:joint :index :: Void |
-            let jointSortedIndex := joint _ jointIndex.
-            Std assert: jointSortedIndex < boneCount && joint _ hasValidJointIndex.
+            let jointSortedIndex := joint jointIndex.
+            Std assert: jointSortedIndex < boneCount && joint hasValidJointIndex.
 
             skeleton bones[jointSortedIndex]
-                parentIndex: joint _ parentJointIndex;
+                parentIndex: joint parentJointIndex;
                 inverseBindMatrix: inverseBindMatrices[index];
                 restPose: (BonePose()
-                    scale: joint _ scale;
-                    rotation: joint _ rotationQuaternion;
-                    translation: joint _ translation;
+                    scale: joint scale;
+                    rotation: joint rotationQuaternion;
+                    translation: joint translation;
                     yourself)
         }.
 
@@ -126,7 +126,7 @@ class ModelAssetSkeleton superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetSkeletonPtr := ModelAssetSkeleton rcPointer.
+compileTime constant ModelAssetSkeletonRef := ModelAssetSkeleton rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

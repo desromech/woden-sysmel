@@ -9,59 +9,59 @@ useNamespace: Std Math Geometry.
  * I am a primitive in a mesh.
  *#
 class ModelAssetMeshPrimitive superclass: ModelAssetElement; definition: {
-    public field attributes type: ModelAssetMeshPrimitiveAttributesPtr.
-    public field indices type: ModelAssetBinaryBufferAccessorPtr.
-    public field material type: ModelAssetMaterialPtr.
+    public field attributes type: ModelAssetMeshPrimitiveAttributesRef.
+    public field indices type: ModelAssetBinaryBufferAccessorRef.
+    public field material type: ModelAssetMaterialRef.
     public field primitiveTopology type: PrimitiveTopology.
 
     method boundingBox => BoxF32
-        := attributes _ boundingBox.
+        := attributes boundingBox.
 
     method trianglesDo: (aBlock: ((UInt32 -- UInt32 -- UInt32) => Void) nativeStackBlockClosure) ::=> Void := {
         primitiveTopology = PrimitiveTopology Triangles ifTrue: {
             indices ifNil: {
-                let triangleCount := attributes _ vertexCount / 3u castTo: UInt32.
+                let triangleCount := attributes vertexCount / 3u castTo: UInt32.
                 0 until: triangleCount do: {:i :: Void |
                     aBlock(i*3, i*3 + 1, i*3 + 2)
                 }.
             } ifNotNil: {
-                indices _ trianglesDo: aBlock
+                indices trianglesDo: aBlock
             }.
         }.
     }.
 
     method asSubmeshFor: (engine: EngineRef const ref) ::=> GenericSubmesh := {
         let result mutable :=  GenericSubmesh()
-            vertexBinding: (attributes _ asVertexBindingFor: engine);
-            vertexAttributeMask: attributes _ vertexAttributeMask;
+            vertexBinding: (attributes asVertexBindingFor: engine);
+            vertexAttributeMask: attributes vertexAttributeMask;
             material: (material
                 ifNil: {engine resourceCache defaultMaterial}
-                ifNotNil: {material _ asRenderingMaterialFor: engine});
+                ifNotNil: {material asRenderingMaterialFor: engine});
             primitiveTopology: primitiveTopology;
             yourself.
 
         indices ifNil: {
-            result indexOrVertexCount: (attributes _ vertexCount castTo: UInt32).
+            result indexOrVertexCount: (attributes vertexCount castTo: UInt32).
         } ifNotNil: {
             result
-                indexBuffer: (indices _ asIndexBufferFor: engine);
-                indexBufferOffset: indices _ asIndexBufferOffset;
-                indexBufferStride: indices _ asIndexBufferStride;
-                firstIndex: (indices _ asFirstIndex castTo: UInt32);
-                indexOrVertexCount: (indices _ count castTo: UInt32).
+                indexBuffer: (indices asIndexBufferFor: engine);
+                indexBufferOffset: indices asIndexBufferOffset;
+                indexBufferStride: indices asIndexBufferStride;
+                firstIndex: (indices asFirstIndex castTo: UInt32);
+                indexOrVertexCount: (indices count castTo: UInt32).
         }.
 
         result
     }.
 
     method isTranslucent => Boolean8
-        := material isNotNil && material _ isTranslucent.
+        := material isNotNil && material isTranslucent.
 
     method isOpaque => Boolean8
-        := material isNil || material _ isOpaque.
+        := material isNil || material isOpaque.
 }.
 
-compileTime constant ModelAssetMeshPrimitivePtr := ModelAssetMeshPrimitive rcPointer.
+compileTime constant ModelAssetMeshPrimitiveRef := ModelAssetMeshPrimitive rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

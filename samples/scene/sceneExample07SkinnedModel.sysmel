@@ -33,7 +33,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/Fox/Fox" asNativeFileReference.
         modelAsset ifNotNil: {
-            let foxNode := modelAsset _  createSceneNodeNamed: "fox" asMutableString for: model engine.
+            let foxNode := modelAsset  createSceneNodeNamed: "fox" asMutableString for: model engine.
             foxNode
                 scaleBy: 0.015f;
                 rotateDegreesOnY: 90;
@@ -42,7 +42,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
 
             model animationScheduler
                 activateAnimationState: (TurnTableAnimation new newStateForTargetSceneNode: foxNode);
-                activateAnimationState: (modelAsset _ animations first _ asAnimation newStateForTargetSceneNode: foxNode looped: true).
+                activateAnimationState: (modelAsset animations first asAnimation newStateForTargetSceneNode: foxNode looped: true).
         }.
     }.
 

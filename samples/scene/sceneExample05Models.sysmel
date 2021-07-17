@@ -25,7 +25,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     ## Table
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/samples/table" asNativeFileReference.
-        let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
+        let meshRenderable := modelAsset meshes first asRenderableFor: model engine.
 
         scene add: (SpatialObjectNode new
             renderable: meshRenderable;
@@ -35,7 +35,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     ## Cube
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/samples/cube" asNativeFileReference.
-        let meshRenderable := modelAsset _ meshes first _ asRenderableFor: model engine.
+        let meshRenderable := modelAsset meshes first asRenderableFor: model engine.
 
         scene add: (SpatialObjectNode new
             renderable: meshRenderable;
@@ -48,7 +48,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/samples/chair_separated" asNativeFileReference.
         modelAsset ifNotNil: {
-            let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            let chairNode := modelAsset nodes first asSceneNodeFor: model engine.
             chairNode
                 rotateDegreesOnY: 90;
                 translateByX: 1.5f.
@@ -60,7 +60,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/samples/chair" asNativeFileReference.
         modelAsset ifNotNil: {
-            let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            let chairNode := modelAsset nodes first asSceneNodeFor: model engine.
             chairNode
                 rotateDegreesOnY: -90;
                 translateByX: -1.5f.
@@ -73,7 +73,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/DamagedHelmet/DamagedHelmet" asNativeFileReference.
         modelAsset ifNotNil: {
-            let chairNode := modelAsset _ nodes first _ asSceneNodeFor: model engine.
+            let chairNode := modelAsset nodes first asSceneNodeFor: model engine.
             chairNode
                 scaleBy: 0.2f; translateByY: 1.18f; translateByX: 0.3f.
             scene add: chairNode.
@@ -84,7 +84,7 @@ Woden Application sampleSceneMainWith: {:model :: Void |
     {
         let modelAsset := model engine resourceCache loadModelAssetFrom: "models/samples/wodanic" asNativeFileReference.
         modelAsset ifNotNil: {
-            let node := modelAsset _ createSceneNodeNamed: "Wodanic" asMutableString for: model engine.
+            let node := modelAsset createSceneNodeNamed: "Wodanic" asMutableString for: model engine.
             node ifNotNil: {
                 node
                     scaleBy: 0.01f;

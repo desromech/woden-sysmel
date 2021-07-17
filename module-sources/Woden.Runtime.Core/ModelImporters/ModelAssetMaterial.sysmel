@@ -8,10 +8,10 @@ useNamespace: Woden Runtime.
  *#
 class ModelAssetMaterial superclass: ModelAssetElement; definition: {
     public field emissionFactor type: Float32x3.
-    public field emissionTexture type: ModelAssetTexturePtr.
+    public field emissionTexture type: ModelAssetTextureRef.
 
-    public field normalTexture type: ModelAssetTexturePtr.
-    public field occlusionTexture type: ModelAssetTexturePtr.
+    public field normalTexture type: ModelAssetTextureRef.
+    public field occlusionTexture type: ModelAssetTextureRef.
 
     public field doubleSided type: Boolean8.
     public field alphaMode type: ModelAssetMaterialAlphaMode.
@@ -30,7 +30,7 @@ class ModelAssetMaterial superclass: ModelAssetElement; definition: {
         := alphaMode ~= ModelAssetMaterialAlphaMode Blend.
 }.
 
-compileTime constant ModelAssetMaterialPtr := ModelAssetMaterial rcPointer.
+compileTime constant ModelAssetMaterialRef := ModelAssetMaterial rcRef.
 
 
 } ## End of namespace Assets

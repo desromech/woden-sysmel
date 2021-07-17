@@ -7,8 +7,8 @@ useNamespace: Woden Runtime.
  * I am an animation present in a model asset.
  *#
 class ModelAssetAnimation superclass: ModelAssetElement; definition: {
-    public field channels type: Std Collections Vector(ModelAssetAnimationChannelPtr).
-    public field samplers type: Std Collections Vector(ModelAssetAnimationSamplerPtr).
+    public field channels type: Std Collections Vector(ModelAssetAnimationChannelRef).
+    public field samplers type: Std Collections Vector(ModelAssetAnimationSamplerRef).
 
     field convertedAnimation type: Animation rcRef.
 
@@ -21,14 +21,14 @@ class ModelAssetAnimation superclass: ModelAssetElement; definition: {
 
         multiChannelAnimation curves reserve: samplers size.
         samplers do: {:each :: Void |
-            let curve := each _ asAnimationCurve.
+            let curve := each asAnimationCurve.
             multiChannelAnimation curves add: curve.
             multiChannelAnimation duration: (multiChannelAnimation duration max: curve endTime)
         }.
 
         multiChannelAnimation channels reserve: channels size.
         channels do: {:each :: Void |
-            multiChannelAnimation channels add: each _ asAnimationChannel
+            multiChannelAnimation channels add: each asAnimationChannel
         }.
 
         convertedAnimation := multiChannelAnimation upCastFor: Animation.
@@ -36,7 +36,7 @@ class ModelAssetAnimation superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetAnimationPtr := ModelAssetAnimation rcPointer.
+compileTime constant ModelAssetAnimationRef := ModelAssetAnimation rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

@@ -8,8 +8,8 @@ useNamespace: Std Math Geometry.
  * I am a view for a portion of a binary buffer which can have differnt kinds of accessing modes.
  *#
 class ModelAssetMesh superclass: ModelAssetElement; definition: {
-    compileTime constant Primitives := Std Collections Vector(ModelAssetMeshPrimitivePtr).
-    public field primitives type: Std Collections Vector(ModelAssetMeshPrimitivePtr).
+    compileTime constant Primitives := Std Collections Vector(ModelAssetMeshPrimitiveRef).
+    public field primitives type: Std Collections Vector(ModelAssetMeshPrimitiveRef).
 
     public field renderable type: RenderableRef.
 
@@ -18,14 +18,14 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
         meshRenderable submeshes reserve: primitives size.
         let boundingBox mutable := BoxF32 empty.
         primitives do: {:each :: Void |
-            boundingBox := boundingBox unionWith: each _ boundingBox.
-            meshRenderable submeshes add: (each _ asSubmeshFor: engine)
+            boundingBox := boundingBox unionWith: each boundingBox.
+            meshRenderable submeshes add: (each asSubmeshFor: engine)
         }.
 
         meshRenderable localBoundingBox: boundingBox.
 
         ## Set the mesh renderable type according to its opacity.
-        primitives first _ isOpaque ifTrue: {
+        primitives first isOpaque ifTrue: {
             meshRenderable
                 renderPriority: RenderPriority Opaque
         } ifFalse: {
@@ -50,7 +50,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
             let translucentPrimitiveCount mutable type: UIntPointer.
 
             primitives do: {:each :: Void |
-                each _ isOpaque ifTrue: {
+                each isOpaque ifTrue: {
                     opaquePrimitiveCount := opaquePrimitiveCount + 1
                 } ifFalse: {
                     translucentPrimitiveCount := translucentPrimitiveCount + 1
@@ -67,7 +67,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
                 translucentPrimitives reserve: translucentPrimitiveCount.
 
                 primitives do: {:each :: Void |
-                    each _ isOpaque ifTrue: {
+                    each isOpaque ifTrue: {
                         opaquePrimitives add: each
                     } ifFalse: {
                         translucentPrimitives add: each
@@ -88,7 +88,7 @@ class ModelAssetMesh superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetMeshPtr := ModelAssetMesh rcPointer.
+compileTime constant ModelAssetMeshRef := ModelAssetMesh rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

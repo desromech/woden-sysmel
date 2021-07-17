@@ -9,7 +9,7 @@ useNamespace: Std Math Geometry.
  * I am an accessor for structured data in a binary buffer view.
  *#
 class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: {
-    public field bufferView type: ModelAssetBinaryBufferViewPtr.
+    public field bufferView type: ModelAssetBinaryBufferViewRef.
     public field offset type: UIntPointer.
     public field count type: UIntPointer.
     public field columnCount type: UIntPointer.
@@ -20,22 +20,22 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     public field maxValue type: Float64x4.
 
     method asIndexBufferFor: (engine: EngineRef const ref) ::=> BufferRef
-        := bufferView _ asIndexBufferFor: engine.
+        := bufferView asIndexBufferFor: engine.
 
     method asFirstIndex => UIntPointer
         := offset / self asIndexBufferStride.
 
     method asIndexBufferOffset ::=> UIntPointer
-        := bufferView _ asGpuBufferOffset.
+        := bufferView asGpuBufferOffset.
 
     method asGpuBufferOffset ::=> UIntPointer
-        := offset + bufferView _ asGpuBufferOffset.
+        := offset + bufferView asGpuBufferOffset.
 
     method asIndexBufferStride ::=> UIntPointer
         := format bytesPerPixel.
 
     method asCPUBufferPointer => UInt8 pointer
-        := bufferView _ asCPUBufferPointer + offset.
+        := bufferView asCPUBufferPointer + offset.
 
     method decodeAsVectorOfFloat32 => Std Collections Vector(Float32) := {
         let result mutable type: Std Collections Vector(Float32).
@@ -45,7 +45,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32_Float : {
-            let stride := bufferView _ stride max: 4.
+            let stride := bufferView stride max: 4.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
@@ -70,7 +70,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32_Float : {
-            let stride := bufferView _ stride max: 8.
+            let stride := bufferView stride max: 8.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
@@ -95,7 +95,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32B32_Float : {
-            let stride := bufferView _ stride max: 12.
+            let stride := bufferView stride max: 12.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
@@ -120,7 +120,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32B32A32_Float : {
-            let stride := bufferView _ stride max: 16.
+            let stride := bufferView stride max: 16.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
@@ -145,7 +145,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
 
         format selectCase: #{
         PixelFormat R32G32B32A32_Float : {
-            let stride := bufferView _ stride max: 64.
+            let stride := bufferView stride max: 64.
             result resizeTo: count.
 
             let sourcePointer mutable := bufferPointer.
@@ -205,7 +205,7 @@ class ModelAssetBinaryBufferAccessor superclass: ModelAssetElement; definition: 
     }.
 }.
 
-compileTime constant ModelAssetBinaryBufferAccessorPtr := ModelAssetBinaryBufferAccessor rcPointer.
+compileTime constant ModelAssetBinaryBufferAccessorRef := ModelAssetBinaryBufferAccessor rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

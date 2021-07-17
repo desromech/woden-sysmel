@@ -9,7 +9,7 @@ useNamespace: Woden Runtime.
 class ModelAssetSampler superclass: ModelAssetElement; definition: {
 }.
 
-compileTime constant ModelAssetSamplerPtr := ModelAssetSampler rcPointer.
+compileTime constant ModelAssetSamplerRef := ModelAssetSampler rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

@@ -8,24 +8,24 @@ useNamespace: Woden Runtime.
  *#
 class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
     public field index type: UIntPointer.
-    public field inputAccessor type: ModelAssetBinaryBufferAccessorPtr.
-    public field outputAccessor type: ModelAssetBinaryBufferAccessorPtr.
+    public field inputAccessor type: ModelAssetBinaryBufferAccessorRef.
+    public field outputAccessor type: ModelAssetBinaryBufferAccessorRef.
     public field interpolationMethod type: ModelAssetAnimationInterpolationMethod.
 
     method asAnimationCurve => AnimationCurveRef := {
-        Std assert: inputAccessor _ format componentCount = 1.
+        Std assert: inputAccessor format componentCount = 1.
 
-        let startTime := inputAccessor _ minValue x castTo: Float32.
-        let endTime := inputAccessor _ maxValue x castTo: Float32.
+        let startTime := inputAccessor minValue x castTo: Float32.
+        let endTime := inputAccessor maxValue x castTo: Float32.
 
-        outputAccessor _ format componentCount selectCase: #{
+        outputAccessor format componentCount selectCase: #{
         1 : {
             InterpolatedAnimationCurveFloat32 new
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
-                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32;
+                timeSamples: inputAccessor decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor decodeAsVectorOfFloat32;
                 upCastFor: AnimationCurve
         }.
         2 : {
@@ -33,8 +33,8 @@ class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
-                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x2;
+                timeSamples: inputAccessor decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor decodeAsVectorOfFloat32x2;
                 upCastFor: AnimationCurve
         }.
         3 : {
@@ -42,8 +42,8 @@ class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
-                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x3;
+                timeSamples: inputAccessor decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor decodeAsVectorOfFloat32x3;
                 upCastFor: AnimationCurve
         }.
         4 : {
@@ -51,15 +51,15 @@ class ModelAssetAnimationSampler superclass: Std RCObject; definition: {
                 startTime: startTime;
                 endTime: endTime;
                 interpolationMethod: interpolationMethod;
-                timeSamples: inputAccessor _ decodeAsVectorOfFloat32;
-                valueSamples: outputAccessor _ decodeAsVectorOfFloat32x4;
+                timeSamples: inputAccessor decodeAsVectorOfFloat32;
+                valueSamples: outputAccessor decodeAsVectorOfFloat32x4;
                 upCastFor: AnimationCurve
         }.
         }.
     }.
 }.
 
-compileTime constant ModelAssetAnimationSamplerPtr := ModelAssetAnimationSampler rcPointer.
+compileTime constant ModelAssetAnimationSamplerRef := ModelAssetAnimationSampler rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

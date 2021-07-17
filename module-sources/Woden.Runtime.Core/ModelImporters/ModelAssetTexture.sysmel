@@ -8,36 +8,36 @@ useNamespace: Std Graphics Core.
  * I am a texture in a model asset.
  *#
 class ModelAssetTexture superclass: ModelAssetElement; definition: {
-    public field image type: ModelAssetImagePtr.
-    public field sampler type: ModelAssetSamplerPtr.
+    public field image type: ModelAssetImageRef.
+    public field sampler type: ModelAssetSamplerRef.
 
     field textureWithView type: TextureWithViewRef.
 
     method setColorUsage => Void := {
         image ifNotNil: {
-            image _ usageMode: ModelAssetImageUsageMode Color
+            image usageMode: ModelAssetImageUsageMode Color
         }
     }.
 
     method setNormalUsage => Void := {
         image ifNotNil: {
-            image _ usageMode: ModelAssetImageUsageMode Normal
+            image usageMode: ModelAssetImageUsageMode Normal
         }
     }.
 
     method setLinearUsage => Void := {
         image ifNotNil: {
-            image _ usageMode: ModelAssetImageUsageMode Linear
+            image usageMode: ModelAssetImageUsageMode Linear
         }
     }.
 
     method asTextureWithViewFor: (engine: EngineRef const ref) ::=> TextureWithViewRef := {
         image ifNil: {return: TextureWithViewRef nil}.
 
-        let textureData := image _ asTextureDataFor: engine.
+        let textureData := image asTextureDataFor: engine.
         textureData ifNil: {return: TextureWithViewRef nil}.
 
-        let texture := image _ usageMode = ModelAssetImageUsageMode Color
+        let texture := image usageMode = ModelAssetImageUsageMode Color
             ifTrue: {engine renderingDevice createColorTextureWithData: textureData}
             ifFalse: {engine renderingDevice createTextureWithData: textureData}.
         texture ifNil: {return: TextureWithViewRef nil}.
@@ -46,7 +46,7 @@ class ModelAssetTexture superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetTexturePtr := ModelAssetTexture rcPointer.
+compileTime constant ModelAssetTextureRef := ModelAssetTexture rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

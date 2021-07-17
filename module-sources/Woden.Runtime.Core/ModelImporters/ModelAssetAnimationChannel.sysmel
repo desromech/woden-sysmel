@@ -7,26 +7,26 @@ useNamespace: Woden Runtime.
  * I am an animation channel
  *#
 class ModelAssetAnimationChannel superclass: Std RCObject; definition: {
-    public field sampler type: ModelAssetAnimationSamplerPtr.
-    public field targetNode type: ModelAssetNodePtr.
+    public field sampler type: ModelAssetAnimationSamplerRef.
+    public field targetNode type: ModelAssetNodeRef.
     public field targetProperty type: ModelAssetAnimationTargetProperty.
 
     method asAnimationChannel => AnimationChannelRef := {
-        targetNode _ isJoint ifFalse: {
+        targetNode isJoint ifFalse: {
             AnimationChannelWithCurve new
-                curveIndex: sampler _ index;
+                curveIndex: sampler index;
                 targetProperty: targetProperty;
                 upCastFor: AnimationChannel
         } ifTrue: {
             AnimationJointChannelWithCurve new
-                curveIndex: sampler _ index;
-                jointIndex: targetNode _ jointIndex;
+                curveIndex: sampler index;
+                jointIndex: targetNode jointIndex;
                 targetProperty: targetProperty;
                 upCastFor: AnimationChannel
         }.
     }
 }.
-compileTime constant ModelAssetAnimationChannelPtr := ModelAssetAnimationChannel rcPointer.
+compileTime constant ModelAssetAnimationChannelRef := ModelAssetAnimationChannel rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

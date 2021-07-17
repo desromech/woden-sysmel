@@ -9,10 +9,10 @@ useNamespace: Std Math LinearAlgebra.
  * I am a scene node in a model asset.
  *#
 class ModelAssetNode superclass: ModelAssetElement; definition: {
-    public field children type: Std Collections Vector(ModelAssetNode rcPointer).
-    public field mesh type: ModelAssetMeshPtr.
+    public field children type: Std Collections Vector(ModelAssetNode rcRef).
+    public field mesh type: ModelAssetMeshRef.
 
-    public field skeleton type: ModelAssetSkeleton rcPointer.
+    public field skeleton type: ModelAssetSkeleton rcRef.
 
     public field isJoint type: Boolean8.
     public field hasValidJointIndex type: Boolean8.
@@ -33,12 +33,12 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
     method asSceneNodeFor: (engine: EngineRef const ref) ::=> SceneNodeRef := {
         let node := SpatialObjectNode new.
         mesh ifNotNil: {
-            node renderable: (mesh _ asRenderableFor: engine).
+            node renderable: (mesh asRenderableFor: engine).
 
             skeleton ifNotNil: {
                 node renderable: (SkinnedRenderableMesh new
                     mesh: node renderable;
-                    skeleton: (skeleton _ asSkeleton);
+                    skeleton: skeleton asSkeleton;
                     createRestPose;
                     upCastFor: Renderable)
             }
@@ -46,7 +46,7 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
 
         node transform: transform.
         children do: {:each :: Void |
-            (each _ asSceneNodeFor: engine) ifNotNil: {:childNode :: Void |
+            (each asSceneNodeFor: engine) ifNotNil: {:childNode :: Void |
                 node addChild: childNode.
             }
         }.
@@ -55,7 +55,7 @@ class ModelAssetNode superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetNodePtr := ModelAssetNode rcPointer.
+compileTime constant ModelAssetNodeRef := ModelAssetNode rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden

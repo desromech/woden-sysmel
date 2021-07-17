@@ -11,13 +11,13 @@ useNamespace: Std Graphics Core.
 class ModelAssetImage superclass: ModelAssetElement; definition: {
     public field uri type: Std String.
     public field mimeType type: Std String.
-    public field bufferView type: ModelAssetBinaryBufferViewPtr.
+    public field bufferView type: ModelAssetBinaryBufferViewRef.
     public field usageMode type: ModelAssetImageUsageMode.
 
     method asTextureDataFromFileFor: (engine: EngineRef const ref) ::=> TextureDataRef := {
         uri ifEmpty: {return: TextureDataRef nil}.
 
-        let fileReference := self modelAsset _ parentFolder resolve: uri asNativeFileReference.
+        let fileReference := self modelAsset parentFolder resolve: uri asNativeFileReference.
         let solvedFileReference := engine resourceCache solveTextureFileReference: fileReference.
         TextureData readFromFileReference: solvedFileReference
     }.
@@ -25,7 +25,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     method asTextureDataFromBufferView ::=> TextureDataRef := {
         mimeType ifEmpty: {return: TextureDataRef nil}.
 
-        let memoryStream mutable := bufferView _ asFixedMemoryStream.
+        let memoryStream mutable := bufferView asFixedMemoryStream.
         TextureData readFromStream: memoryStream withMimeType: mimeType asArraySlice.
     }.
 
@@ -66,7 +66,7 @@ class ModelAssetImage superclass: ModelAssetElement; definition: {
     }.
 }.
 
-compileTime constant ModelAssetImagePtr := ModelAssetImage rcPointer.
+compileTime constant ModelAssetImageRef := ModelAssetImage rcRef.
 
 } ## End of namespace Assets
 } ## End of namespace Woden
