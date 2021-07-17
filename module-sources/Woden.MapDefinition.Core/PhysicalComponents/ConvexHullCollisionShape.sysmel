@@ -19,7 +19,7 @@ class ConvexHullCollisionShape superclass: CollisionShape; definition: {
         := boundingBox.
 }.
 
-compileTime constant ConvexHullCollisionShapePtr := ConvexHullCollisionShape rcPointer.
+compileTime constant ConvexHullCollisionShapeRef := ConvexHullCollisionShape rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

@@ -37,7 +37,7 @@ class CharacterMovementController superclass: AbstractRigidBodyMovementControlle
     }.
 }.
 
-compileTime constant CharacterMovementControllerPtr := CharacterMovementController rcPointer.
+compileTime constant CharacterMovementControllerRef := CharacterMovementController rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

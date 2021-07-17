@@ -6,7 +6,7 @@ useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
-    public field faces type: Std Collections Vector(PolyhedronFacePtr).
+    public field faces type: Std Collections Vector(PolyhedronFaceRef).
     public field vertices type: Std Collections Vector(Float32x3).
     field boundingBox type: BoxF32.
 
@@ -27,13 +27,13 @@ class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
 
     method computeVerticesFromPlanes ::=> Void := {
         0 until: faces size do: {:i :: Void |
-            let f1 ref := faces[i] _.
+            let f1 ref := faces[i].
             let p1 ref := f1 plane.
             i + 1 until: faces size do: {:j :: Void |
-                let f2 ref := faces[j] _.
+                let f2 ref := faces[j].
                 let p2 ref := f2 plane.
                 j + 1 until: faces size do: {:k :: Void |
-                    let f3 ref := faces[k] _.
+                    let f3 ref := faces[k].
                     let p3 ref := f3 plane.
                     let matrix := Float32x3x3(p1 normal, p2 normal, p3 normal) transpose.
                     (matrix determinant closeTo: 0) ifFalse: {
@@ -48,13 +48,13 @@ class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
         }.
 
         faces do: {:each :: Void |
-            each _ sortVerticesCounterClockwise
+            each sortVerticesCounterClockwise
         }
     }.
 
-    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+    override method setMaterial: (newMaterial: MaterialDefinitionRef const ref) ::=> Void := {
         faces do: {:each :: Void |
-            each _ setMaterial: newMaterial
+            each setMaterial: newMaterial
         }
     }.
 
@@ -68,7 +68,7 @@ class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
 
         let meshBuilder := engine newGenericMeshBuilder.
         faces do: {:each :: Void |
-            each _ buildMeshFor: engine with: meshBuilder parentTransform: parentTransform
+            each buildMeshFor: engine with: meshBuilder parentTransform: parentTransform
         }.
         meshBuilder computeTangentsBitangents.
 
@@ -82,7 +82,7 @@ class ConvexPolyhedronVisualComponent superclass: VisualComponent; definition: {
     }.
 }.
 
-compileTime constant ConvexPolyhedronVisualComponentPtr := ConvexPolyhedronVisualComponent rcPointer.
+compileTime constant ConvexPolyhedronVisualComponentRef := ConvexPolyhedronVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

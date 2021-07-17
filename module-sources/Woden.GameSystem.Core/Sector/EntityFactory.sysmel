@@ -3,7 +3,7 @@ namespace GameSystem definition: {
 
 class AbstractEntityFactory definition: {
     abstract method className => Char8 const arraySlice.
-    abstract method newInstance => EntityPtr.
+    abstract method newInstance => EntityRef.
 }.
 
 template EntityFactory(T: Type, CN: _LiteralString)
@@ -13,8 +13,8 @@ template EntityFactory(T: Type, CN: _LiteralString)
     override method className => Char8 const arraySlice
         := CN.
 
-    override method newInstance => EntityPtr
-        := EntityType rcNew upCastFor: Entity.
+    override method newInstance => EntityRef
+        := EntityType new upCastFor: Entity.
 
     method initialize => Void := {
         EntityRegistry uniqueInstance registerFactory: self address

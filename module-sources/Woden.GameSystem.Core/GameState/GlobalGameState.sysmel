@@ -8,12 +8,12 @@ useNamespace: Woden MapDefinition.
 class GlobalGameState superclass: Std RCObject; definition: {
     field engine type: EngineRef.
     field animationScheduler type: AnimationSchedulerRef.
-    field activeSector type: SectorPtr.
-    field player type: PlayerPtr.
+    field activeSector type: SectorRef.
+    field player type: PlayerRef.
     public field scene type: SceneRef.
     public field mainCamera type: CameraRef.
 
-    method player => PlayerPtr const ref
+    method player => PlayerRef const ref
         := player.
 
     method initializeWithEngine: (anEngine: EngineRef) ::=> Void := {
@@ -24,50 +24,51 @@ class GlobalGameState superclass: Std RCObject; definition: {
     method update: (delta: Float32) ::=> Void := {
         animationScheduler update: delta.
         activeSector ifNotNil: {
-            activeSector _ update: delta
+            activeSector update: delta
         }.
     }.
 
     virtual method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
         animationScheduler applyInterpolationForRendering: alpha.
         activeSector ifNotNil: {
-            activeSector _ applyInterpolationForRendering: alpha
+            activeSector applyInterpolationForRendering: alpha
         }.
     }.
 
-    method loadSectorFromDefinition: (sectorDefinition: SectorDefinitionPtr const ref) ::=> Void := {
-        let sector := Sector for: engine.
-        sector _ loadFromDefinition: sectorDefinition.
+    method loadSectorFromDefinition: (sectorDefinition: SectorDefinitionRef const ref) ::=> Void := {
+        let sector := (Sector for: engine)
+            loadFromDefinition: sectorDefinition;
+            yourself.
         self activateSector: sector
     }.
 
-    method activateSector: (sector: SectorPtr const ref) ::=> Void := {
-        activeSector ifNotNil: {activeSector _ deactivateAndRemoveFromScene}.
+    method activateSector: (sector: SectorRef const ref) ::=> Void := {
+        activeSector ifNotNil: {activeSector deactivateAndRemoveFromScene}.
         activeSector := sector.
-        activeSector _ activateAndAddToScene: scene.
+        activeSector activateAndAddToScene: scene.
     }.
 
     virtual method startNewGame => Void := {
         player := self spawnPlayer.
     }.
 
-    virtual method spawnPlayer => PlayerPtr := {
-        activeSector ifNil: {return: PlayerPtr nil}.
+    virtual method spawnPlayer => PlayerRef := {
+        activeSector ifNil: {return: PlayerRef nil}.
 
-        let startPosition := activeSector _ findPositionUsingMetadataEntityClassNamed: "PlayerStartPoint" default: Float32x3 zeros.
-        let newPlayer := self newPlayerEntity.
-        newPlayer _
+        let startPosition := activeSector findPositionUsingMetadataEntityClassNamed: "PlayerStartPoint" default: Float32x3 zeros.
+        let newPlayer := self newPlayerEntity
             position: startPosition;
-            postLoadInitialization.
-        activeSector _ spawnEntity: (newPlayer upCastFor: Entity).
+            postLoadInitialization;
+            yourself.
+        activeSector spawnEntity: (newPlayer upCastFor: Entity).
         newPlayer
     }.
 
-    virtual method newPlayerEntity => PlayerPtr
-        := Player rcNew.
+    virtual method newPlayerEntity => PlayerRef
+        := Player new.
 }.
 
-compileTime constant GlobalGameStatePtr := GlobalGameState rcPointer.
+compileTime constant GlobalGameStateRef := GlobalGameState rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

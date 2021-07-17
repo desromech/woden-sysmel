@@ -9,10 +9,10 @@ class Character superclass: Entity; definition: {
     compileTime constant HumanFallTerminalVelocity := 53.0.
 
     field hitPoints type: Float32.
-    field rigidBody type: RigidBodyPtr.
+    field rigidBody type: RigidBodyRef.
     field moveDirection type: Float32x3.
 
-    field characterMovementController type: CharacterMovementControllerPtr.
+    field characterMovementController type: CharacterMovementControllerRef.
 
     field headOrientation type: QuaternionF32.
     field turningAngularVelocity type: Float32x3.
@@ -25,7 +25,7 @@ class Character superclass: Entity; definition: {
         := "NPC".
 
     override method initialize => Void := {
-        characterMovementController := CharacterMovementController rcNew.
+        characterMovementController := CharacterMovementController new.
         headOrientation := QuaternionF32 identity.
         hitPoints := 100.
     }.
@@ -56,7 +56,7 @@ class Character superclass: Entity; definition: {
                 self orientation: lookRight
             }.
 
-            rigidBody _ angularVelocity: Float32x3 zeros.
+            rigidBody angularVelocity: Float32x3 zeros.
             headAngularVelocity := Float32x3 zeros.
             engineOrientation := QuaternionF32 identity.
             angularVelocity := Float32x3 zeros.
@@ -64,11 +64,11 @@ class Character superclass: Entity; definition: {
 
         headOrientation := (headOrientation + (QuaternionF32 xyz: headAngularVelocity*0.5f*delta) * headOrientation) normalized.
 
-        characterMovementController _ stepHeight: self stepHeight.
-        rigidBody _
+        characterMovementController stepHeight: self stepHeight.
+        rigidBody
             angularDamping: 0;
             angularVelocity: angularVelocity.
-        rigidBody _ engineAcceleration: ((moveDirection closeTo: 0)
+        rigidBody engineAcceleration: ((moveDirection closeTo: 0)
             ifTrue: {Float32x3 zeros}
             ifFalse: {engineOrientation rotateVector: moveDirection normalized * self internalEngineAcceleration}).
         super prePhysicsTick: delta.
@@ -119,21 +119,21 @@ class Character superclass: Entity; definition: {
         := 0.5f.
 
     virtual method buildCollisionObject => Void := {
-        rigidBody := RigidBody rcNew.
-        rigidBody _
-            ownerEntity: (self asRCPointer upCastFor: Entity);
+        rigidBody := RigidBody new
+            ownerEntity: (self asRCRef upCastFor: Entity);
             collisionShape: (CollisionShape boxWithHalfExtent: localBoundingBox halfExtent);
             coefficientOfRestitution: 0.2f;
             mass: self mass;
             movementController: (characterMovementController upCastFor: PhysicalMovementController);
-            makeCharacter.
+            makeCharacter;
+            yourself.
         collisionObject := rigidBody upCastFor: CollisionObject.
         self applyMovementParametersToRigidBody
     }.
 
     virtual method applyMovementParametersToRigidBody => Void := {
         let jumpGravity := self jumpGravity.
-        rigidBody _
+        rigidBody
             hasCustomGravity: true;
             gravity: jumpGravity;
             computeDampingForTerminalVelocity: (self terminalVelocity + self fallTerminalVelocity) withMaximumAcceleration: self internalEngineAcceleration + jumpGravity.
@@ -148,14 +148,14 @@ class Character superclass: Entity; definition: {
         physicalSector ifNil: {return: false}.
 
         collisionObject ifNil: {return: false}.
-        let boundingBox := collisionObject _ boundingBox.
+        let boundingBox := collisionObject boundingBox.
 
         let floorSensorHeight := 0.1f.
         let sensorPosition := boundingBox nearBottomLeft - Float32x3(0, floorSensorHeight, 0).
         let sensorExtent := Float32x3(boundingBox width, floorSensorHeight, boundingBox depth).
         physicalSector _
             isBox: (BoxF32 min: sensorPosition extent: sensorExtent)
-            belongingTo: collisionObject getPointer
+            belongingTo: collisionObject rcObjectAddress
             collidingWithGroup: CollisionGroup AllSolid
     }.
 
@@ -168,7 +168,7 @@ class Character superclass: Entity; definition: {
     }.
 
     virtual method doJump => Void := {
-        collisionObject _ linearVelocity: collisionObject _ linearVelocity + self jumpVelocity.
+        collisionObject linearVelocity: collisionObject linearVelocity + self jumpVelocity.
     }.
 }.
 

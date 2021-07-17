@@ -7,42 +7,39 @@ useNamespace: Woden Runtime.
 
 class VisualComponent superclass: EntityComponentDefinition; definition: {
     meta definition: {
-        static method rectangle: (rectangle: RectangleF32) ::=> VisualComponent rcPointer
-            := self rectangle: rectangle material: MaterialDefinitionPtr nil.
+        static method rectangle: (rectangle: RectangleF32) ::=> VisualComponent rcRef
+            := self rectangle: rectangle material: MaterialDefinitionRef nil.
 
-        static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent rcPointer
+        static method rectangle: (rectangle: RectangleF32) color: (color: Float32x4) ::=> VisualComponent rcRef
             := self rectangle: rectangle material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
-        static method rectangle: (rectangle: RectangleF32) material: (material: MaterialDefinitionPtr const ref)::=> VisualComponent rcPointer := {
-            let result := RectangleVisualComponent rcNew.
-            result _
+        static method rectangle: (rectangle: RectangleF32) material: (material: MaterialDefinitionRef const ref)::=> VisualComponent rcRef := {
+            RectangleVisualComponent new
                 rectangle: rectangle;
-                material: material.
-            result upCastFor: VisualComponent
+                material: material;
+                upCastFor: VisualComponent
         }.
 
-        static method box: (box: BoxF32) ::=> VisualComponent rcPointer
-            := self box: box material: MaterialDefinitionPtr nil.
+        static method box: (box: BoxF32) ::=> VisualComponent rcRef
+            := self box: box material: MaterialDefinitionRef nil.
 
-        static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent rcPointer
+        static method box: (box: BoxF32) color: (color: Float32x4) ::=> VisualComponent rcRef
             := self box: box material: (MetallicRoughnessMaterialDefinition baseColorFactor: color).
 
-        static method box: (box: BoxF32) material: (material: MaterialDefinitionPtr const ref) ::=> VisualComponent rcPointer := {
-            let result := BoxVisualComponent rcNew.
-            result _
+        static method box: (box: BoxF32) material: (material: MaterialDefinitionRef const ref) ::=> VisualComponent rcRef := {
+            BoxVisualComponent new
                 box: box;
-                material: material.
-            result upCastFor: VisualComponent
+                material: material;
+                upCastFor: VisualComponent
         }.
 
-        static method pointLightSourceWithColor: (color: Float32x3) intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> VisualComponent rcPointer := {
-            let result := PointLightSourceVisualComponent rcNew.
-            result _
+        static method pointLightSourceWithColor: (color: Float32x3) intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> VisualComponent rcRef := {
+            PointLightSourceVisualComponent new
                 color: color;
                 intensity: intensity;
                 radius: radius;
-                castShadows: castShadows.
-            result upCastFor: VisualComponent
+                castShadows: castShadows;
+                upCastFor: VisualComponent
         }.
     }.
 
@@ -60,11 +57,11 @@ class VisualComponent superclass: EntityComponentDefinition; definition: {
     method createSceneNodeFor: (engine: EngineRef) ::=> SceneNodeRef
         := self createSceneNodeFor: engine parentTransform: ReversibleAffineTransform3dF32 identity.
 
-    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcRef const ref) ::=> Void
         := {}.
 }.
 
-compileTime constant VisualComponentPtr := VisualComponent rcPointer.
+compileTime constant VisualComponentRe := VisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

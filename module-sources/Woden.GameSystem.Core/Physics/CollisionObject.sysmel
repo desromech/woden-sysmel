@@ -9,36 +9,33 @@ useNamespace: Std Math LinearAlgebra.
 
 class CollisionObject superclass: Std RCObject; definition: {
     meta definition: {
-        method staticRigidBodyFor: (collisionShape: CollisionShapePtr const ref) ::=> CollisionObject rcPointer := {
-            let body := RigidBody rcNew.
-            body _
+        method staticRigidBodyFor: (collisionShape: CollisionShapeRef const ref) ::=> CollisionObject rcRef := {
+            RigidBody new
                 collisionShape: collisionShape;
-                makeStatic.
-            body upCastFor: CollisionObject
+                makeStatic;
+                upCastFor: CollisionObject
         }.
 
-        method rigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject rcPointer := {
-            let body := RigidBody rcNew.
-            body _
+        method rigidBodyFor: (collisionShape: CollisionShapeRef const ref) mass: (mass: Float32) ::=> CollisionObject rcRef := {
+            RigidBody new
                 collisionShape: collisionShape;
                 mass: mass;
-                computeInertiaTensor.
-            body upCastFor: CollisionObject
+                computeInertiaTensor;
+                upCastFor: CollisionObject
         }.
 
-        method nonRotationalRigidBodyFor: (collisionShape: CollisionShapePtr const ref) mass: (mass: Float32) ::=> CollisionObject rcPointer := {
-            let body := RigidBody rcNew.
-            body _
+        method nonRotationalRigidBodyFor: (collisionShape: CollisionShapeRef const ref) mass: (mass: Float32) ::=> CollisionObject rcRef := {
+            RigidBody new
                 collisionShape: collisionShape;
-                mass: mass.
-            body upCastFor: CollisionObject
+                mass: mass;
+                upCastFor: CollisionObject
         }.
     }.
 
-    field physicalSector type: PhysicalSector weakRCPointer.
+    field physicalSector type: PhysicalSector weakRCRef.
     field motionState type: MotionState.
 
-    public field collisionShape type: CollisionShapePtr.
+    public field collisionShape type: CollisionShapeRef.
 
     field transform type: ReversibleAffineTransform3dF32.
     field transformChanged type: Boolean8.
@@ -49,9 +46,9 @@ class CollisionObject superclass: Std RCObject; definition: {
     public field collisionGroupFilter type: CollisionGroup.
     public field collisionObjectExclusionSet type: FixedVector(CollisionObject pointer, 10).
 
-    method addExcludedCollisionObject: (excluded: CollisionObjectPtr const ref) ::=> Void := {
+    method addExcludedCollisionObject: (excluded: CollisionObjectRef const ref) ::=> Void := {
         excluded ifNotNil: {:p :: Void |
-            collisionObjectExclusionSet add: p
+            collisionObjectExclusionSet add: p rcObjectAddress
         }
     }.
 
@@ -82,13 +79,13 @@ class CollisionObject superclass: Std RCObject; definition: {
         motionState linearVelocity: newVelocity
     }.
 
-    field ownerEntity type: Entity weakRCPointer.
+    field ownerEntity type: Entity weakRCRef.
 
-    inline method ownerEntity => Entity rcPointer
-        := ownerEntity lock.
+    inline method ownerEntity => Entity rcRef
+        := ownerEntity asRCRef.
 
-    inline method ownerEntity: (anEntity: Entity rcPointer const ref) ::=> Void := {
-        ownerEntity := anEntity
+    inline method ownerEntity: (anEntity: Entity rcRef const ref) ::=> Void := {
+        ownerEntity := anEntity asWeakRCRef
     }.
 
     inline method translateBy: (delta: Float32x3) ::=> Void := {
@@ -126,7 +123,7 @@ class CollisionObject superclass: Std RCObject; definition: {
 
     method boundingBox => BoxF32 := {
         boundingBoxChanged ifTrue: {
-            boundingBox := collisionShape _ boundingBox transformedWith: self transform.
+            boundingBox := collisionShape boundingBox transformedWith: self transform.
             boundingBoxChanged := false.
         }.
 
@@ -168,22 +165,22 @@ class CollisionObject superclass: Std RCObject; definition: {
         collisionGroupFilter := CollisionGroup None.
     }.
 
-    method physicalSector => PhysicalSector rcPointer
-        := physicalSector lock.
+    method physicalSector => PhysicalSector rcRef
+        := physicalSector asRCRef.
 
     method removeFromPhysicalSector => Void := {
         let sector := self physicalSector.
         sector ifNotNil:{
-            sector _ removeCollisionObject: self asRCPointer
+            sector removeCollisionObject: self asRCRef
         }
     }.
 
     virtual method addedToPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
-        physicalSector := sector asWeakRCPointer
+        physicalSector := sector asWeakRCRef
     }.
 
     virtual method removedFromPhysicalSector: (sector: PhysicalSector ref) ::=> Void := {
-        physicalSector reset
+        physicalSector := nil
     }.
 
     virtual method isRigidBody => Boolean8
@@ -193,8 +190,8 @@ class CollisionObject superclass: Std RCObject; definition: {
     virtual method simulateMovementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {}.
 }.
 
-compileTime constant CollisionObjectPtr := CollisionObject rcPointer.
-compileTime constant CollisionObjects := Std Collections Vector(CollisionObjectPtr).
+compileTime constant CollisionObjectRef := CollisionObject rcRef.
+compileTime constant CollisionObjects := Std Collections Vector(CollisionObjectRef).
 
 }. ## namespace GameSystem
 }. ## namespace Woden

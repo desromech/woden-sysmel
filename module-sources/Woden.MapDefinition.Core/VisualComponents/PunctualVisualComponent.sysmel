@@ -11,7 +11,7 @@ class PunctualVisualComponent superclass: VisualComponent; definition: {
     override method isPunctualVisualComponent => Boolean8 := true.
 }.
 
-compileTime constant PunctualVisualComponentPtr := PunctualVisualComponent rcPointer.
+compileTime constant PunctualVisualComponentRef := PunctualVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

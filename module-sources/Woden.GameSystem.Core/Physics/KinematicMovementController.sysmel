@@ -9,7 +9,7 @@ class KinematicMovementController superclass: PhysicalMovementController; defini
     }.
 }.
 
-compileTime constant KinematicMovementControllerPtr := KinematicMovementController rcPointer.
+compileTime constant KinematicMovementControllerRef := KinematicMovementController rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

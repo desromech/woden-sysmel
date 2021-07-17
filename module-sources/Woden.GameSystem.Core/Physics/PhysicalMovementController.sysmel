@@ -14,7 +14,7 @@ class PhysicalMovementController superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant PhysicalMovementControllerPtr := PhysicalMovementController rcPointer.
+compileTime constant PhysicalMovementControllerRef := PhysicalMovementController rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

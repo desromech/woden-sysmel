@@ -4,7 +4,7 @@ namespace MapDefinition definition: {
 useNamespace: Std Math Geometry.
 
 class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
-    public field entities type: Std Collections Vector(EntityDefinitionPtr).
+    public field entities type: Std Collections Vector(EntityDefinitionRef).
     public field layerMinZ type: Float32.
     public field layerMaxZ type: Float32.
 
@@ -27,63 +27,57 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         layerMaxZ := thickness * 0.5f.
     }.
 
-    method addEntity: (entity: EntityDefinitionPtr const ref) ::=> Void := {
+    method addEntity: (entity: EntityDefinitionRef const ref) ::=> Void := {
         entities add: entity.
     }.
 
     method addPlayerStartPoint: (position: Float32x2) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             is2DEntity: true;
             className: "PlayerStartPoint";
-            position: Float32x3(position, 0.0f).
-        entities add: definition
+            position: Float32x3(position, 0.0f);
+            yourself).
     }.
 
     method addPlayerStartPoint: (position: Float32x3) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             className: "PlayerStartPoint";
-            position: position.
-        entities add: definition
+            position: position;
+            yourself).
     }.
 
     method addEnemyAt: (position: Float32x2) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             is2DEntity: true;
             className: "Enemy";
-            position: Float32x3(position, 0.0f).
-        entities add: definition
+            position: Float32x3(position, 0.0f);
+            yourself).
     }.
 
     method addEnemyAt: (position: Float32x3) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             className: "Enemy";
-            position: position.
-        entities add: definition
+            position: position;
+            yourself)
     }.
 
     method addPointLightAt: (position: Float32x2) color: (color: Float32x3)
         intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             is2DEntity: true;
             className: "PointLight";
             addVisualComponent: (VisualComponent pointLightSourceWithColor: color intensity: intensity radius: radius castShadows: castShadows);
-            position: Float32x3(position, 0.0f).
-        entities add: definition
+            position: Float32x3(position, 0.0f);
+            yourself)
     }.
 
     method addPointLightAt: (position: Float32x3) color: (color: Float32x3)
         intensity: (intensity: Float32) radius: (radius: Float32) castShadows: (castShadows: Boolean8) ::=> Void := {
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             className: "PointLight";
             addVisualComponent: (VisualComponent pointLightSourceWithColor: color intensity: intensity radius: radius castShadows: castShadows);
-            position: position.
-        entities add: definition
+            position: position;
+            yourself)
     }.
 
     method createWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
@@ -91,15 +85,14 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingRectangle center.
 
         let localRectangle := boundingRectangle translatedBy: center negated.
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             is2DEntity: true;
             className: "Wall";
             position: Float32x3(center, 0);
             localBoundingRectangle: localRectangle;
             addVisualComponent: (VisualComponent rectangle: localRectangle color: color);
-            addCollisionShape: (CollisionShape rectangleWithHalfExtent: localRectangle halfExtent).
-        entities add: definition
+            addCollisionShape: (CollisionShape rectangleWithHalfExtent: localRectangle halfExtent);
+            yourself)
     }.
 
     method createWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
@@ -107,14 +100,13 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingBox center.
 
         let localBox := boundingBox translatedBy: center negated.
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             className: "Wall";
             position: center;
             localBoundingBox: localBox;
             addVisualComponent: (VisualComponent box: localBox color: color);
-            addCollisionShape: (CollisionShape boxWithHalfExtent: localBox halfExtent).
-        entities add: definition
+            addCollisionShape: (CollisionShape boxWithHalfExtent: localBox halfExtent);
+            yourself)
     }.
 
     method createNonSolidWallMin: (min: Float32x2) max: (max: Float32x2) color: (color: Float32x4) ::=> Void := {
@@ -122,14 +114,13 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingRectangle center.
 
         let localRectangle := boundingRectangle translatedBy: center negated.
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             is2DEntity: true;
             className: "Wall";
             position: Float32x3(center, 0);
             localBoundingRectangle: localRectangle;
-            addVisualComponent: (VisualComponent rectangle: localRectangle color: color).
-        entities add: definition
+            addVisualComponent: (VisualComponent rectangle: localRectangle color: color);
+            yourself)
     }.
 
     method createNonSolidWallMin: (min: Float32x3) max: (max: Float32x3) color: (color: Float32x4) ::=> Void := {
@@ -137,17 +128,16 @@ class SectorLayerDefinition superclass: LevelElementDefinition; definition: {
         let center := boundingBox center.
 
         let localBox := boundingBox translatedBy: center negated.
-        let definition := EntityDefinition rcNew.
-        definition _
+        self addEntity: (EntityDefinition new
             className: "Wall";
             position: center;
             localBoundingBox: localBox;
-            addVisualComponent: (VisualComponent box: localBox color: color).
-        entities add: definition
+            addVisualComponent: (VisualComponent box: localBox color: color);
+            yourself)
     }.
 }.
 
-compileTime constant SectorLayerDefinitionPtr := SectorLayerDefinition rcPointer.
+compileTime constant SectorLayerDefinitionRef := SectorLayerDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

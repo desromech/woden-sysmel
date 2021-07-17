@@ -26,7 +26,7 @@ class MeshWithExtraDeformationRenderable superclass: DeformableRenderable; defin
     }.
 }.
 
-compileTime constant MeshWithExtraDeformationRenderablePtr := MeshWithExtraDeformationRenderable rcPointer.
+compileTime constant MeshWithExtraDeformationRenderableRef := MeshWithExtraDeformationRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden

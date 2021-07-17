@@ -9,21 +9,18 @@ class Sector superclass: Std RCObject; definition: {
     field scene type: SceneRef.
 
     field isSector2D type: Boolean8.
-    field physicalSector type: PhysicalSectorPtr.
+    field physicalSector type: PhysicalSectorRef.
     field metadataEntities type: Entities.
     field physicalEntities type: Entities.
     field aliveEntities type: Entities.
     field tickingEntities type: Entities.
 
     meta definition: {
-        method for: (engine: EngineRef const ref) ::=> SectorPtr := {
-            let result := Sector rcNew.
-            result _ initializeWithEngine: engine.
-            result
-        }
+        method for: (engine: EngineRef const ref) ::=> SectorRef
+            := Sector new initializeWithEngine: engine; yourself.
     }.
 
-    inline method physicalSector => PhysicalSectorPtr const ref
+    inline method physicalSector => PhysicalSectorRef const ref
         := physicalSector.
 
     inline method engine => EngineRef const ref
@@ -32,52 +29,52 @@ class Sector superclass: Std RCObject; definition: {
     const inline method isSector2D => Boolean8
         := isSector2D.
 
-    method loadFromDefinition: (definition: SectorDefinitionPtr const ref) ::=> Void := {
-        isSector2D := definition _ isSector2D.
-        physicalSector := PhysicalSector rcNew.
-        physicalSector _
-            gravity: Float32x3(0, -9.8f, 0).
+    method loadFromDefinition: (definition: SectorDefinitionRef const ref) ::=> Void := {
+        isSector2D := definition isSector2D.
+        physicalSector := PhysicalSector new
+            gravity: Float32x3(0, -9.8f, 0);
+            yourself.
 
-        definition _ layers do: {:eachLayer :: Void |
-            eachLayer _ entities do: {:eachEntity :: Void |
+        definition layers do: {:eachLayer :: Void |
+            eachLayer entities do: {:eachEntity :: Void |
                 self loadEntityDefinition: eachEntity fromLayer: eachLayer
             }.
         }
     }.
 
-    method loadEntityDefinition: (definition: EntityDefinitionPtr const ref) fromLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
-        let entity := EntityRegistry uniqueInstance createEntityWithClassName: definition _ className.
+    method loadEntityDefinition: (definition: EntityDefinitionRef const ref) fromLayer: (layerDefinition: SectorLayerDefinitionRef const ref) ::=> Void := {
+        let entity := EntityRegistry uniqueInstance createEntityWithClassName: definition className.
         entity ifNil: {return: void}.
-        entity _
+        entity
             parentSector: self address;
             loadFromDefinition: definition fromLayer: layerDefinition;
             postLoadInitialization.
         self spawnEntity: entity.
     }.
 
-    method spawnEntity: (entity: EntityPtr const ref) ::=> Void := {
-        entity _
+    method spawnEntity: (entity: EntityRef const ref) ::=> Void := {
+        entity
             parentSector: self address;
             spawn;
             storeOldRenderingStateForInterpolation.
-        entity _ isMetadata ifTrue: {
+        entity isMetadata ifTrue: {
             metadataEntities add: entity.
         }.
 
-        entity _ isAlive ifFalse: {return: void}.
+        entity isAlive ifFalse: {return: void}.
 
         aliveEntities add: entity.
-        entity _ collisionObject ifNotNil: {
+        entity collisionObject ifNotNil: {
             physicalEntities add: entity.
-            physicalSector _ addCollisionObject: entity _ collisionObject.
+            physicalSector addCollisionObject: entity collisionObject.
         }.
 
-        entity _ needsTicking ifTrue: {
+        entity needsTicking ifTrue: {
             tickingEntities add: entity
         }.
 
         scene ifNotNil: {
-            entity _
+            entity
                 applyInterpolationForRendering: 0;
                 addToScene: scene
         }.
@@ -89,7 +86,7 @@ class Sector superclass: Std RCObject; definition: {
 
     method deactivateAndRemoveFromScene ::=> Void := {
         aliveEntities do: {:each :: Void |
-            each _ removeFromScene
+            each removeFromScene
         }.
 
         scene := nil.
@@ -100,76 +97,76 @@ class Sector superclass: Std RCObject; definition: {
         scene := newScene.
 
         aliveEntities do: {:each :: Void |
-            each _ addToScene: scene
+            each addToScene: scene
         }.
     }.
 
     method update: (delta: Float32) ::=> Void := {
         ## Store the old rendering state.
         aliveEntities do: {:each :: Void |
-            each _ storeOldRenderingStateForInterpolation.
+            each storeOldRenderingStateForInterpolation.
         }.
 
         ## Physics
         {
             physicalEntities do: {:each :: Void |
-                each _ prePhysicsTick: delta
+                each prePhysicsTick: delta
             }.
 
-            physicalSector _ update: delta.
+            physicalSector update: delta.
 
             physicalEntities do: {:each :: Void |
-                each _ postPhysicsTick: delta
+                each postPhysicsTick: delta
             }.
         }.
 
         ## Non phyical related ticking.
         {
             tickingEntities do: {:each :: Void |
-                each _ needsTicking ifTrue: {
-                    each _ tick: delta.
+                each needsTicking ifTrue: {
+                    each tick: delta.
                 }.
             }.
 
-            tickingEntities removeAllSuchThat: {:each | each _ isAlive not || each _ needsTicking not}.
+            tickingEntities removeAllSuchThat: {:each | each isAlive not || each needsTicking not}.
         }.
 
         {
             aliveEntities removeAllSuchThat: {:each |
-                let shouldRemove := each _ isAlive not.
+                let shouldRemove := each isAlive not.
                 shouldRemove ifTrue: {
-                    each _ destroyed
+                    each destroyed
                 }.
                 shouldRemove
             }.
-            physicalEntities removeAllSuchThat: {:each | each _ isAlive not}.
+            physicalEntities removeAllSuchThat: {:each | each isAlive not}.
         }.
     }.
 
     method applyInterpolationForRendering: (alpha: Float32) ::=> Void := {
         aliveEntities do: {:each :: Void |
-            each _ isAlive ifTrue: {
-                each _ applyInterpolationForRendering: alpha.
+            each isAlive ifTrue: {
+                each applyInterpolationForRendering: alpha.
             }
         }.
     }.
 
-    method findMetadataEntityWithClassName: (className: Char8 const arraySlice) ::=> EntityPtr := {
+    method findMetadataEntityWithClassName: (className: Char8 const arraySlice) ::=> EntityRef := {
         metadataEntities do: {:each :: Void |
-            each _ className asArraySlice = className ifTrue: {return: each}
+            each className asArraySlice = className ifTrue: {return: each}
         }.
-        EntityPtr nil
+        EntityRef nil
     }.
 
     method findPositionUsingMetadataEntityClassNamed: (className: Char8 const arraySlice) default: (defaultPosition: Float32x3) ::=> Float32x3 := {
         let metadataEntity := self findMetadataEntityWithClassName: className.
         metadataEntity
             ifNil: {defaultPosition}
-            ifNotNil: {metadataEntity _ position}
+            ifNotNil: {metadataEntity position}
     }.
 }.
 
-compileTime constant SectorPtr := Sector rcPointer.
+compileTime constant SectorRef := Sector rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

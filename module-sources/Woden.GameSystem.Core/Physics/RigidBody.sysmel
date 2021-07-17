@@ -13,7 +13,7 @@ class RigidBody superclass: CollisionObject; definition: {
     public field engineAcceleration type: Float32x3.
     public field engineAngularAcceleration type: Float32x3.
 
-    public field movementController type: PhysicalMovementControllerPtr.
+    public field movementController type: PhysicalMovementControllerRef.
 
     field mass type: Float32.
     field massReciprocal type: Float32.
@@ -67,13 +67,13 @@ class RigidBody superclass: CollisionObject; definition: {
 
     override method simulateImpulsesInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
         movementController ifNotNil: {
-            movementController _ simulateRigidBody: self impulsesInSector: sector withDelta: delta
+            movementController simulateRigidBody: self impulsesInSector: sector withDelta: delta
         }.
     }.
 
     override method simulateMovementInSector: (sector: PhysicalSector ref) withDelta: (delta: Float32) ::=> Void := {
         movementController ifNotNil: {
-            movementController _ simulateRigidBody: self movementInSector: sector withDelta: delta
+            movementController simulateRigidBody: self movementInSector: sector withDelta: delta
         }.
     }.
 
@@ -86,7 +86,7 @@ class RigidBody superclass: CollisionObject; definition: {
     }.
 }.
 
-compileTime constant RigidBodyPtr := RigidBody rcPointer.
+compileTime constant RigidBodyRef := RigidBody rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

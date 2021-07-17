@@ -7,15 +7,15 @@ class RectangleCollisionShape superclass: CollisionShape; definition: {
     public field halfExtent type: Float32x2.
     public field halfThickness type: Float32.
 
-    override method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void := {
-        halfThickness := layerDefinition _ defaultThickness * 0.5f.
+    override method setupForLayer: (layerDefinition: SectorLayerDefinition rcRef const ref) ::=> Void := {
+        halfThickness := layerDefinition defaultThickness * 0.5f.
     }.
 
     override method boundingBox => BoxF32
         := BoxF32 center: 0 halfExtent: Float32x3(halfExtent, halfThickness).
 }.
 
-compileTime constant RectangleCollisionShapePtr := RectangleCollisionShape rcPointer.
+compileTime constant RectangleCollisionShapeRef := RectangleCollisionShape rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

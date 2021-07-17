@@ -31,7 +31,7 @@ class LightSourceVisualComponent superclass: PunctualVisualComponent; definition
     }.
 }.
 
-compileTime constant LightSourceVisualComponentPtr := LightSourceVisualComponent rcPointer.
+compileTime constant LightSourceVisualComponentRef := LightSourceVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

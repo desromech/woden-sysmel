@@ -8,7 +8,7 @@ useNamespace: Woden Runtime.
 class PolygonFaceAttributes superclass: LevelElementDefinition; definition: {
     public field materialAttributes type: FaceMaterialAttributes.
 
-    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+    override method setMaterial: (newMaterial: MaterialDefinitionRef const ref) ::=> Void := {
         materialAttributes material: newMaterial
     }.
 

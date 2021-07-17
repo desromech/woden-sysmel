@@ -6,29 +6,27 @@ useNamespace: Woden Runtime.
 
 class CollisionShape superclass: EntityComponentDefinition; definition: {
     meta definition: {
-        static method boxWithHalfExtent: (halfExtent: Float32x3) ::=> CollisionShape rcPointer := {
-            let result := BoxCollisionShape rcNew.
-            result _ halfExtent: halfExtent.
-            result upCastFor: CollisionShape
-        }.
+        static method boxWithHalfExtent: (halfExtent: Float32x3) ::=> CollisionShape rcRef
+            :=  BoxCollisionShape new
+                    halfExtent: halfExtent;
+                    upCastFor: CollisionShape.
 
-        static method rectangleWithHalfExtent: (halfExtent: Float32x2) ::=> CollisionShape rcPointer := {
-            let result := RectangleCollisionShape rcNew.
-            result _ halfExtent: halfExtent.
-            result upCastFor: CollisionShape
-        }.
+        static method rectangleWithHalfExtent: (halfExtent: Float32x2) ::=> CollisionShape rcRef
+            := RectangleCollisionShape new
+                halfExtent: halfExtent;
+                upCastFor: CollisionShape.
     }.
 
     override method isCollisionShape => Boolean8 := true.
 
-    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void
+    virtual method setupForLayer: (layerDefinition: SectorLayerDefinition rcRef const ref) ::=> Void
         := {}.
 
     virtual method boundingBox => BoxF32
         := BoxF32 empty.
 }.
 
-compileTime constant CollisionShapePtr := CollisionShape rcPointer.
+compileTime constant CollisionShapeRef := CollisionShape rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

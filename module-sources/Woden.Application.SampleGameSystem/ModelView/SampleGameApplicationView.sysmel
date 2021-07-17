@@ -29,7 +29,7 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
                 transform orthonormal: self cameraOrientation.
                 camera transform: transform.
             } ifFalse: {
-                camera transform: player _ renderCameraTransform.
+                camera transform: player renderCameraTransform.
             }.
         }.
 
@@ -84,18 +84,18 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     		}
         } ifFalse: {
             event symbol selectCase: #{
-    		KeySymbol A : {player _ onInputAction: "moveLeft" buttonState: true}.
-    		KeySymbol D : {player _ onInputAction: "moveRight" buttonState: true}.
-    		KeySymbol W : {player _ onInputAction: "moveForward" buttonState: true}.
-            KeySymbol S : {player _ onInputAction: "moveBackward" buttonState: true}.
-            KeySymbol Left : {player _ onInputAction: "lookLeft" buttonState: true}.
-    		KeySymbol Right : {player _ onInputAction: "lookRight" buttonState: true}.
-    		KeySymbol Down : {player _ onInputAction: "lookDown" buttonState: true}.
-            KeySymbol Up : {player _ onInputAction: "lookUp" buttonState: true}.
-            KeySymbol Q : {player _ onInputAction: "shoot" buttonState: true}.
-    		KeySymbol Space : {player _ onInputAction: "jump" buttonState: true}.
-    		KeySymbol LShift : {player _ onInputAction: "dash" buttonState: true}.
-            KeySymbol Tab : {player _ onInputAction: "toggleFirstPerson" buttonState: true}.
+    		KeySymbol A : {player onInputAction: "moveLeft" buttonState: true}.
+    		KeySymbol D : {player onInputAction: "moveRight" buttonState: true}.
+    		KeySymbol W : {player onInputAction: "moveForward" buttonState: true}.
+            KeySymbol S : {player onInputAction: "moveBackward" buttonState: true}.
+            KeySymbol Left : {player onInputAction: "lookLeft" buttonState: true}.
+    		KeySymbol Right : {player onInputAction: "lookRight" buttonState: true}.
+    		KeySymbol Down : {player onInputAction: "lookDown" buttonState: true}.
+            KeySymbol Up : {player onInputAction: "lookUp" buttonState: true}.
+            KeySymbol Q : {player onInputAction: "shoot" buttonState: true}.
+    		KeySymbol Space : {player onInputAction: "jump" buttonState: true}.
+    		KeySymbol LShift : {player onInputAction: "dash" buttonState: true}.
+            KeySymbol Tab : {player onInputAction: "toggleFirstPerson" buttonState: true}.
             _ : {}.
             }
 
@@ -125,18 +125,18 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     		}
         } ifFalse: {
             event symbol selectCase: #{
-            KeySymbol A : {player _ onInputAction: "moveLeft" buttonState: false}.
-    		KeySymbol D : {player _ onInputAction: "moveRight" buttonState: false}.
-    		KeySymbol W : {player _ onInputAction: "moveForward" buttonState: false}.
-            KeySymbol S : {player _ onInputAction: "moveBackward" buttonState: false}.
-            KeySymbol Left : {player _ onInputAction: "lookLeft" buttonState: false}.
-    		KeySymbol Right : {player _ onInputAction: "lookRight" buttonState: false}.
-    		KeySymbol Down : {player _ onInputAction: "lookDown" buttonState: false}.
-            KeySymbol Up : {player _ onInputAction: "lookUp" buttonState: false}.
-            KeySymbol Q : {player _ onInputAction: "shoot" buttonState: false}.
-    		KeySymbol Space : {player _ onInputAction: "jump" buttonState: false}.
-    		KeySymbol LShift : {player _ onInputAction: "dash" buttonState: false}.
-            KeySymbol Tab : {player _ onInputAction: "toggleFirstPerson" buttonState: false}.
+            KeySymbol A : {player onInputAction: "moveLeft" buttonState: false}.
+    		KeySymbol D : {player onInputAction: "moveRight" buttonState: false}.
+    		KeySymbol W : {player onInputAction: "moveForward" buttonState: false}.
+            KeySymbol S : {player onInputAction: "moveBackward" buttonState: false}.
+            KeySymbol Left : {player onInputAction: "lookLeft" buttonState: false}.
+    		KeySymbol Right : {player onInputAction: "lookRight" buttonState: false}.
+    		KeySymbol Down : {player onInputAction: "lookDown" buttonState: false}.
+            KeySymbol Up : {player onInputAction: "lookUp" buttonState: false}.
+            KeySymbol Q : {player onInputAction: "shoot" buttonState: false}.
+    		KeySymbol Space : {player onInputAction: "jump" buttonState: false}.
+    		KeySymbol LShift : {player onInputAction: "dash" buttonState: false}.
+            KeySymbol Tab : {player onInputAction: "toggleFirstPerson" buttonState: false}.
 
 
             _ : {}.
@@ -168,14 +168,14 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     		}.
         } ifFalse: {
             event button selectCase: #{
-    		GameControllerButton DPadLeft : {player _ onInputAction: "moveLeft" buttonState: true}.
-    		GameControllerButton DPadRight : {player _ onInputAction: "moveRight" buttonState: true}.
-    		GameControllerButton DPadUp : {player _ onInputAction: "moveForward" buttonState: true}.
-            GameControllerButton DPadDown : {player _ onInputAction: "moveBackward" buttonState: true}.
-            GameControllerButton ButtonLeft : {player _ onInputAction: "shoot" buttonState: true}.
-    		GameControllerButton ButtonDown : {player _ onInputAction: "jump" buttonState: true}.
-            GameControllerButton ButtonUp : {player _ onInputAction: "toggleFirstPerson" buttonState: true}.
-    		GameControllerButton RightShoulder : {player _ onInputAction: "dash" buttonState: true}.
+    		GameControllerButton DPadLeft : {player onInputAction: "moveLeft" buttonState: true}.
+    		GameControllerButton DPadRight : {player onInputAction: "moveRight" buttonState: true}.
+    		GameControllerButton DPadUp : {player onInputAction: "moveForward" buttonState: true}.
+            GameControllerButton DPadDown : {player onInputAction: "moveBackward" buttonState: true}.
+            GameControllerButton ButtonLeft : {player onInputAction: "shoot" buttonState: true}.
+    		GameControllerButton ButtonDown : {player onInputAction: "jump" buttonState: true}.
+            GameControllerButton ButtonUp : {player onInputAction: "toggleFirstPerson" buttonState: true}.
+    		GameControllerButton RightShoulder : {player onInputAction: "dash" buttonState: true}.
             _ : {}.
             }.
         }
@@ -198,14 +198,14 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     		}.
         } ifFalse: {
             event button selectCase: #{
-    		GameControllerButton DPadLeft : {player _ onInputAction: "moveLeft" buttonState: false}.
-    		GameControllerButton DPadRight : {player _ onInputAction: "moveRight" buttonState: false}.
-    		GameControllerButton DPadUp : {player _ onInputAction: "moveForward" buttonState: false}.
-            GameControllerButton DPadDown : {player _ onInputAction: "moveBackward" buttonState: false}.
-            GameControllerButton ButtonLeft : {player _ onInputAction: "shoot" buttonState: false}.
-    		GameControllerButton ButtonDown : {player _ onInputAction: "jump" buttonState: false}.
-            GameControllerButton ButtonUp : {player _ onInputAction: "toggleFirstPerson" buttonState: false}.
-    		GameControllerButton RightShoulder : {player _ onInputAction: "dash" buttonState: false}.
+    		GameControllerButton DPadLeft : {player onInputAction: "moveLeft" buttonState: false}.
+    		GameControllerButton DPadRight : {player onInputAction: "moveRight" buttonState: false}.
+    		GameControllerButton DPadUp : {player onInputAction: "moveForward" buttonState: false}.
+            GameControllerButton DPadDown : {player onInputAction: "moveBackward" buttonState: false}.
+            GameControllerButton ButtonLeft : {player onInputAction: "shoot" buttonState: false}.
+    		GameControllerButton ButtonDown : {player onInputAction: "jump" buttonState: false}.
+            GameControllerButton ButtonUp : {player onInputAction: "toggleFirstPerson" buttonState: false}.
+    		GameControllerButton RightShoulder : {player onInputAction: "dash" buttonState: false}.
             _ : {}.
             }.
         }.
@@ -225,10 +225,10 @@ class SampleGameApplicationView superclass: GameApplicationView; definition: {
     		}.
         } ifFalse: {
         event axis selectCase: #{
-            GameControllerAxis LeftX : {player _ onInputAction: "moveRight" axisState: event value}.
-            GameControllerAxis LeftY : {player _ onInputAction: "moveForward" axisState: event value negated}.
-            GameControllerAxis RightX : {player _ onInputAction: "lookRight" axisState: event value}.
-            GameControllerAxis RightY : {player _ onInputAction: "lookUp" axisState: event value negated}.
+            GameControllerAxis LeftX : {player onInputAction: "moveRight" axisState: event value}.
+            GameControllerAxis LeftY : {player onInputAction: "moveForward" axisState: event value negated}.
+            GameControllerAxis RightX : {player onInputAction: "lookRight" axisState: event value}.
+            GameControllerAxis RightY : {player onInputAction: "lookUp" axisState: event value negated}.
             _ : {}.
             }.
         }.

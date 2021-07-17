@@ -11,24 +11,20 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     public field vertices type: Std Collections Vector(Float32x3).
 
     meta definition: {
-        static method plane: (plane: PlaneF32 const ref) ::=> PolyhedronFace rcPointer := {
-            let result := InstanceType rcNew.
-            result _
-                plane: plane.
-            result
-        }
+        static method plane: (plane: PlaneF32 const ref) ::=> PolyhedronFace rcRef
+            := InstanceType new plane: plane; yourself.
     }.
 
     override method isPolyhedronFace => Boolean8
         := true.
 
-    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+    override method setMaterial: (newMaterial: MaterialDefinitionRef const ref) ::=> Void := {
         materialAttributes material: newMaterial
     }.
 
     method buildMeshFor: (engine: EngineRef) with: (meshBuilder: GenericMeshBuilderRef const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         materialAttributes material ifNotNil: {
-            meshBuilder currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine)
+            meshBuilder currentMaterial: (materialAttributes material getOrCreateMaterialFor: engine)
         }.
 
     	let normalAxis := meshBuilder computeNormalAxis: plane normal.
@@ -67,7 +63,7 @@ class PolyhedronFace superclass: LevelElementDefinition; definition: {
     }.
 }.
 
-compileTime constant PolyhedronFacePtr := PolyhedronFace rcPointer.
+compileTime constant PolyhedronFaceRef := PolyhedronFace rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

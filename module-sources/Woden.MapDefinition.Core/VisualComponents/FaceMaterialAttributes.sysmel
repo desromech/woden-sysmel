@@ -6,7 +6,7 @@ useNamespace: Std Math LinearAlgebra.
 useNamespace: Woden Runtime.
 
 struct FaceMaterialAttributes definition: {
-    public field material type: MaterialDefinitionPtr.
+    public field material type: MaterialDefinitionRef.
     public field scale type: Float32x2.
     public field offset type: Float32x2.
     public field rotation type: Float32.

@@ -12,9 +12,10 @@ class Wall superclass: Entity; definition: {
     override method isMapIntrinsic => Boolean8
         := true.
 
-    override method buildCollisionObjectWithShape: (collisionShape: CollisionShapePtr const ref) ::=> Void := {
-        collisionObject := CollisionObject staticRigidBodyFor: collisionShape.
-        collisionObject _ ownerEntity: (self asRCPointer upCastFor: Entity)
+    override method buildCollisionObjectWithShape: (collisionShape: CollisionShapeRef const ref) ::=> Void := {
+        collisionObject := (CollisionObject staticRigidBodyFor: collisionShape)
+            ownerEntity: (self asRCRef upCastFor: Entity);
+            yourself
     }.
 }.
 

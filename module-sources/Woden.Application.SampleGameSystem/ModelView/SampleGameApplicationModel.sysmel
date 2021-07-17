@@ -5,8 +5,8 @@ useNamespace: Woden Runtime.
 useNamespace: Woden Application.
 
 class SampleGameApplicationModel superclass: GameApplicationModel; definition: {
-    override method newGlobalGameState => GlobalGameStatePtr
-        := SampleGlobalGameState rcNew upCastFor: GlobalGameState.
+    override method newGlobalGameState => GlobalGameStateRef
+        := SampleGlobalGameState new upCastFor: GlobalGameState.
 
     override method createNewView => ViewRef
         := SampleGameApplicationView new upCastFor: View.

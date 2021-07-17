@@ -16,7 +16,7 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
     override method boundingRectangle => RectangleF32
         := boundingRectangle.
 
-    override method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {
+    override method setMaterial: (newMaterial: MaterialDefinitionRef const ref) ::=> Void := {
         topFaceAttributes setMaterial: newMaterial.
         bottomFaceAttributes setMaterial: newMaterial.
         sideFaceAttributes setMaterial: newMaterial.
@@ -49,8 +49,8 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
     method generateExtrudedFaceVertices: (faceVertices: Float32x3 arraySlice) normal: (faceNormal: Float32x3) for: (engine: EngineRef) with: (meshBuilder: GenericMeshBuilderRef const ref) parentTransform: (parentTransform: ReversibleAffineTransform3dF32 const ref) ::=> Void := {
         let faceAttributes ref := self faceAttributesForNormal: faceNormal.
 
-        faceAttributes materialAttributes material ifNotNil: {
-            meshBuilder currentMaterial: (faceAttributes materialAttributes material _ getOrCreateMaterialFor: engine)
+        faceAttributes materialAttributes material ifNotNil: {:mat :: Void |
+            meshBuilder currentMaterial: (mat getOrCreateMaterialFor: engine)
         }.
         meshBuilder
             beginTriangles.
@@ -114,7 +114,7 @@ class ConvexPolygonVisualComponent superclass: VisualComponent2d; definition: {
     }.
 }.
 
-compileTime constant ConvexPolygonVisualComponentPtr := ConvexPolygonVisualComponent rcPointer.
+compileTime constant ConvexPolygonVisualComponentRef := ConvexPolygonVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

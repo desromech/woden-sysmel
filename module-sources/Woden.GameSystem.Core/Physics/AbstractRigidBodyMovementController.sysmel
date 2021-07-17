@@ -87,7 +87,7 @@ class AbstractRigidBodyMovementController superclass: PhysicalMovementController
         while: remainingDeltaTime > 0 && remainingIterations > 0 do: {
             let targetMotionState := currentMotionState integrateVelocitiesWith: remainingDeltaTime.
 
-            sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape _
+            sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape
                 positionFrom: currentMotionState position to: targetMotionState position.
 
             sweepTestResult hasCollision ifTrue: {
@@ -107,11 +107,11 @@ class AbstractRigidBodyMovementController superclass: PhysicalMovementController
                 }.
 
                 collidingObject _ ownerEntity ifNotNil: {:otherOwner :: Void |
-                    otherOwner _ onPhysicsCollisionHit: rigidBody at: collisionPoint
+                    otherOwner onPhysicsCollisionHit: rigidBody at: collisionPoint
                 }.
                 rigidBodyOwner ifNotNil: {
-                    rigidBodyOwner _ onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
-                    rigidBodyOwner _ isAlive ifFalse: {return: void}
+                    rigidBodyOwner onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
+                    rigidBodyOwner isAlive ifFalse: {return: void}
                 }.
 
                 remainingDeltaTime := remainingDeltaTime * (1.0f - sweepTestResult collisionTimeAlpha).
@@ -146,7 +146,7 @@ class AbstractRigidBodyMovementController superclass: PhysicalMovementController
         }.
 
         let currentMotionState mutable := initialMotionState.
-        sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape _
+        sector sweepTest: sweepTestResult collisionShape: rigidBody collisionShape
             positionFrom: currentMotionState position to: endMotionState position.
 
         sweepTestResult hasCollision ifTrue: {
@@ -167,10 +167,10 @@ class AbstractRigidBodyMovementController superclass: PhysicalMovementController
             }.
 
             collidingObject _ ownerEntity ifNotNil: {:otherOwner :: Void |
-                otherOwner _ onPhysicsCollisionHit: rigidBody at: collisionPoint
+                otherOwner onPhysicsCollisionHit: rigidBody at: collisionPoint
             }.
             rigidBody ownerEntity ifNotNil: {:owner :: Void |
-                owner _ onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
+                owner onPhysicsCollisionHit: collidingObject _ at: collisionPoint.
             }.
         } ifFalse: {
             currentMotionState := endMotionState

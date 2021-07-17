@@ -8,8 +8,8 @@ class PolygonConvexHullCollisionShape superclass: CollisionShape; definition: {
     public field halfThickness type: Float32.
     field boundingRectangle type: RectangleF32.
 
-    override method setupForLayer: (layerDefinition: SectorLayerDefinition rcPointer const ref) ::=> Void := {
-        halfThickness := layerDefinition _ defaultThickness * 0.5f.
+    override method setupForLayer: (layerDefinition: SectorLayerDefinition rcRef const ref) ::=> Void := {
+        halfThickness := layerDefinition defaultThickness * 0.5f.
     }.
 
     method computeBoundingRectangle => Void := {
@@ -23,7 +23,7 @@ class PolygonConvexHullCollisionShape superclass: CollisionShape; definition: {
         := BoxF32 min: Float32x3(boundingRectangle min, halfThickness negated) max: Float32x3(boundingRectangle max, halfThickness).
 }.
 
-compileTime constant PolygonConvexHullCollisionShapePtr := PolygonConvexHullCollisionShape rcPointer.
+compileTime constant PolygonConvexHullCollisionShapeRef := PolygonConvexHullCollisionShape rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

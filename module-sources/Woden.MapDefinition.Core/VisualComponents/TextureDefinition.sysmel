@@ -11,7 +11,7 @@ class TextureDefinition superclass: LevelElementDefinition; definition: {
         := TextureWithViewRef nil.
 }.
 
-compileTime constant TextureDefinitionPtr := TextureDefinition rcPointer.
+compileTime constant TextureDefinitionRef := TextureDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

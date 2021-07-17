@@ -110,13 +110,12 @@ class SamplePlayer superclass: Player; definition: {
         let shootDirection mutable := self orientation * headOrientation rotateVector: Float32x3(0, 0, -1).
         let bulletVelocity := shootDirection normalized*10.0f.
 
-        let bullet := Bullet rcNew.
-        bullet _
+        parentSector _ spawnEntity: (Bullet new
             remainingLifeTime: 1.0f;
             position: self gunPosition;
-            launchVelocity: collisionObject _ linearVelocity + bulletVelocity;
-            shooter: (self asWeakRCPointer upCastFor: Entity).
-        parentSector _ spawnEntity: (bullet upCastFor: Entity).
+            launchVelocity: collisionObject linearVelocity + bulletVelocity;
+            shooter: (self asWeakRCRef upCastFor: Entity);
+            upCastFor: Entity).
     }.
 
     method dash => Void := {

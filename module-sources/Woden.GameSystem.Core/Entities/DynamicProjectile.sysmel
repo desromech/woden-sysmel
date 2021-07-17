@@ -9,9 +9,9 @@ class DynamicProjectile superclass: Entity; definition: {
     public field coefficientOfRestitution type: Float32.
     public field mass type: Float32.
     public field affectedByGravity type: Boolean8.
-    public field shooter type: EntityWeakPtr.
+    public field shooter type: EntityWeakRef.
     public field remainingLifeTime type: Float32.
-    field rigidBody type: RigidBodyPtr.
+    field rigidBody type: RigidBodyRef.
 
     override method initialize => Void := {
         mass := 1.0f.
@@ -31,21 +31,21 @@ class DynamicProjectile superclass: Entity; definition: {
     }.
 
     virtual method buildCollisionObject => Void := {
-        rigidBody := RigidBody rcNew.
-        rigidBody _
+        rigidBody := RigidBody new
             linearVelocity: launchVelocity;
-            ownerEntity: (self asRCPointer upCastFor: Entity);
+            ownerEntity: (self asRCRef upCastFor: Entity);
             collisionShape: (CollisionShape boxWithHalfExtent: self halfExtent);
             coefficientOfRestitution: coefficientOfRestitution;
             mass: mass;
-            makeProjectile.
+            makeProjectile;
+            yourself.
 
-        shooter lock ifNotNil: { :s :: Void |
-            rigidBody _ addExcludedCollisionObject: s _ collisionObject
+        shooter ifNotNil: { :s :: Void |
+            rigidBody addExcludedCollisionObject: s collisionObject
         }.
 
         affectedByGravity ifFalse: {
-            rigidBody _
+            rigidBody
                 hasCustomGravity: true;
                 gravity: 0
         }.

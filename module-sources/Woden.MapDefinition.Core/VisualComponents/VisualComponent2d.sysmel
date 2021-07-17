@@ -8,10 +8,10 @@ class VisualComponent2d superclass: VisualComponent; definition: {
     public field minZ type: Float32.
     public field maxZ type: Float32.
 
-    override method setupForLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
+    override method setupForLayer: (layerDefinition: SectorLayerDefinitionRef const ref) ::=> Void := {
         super setupForLayer: layerDefinition.
 
-        maxZ := layerDefinition _ defaultHalfThickness.
+        maxZ := layerDefinition defaultHalfThickness.
         minZ := maxZ negated.
     }.
 
@@ -26,7 +26,7 @@ class VisualComponent2d superclass: VisualComponent; definition: {
     }.
 }.
 
-compileTime constant VisualComponent2dPtr := VisualComponent2d rcPointer.
+compileTime constant VisualComponent2dRef := VisualComponent2d rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

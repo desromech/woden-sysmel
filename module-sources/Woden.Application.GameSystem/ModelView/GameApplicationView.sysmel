@@ -10,10 +10,10 @@ class GameApplicationView superclass: SceneView; definition: {
     method gameModel => GameApplicationModelRef
         := self model downCastFor: GameApplicationModel.
 
-    method globalGameState => GlobalGameStatePtr
+    method globalGameState => GlobalGameStateRef
         := self gameModel globalGameState.
 
-    method player => PlayerPtr
+    method player => PlayerRef
         := self gameModel player.
 }.
 

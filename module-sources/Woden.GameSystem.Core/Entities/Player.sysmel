@@ -85,7 +85,7 @@ class Player superclass: Character; definition: {
             return: wantedPoint
         }.
 
-        let physicalSector := rigidBody _ physicalSector.
+        let physicalSector := rigidBody physicalSector.
         physicalSector ifNil: {
             return: wantedPoint
         }.
@@ -93,10 +93,10 @@ class Player superclass: Character; definition: {
         let ray := Ray3dF32 from: startingPoint to: wantedPoint.
         let collisionTestResult mutable := CollisionSweepTestResult()
             collisionGroupFilter: CollisionGroup AllSolid;
-            addExcludedObject: rigidBody getPointer;
+            addExcludedObject: rigidBody rcObjectAddress;
             yourself.
 
-        physicalSector _ rayCast: ray emittingResultInto: collisionTestResult.
+        physicalSector rayCast: ray emittingResultInto: collisionTestResult.
         collisionTestResult hasCollision ifFalse: {
             return: wantedPoint
         }.
@@ -115,7 +115,7 @@ class Player superclass: Character; definition: {
     virtual method onInputAction: (action: Char8 const arraySlice) triggerState: (state: Float32) ::=> Void := {}.
 }.
 
-compileTime constant PlayerPtr := Player rcPointer.
+compileTime constant PlayerRef := Player rcRef.
 
 class PlayerStartPoint superclass: MetadataEntity; definition: {
     SelfType registerWithClassName: "PlayerStartPoint".

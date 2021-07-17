@@ -10,7 +10,7 @@ class BoxCollisionShape superclass: CollisionShape; definition: {
         := BoxF32 center: 0 halfExtent: halfExtent.
 }.
 
-compileTime constant BoxCollisionShapePtr := BoxCollisionShape rcPointer.
+compileTime constant BoxCollisionShapeRef := BoxCollisionShape rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

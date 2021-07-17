@@ -9,7 +9,7 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     public field rectangle type: RectangleF32.
     public field materialAttributes type: FaceMaterialAttributes.
 
-    method material: (material: MaterialDefinitionPtr const ref) ::=> Void := {
+    method material: (material: MaterialDefinitionRef const ref) ::=> Void := {
         materialAttributes material: material
     }.
 
@@ -27,7 +27,7 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
         }.
 
         renderable := engine newGenericMeshBuilder
-            currentMaterial: (materialAttributes material _ getOrCreateMaterialFor: engine);
+            currentMaterial: (materialAttributes material getOrCreateMaterialFor: engine);
             currentTransform: self boundingBox reversibleTransformToConvertUnitBoxToMe;
 
     		addCubeWithWidth: 1.0 height: 1.0 depth: 1.0;
@@ -56,7 +56,7 @@ class RectangleVisualComponent superclass: VisualComponent2d; definition: {
     }.
 }.
 
-compileTime constant RectangleVisualComponentPtr := RectangleVisualComponent rcPointer.
+compileTime constant RectangleVisualComponentRef := RectangleVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

@@ -9,7 +9,7 @@ class EntityDefinition superclass: LevelElementDefinition; definition: {
     public field className type: Std String.
     public field transform type: DecomposedTransform3dF32.
     public field localBoundingBox type: BoxF32.
-    public field components type: Std Collections Vector(EntityComponentDefinitionPtr).
+    public field components type: Std Collections Vector(EntityComponentDefinitionRef).
     public field is2DEntity type: Boolean8.
 
     const inline method position => Float32x3
@@ -30,9 +30,9 @@ class EntityDefinition superclass: LevelElementDefinition; definition: {
     inline method scale: (scale: Float32x3) ::=> Void
         := transform scale: scale.
 
-    method positionForLayer: (layer: SectorLayerDefinition rcPointer const ref) ::=> Float32x3 := {
+    method positionForLayer: (layer: SectorLayerDefinition rcRef const ref) ::=> Float32x3 := {
         is2DEntity
-            ifTrue: {Float32x3(self position xy, layer _ defaultZ)}
+            ifTrue: {Float32x3(self position xy, layer defaultZ)}
             ifFalse: {self position}
     }.
 
@@ -45,18 +45,18 @@ class EntityDefinition superclass: LevelElementDefinition; definition: {
         localBoundingBox := BoxF32 min: Float32x3(rectangle min, 0) max: Float32x3(rectangle max, 0)
     }.
 
-    method addComponent: (component: EntityComponentDefinitionPtr const ref) ::=> Void := {
+    method addComponent: (component: EntityComponentDefinitionRef const ref) ::=> Void := {
         components add: component
     }.
 
-    inline method addVisualComponent: (visualComponent: VisualComponent rcPointer const ref) ::=> Void
+    inline method addVisualComponent: (visualComponent: VisualComponent rcRef const ref) ::=> Void
         := self addComponent: (visualComponent upCastFor: EntityComponentDefinition).
 
-    inline method addCollisionShape: (collisionShape: CollisionShape rcPointer const ref) ::=> Void
+    inline method addCollisionShape: (collisionShape: CollisionShape rcRef const ref) ::=> Void
         := self addComponent: (collisionShape upCastFor: EntityComponentDefinition).
 }.
 
-compileTime constant EntityDefinitionPtr := EntityDefinition rcPointer.
+compileTime constant EntityDefinitionRef := EntityDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

@@ -18,8 +18,8 @@ class Entity superclass: Std RCObject; definition: {
     field renderTransform type: ReversibleAffineTransform3dF32.
 
     public field localBoundingBox type: BoxF32.
-    public field collisionObject type: CollisionObjectPtr.
-    public field visualComponent type: VisualComponentPtr.
+    public field collisionObject type: CollisionObjectRef.
+    public field visualComponent type: VisualComponentRe.
     public field sceneNode type: SceneNodeRef.
 
     meta definition: {
@@ -43,37 +43,37 @@ class Entity superclass: Std RCObject; definition: {
     method physicalSector => PhysicalSector pointer
         := parentSector
             ifNil: {nil}
-            ifNotNil: {parentSector _ physicalSector getPointer}.
+            ifNotNil: {parentSector _ physicalSector rcObjectAddress}.
 
-    virtual method loadFromDefinition: (definition: EntityDefinitionPtr const ref) fromLayer: (layerDefinition: SectorLayerDefinitionPtr const ref) ::=> Void := {
-        className := definition _ className asArraySlice.
-        name := definition _ name.
+    virtual method loadFromDefinition: (definition: EntityDefinitionRef const ref) fromLayer: (layerDefinition: SectorLayerDefinitionRef const ref) ::=> Void := {
+        className := definition className asArraySlice.
+        name := definition name.
         self
-            scale: definition _ scale;
-            orientation: definition _ orientation;
-            position: (definition _ positionForLayer: layerDefinition).
-        localBoundingBox := definition _ localBoundingBox.
+            scale: definition scale;
+            orientation: definition orientation;
+            position: (definition positionForLayer: layerDefinition).
+        localBoundingBox := definition localBoundingBox.
         localBoundingBox depth = 0 ifTrue: {
-            localBoundingBox min z: layerDefinition _ layerMinZ.
-            localBoundingBox max z: layerDefinition _ layerMaxZ.
+            localBoundingBox min z: layerDefinition layerMinZ.
+            localBoundingBox max z: layerDefinition layerMaxZ.
         }.
 
-        definition _ components do: {:each :: Void |
-            each _ isCollisionShape ifTrue: {
+        definition components do: {:each :: Void |
+            each isCollisionShape ifTrue: {
                 let shape := each downCastFor: CollisionShape.
-                shape _ setupForLayer: layerDefinition.
+                shape setupForLayer: layerDefinition.
                 self buildCollisionObjectWithShape: shape
 
             }.
 
-            each _ isVisualComponent ifTrue: {
+            each isVisualComponent ifTrue: {
                 visualComponent := each downCastFor: VisualComponent.
-                visualComponent _ setupForLayer: layerDefinition.
+                visualComponent setupForLayer: layerDefinition.
             }
         }.
     }.
 
-    virtual method buildCollisionObjectWithShape: (collisionShape: CollisionShapePtr const ref) ::=> Void
+    virtual method buildCollisionObjectWithShape: (collisionShape: CollisionShapeRef const ref) ::=> Void
         := {}.
 
     virtual method isMetadata => Boolean8
@@ -90,15 +90,15 @@ class Entity superclass: Std RCObject; definition: {
     }.
 
     virtual method prePhysicsTick: (delta: Float32) ::=> Void := {
-        collisionObject _
+        collisionObject
             orientation: self orientation;
             position: self position.
     }.
 
     virtual method postPhysicsTick: (delta: Float32) ::=> Void := {
         self
-            orientation: collisionObject _ orientation;
-            position: collisionObject _ position.
+            orientation: collisionObject orientation;
+            position: collisionObject position.
     }.
 
     virtual method onPhysicsCollisionHit: (collidingObject: CollisionObject ref) at: (collisionPoint: Float32x3) ::=> Void := {
@@ -130,21 +130,21 @@ class Entity superclass: Std RCObject; definition: {
         }
     }.
 
-    virtual method addToPhysicalSector: (physicalSector: PhysicalSectorPtr const ref) ::=> Void := {
+    virtual method addToPhysicalSector: (physicalSector: PhysicalSectorRef const ref) ::=> Void := {
         collisionObject ifNotNil: {
-            physicalSector _ addCollisionObject: collisionObject
+            physicalSector addCollisionObject: collisionObject
         }
     }.
 
     virtual method removeFromPhysicalSector => Void := {
         collisionObject ifNotNil: {
-            collisionObject _ removeFromPhysicalSector
+            collisionObject removeFromPhysicalSector
         }
     }.
 
     virtual method createSceneNode ::=> Void := {
         visualComponent ifNil: {return: void}.
-        sceneNode := visualComponent _ createSceneNodeFor: self engine parentTransform: transform asReversibleAffineTransform3d.
+        sceneNode := visualComponent createSceneNodeFor: self engine parentTransform: transform asReversibleAffineTransform3d.
     }.
 
     const inline method transform => DecomposedTransform3dF32 const ref
@@ -252,9 +252,9 @@ class Entity superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant EntityPtr := Entity rcPointer.
-compileTime constant EntityWeakPtr := Entity weakRCPointer.
-compileTime constant Entities := Std Collections Vector(EntityPtr).
+compileTime constant EntityRef := Entity rcRef.
+compileTime constant EntityWeakRef := Entity weakRCRef.
+compileTime constant Entities := Std Collections Vector(EntityRef).
 
 }. ## namespace GameSystem
 }. ## namespace Woden

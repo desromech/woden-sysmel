@@ -7,31 +7,31 @@ useNamespace: Std Math.
 useNamespace: Std Math Geometry.
 
 class LevelLoadingContext definition: {
-    field textures type: Std Collections Vector(TextureDefinitionPtr).
-    field materials type: Std Collections Vector(MaterialDefinitionPtr).
+    field textures type: Std Collections Vector(TextureDefinitionRef).
+    field materials type: Std Collections Vector(MaterialDefinitionRef).
 
-    method addTexture: (texture: TextureDefinitionPtr const ref) ::=> Void := {
+    method addTexture: (texture: TextureDefinitionRef const ref) ::=> Void := {
         textures add: texture
     }.
 
-    method getTextureWithIndex: (index: Int32) ::=> TextureDefinitionPtr := {
-        index < 1 ifTrue: {return: TextureDefinitionPtr nil}.
+    method getTextureWithIndex: (index: Int32) ::=> TextureDefinitionRef := {
+        index < 1 ifTrue: {return: TextureDefinitionRef nil}.
 
         let actualIndex := index - 1 castTo: UIntPointer.
-        actualIndex >= textures size ifTrue: {return: TextureDefinitionPtr nil}.
+        actualIndex >= textures size ifTrue: {return: TextureDefinitionRef nil}.
 
         textures[actualIndex]
     }.
 
-    method addMaterial: (material: MaterialDefinitionPtr const ref) ::=> Void := {
+    method addMaterial: (material: MaterialDefinitionRef const ref) ::=> Void := {
         materials add: material
     }.
 
-    method getMaterialWithIndex: (index: Int32) ::=> MaterialDefinitionPtr := {
-        index < 1 ifTrue: {return: MaterialDefinitionPtr nil}.
+    method getMaterialWithIndex: (index: Int32) ::=> MaterialDefinitionRef := {
+        index < 1 ifTrue: {return: MaterialDefinitionRef nil}.
 
         let actualIndex := index - 1 castTo: UIntPointer.
-        actualIndex >= materials size ifTrue: {return: MaterialDefinitionPtr nil}.
+        actualIndex >= materials size ifTrue: {return: MaterialDefinitionRef nil}.
 
         materials[actualIndex]
     }.
@@ -39,33 +39,33 @@ class LevelLoadingContext definition: {
 
 LevelElementDefinition extend: {
     meta definition: {
-        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition rcPointer := {
+        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition rcRef := {
             let typeName := domObject getString: "type" asMutableString default: "" asMutableString.
             let resultInstance := typeName asArraySlice selectCase: #{
-            "Level" : (LevelDefinition rcNew upCastFor: LevelElementDefinition).
-            "Sector" : (SectorDefinition rcNew upCastFor: LevelElementDefinition).
-            "SectorLayer" : (SectorLayerDefinition rcNew upCastFor: LevelElementDefinition).
-            "Entity" : (EntityDefinition rcNew upCastFor: LevelElementDefinition).
-            "BoxCollisionComponent" : (BoxCollisionShape rcNew upCastFor: LevelElementDefinition).
-            "PolygonConvexHullCollisionComponent" : (PolygonConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
-            "ConvexHullCollisionComponent" : (ConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
-            "PolyhedronConvexHullCollisionComponent" : (ConvexHullCollisionShape rcNew upCastFor: LevelElementDefinition).
-            "RectangleCollisionComponent" : (RectangleCollisionShape rcNew upCastFor: LevelElementDefinition).
-            "RectangleVisualComponent" : (RectangleVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "BoxVisualComponent" : (BoxVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "PolyhedronFace" : (PolyhedronFace rcNew upCastFor: LevelElementDefinition).
-            "ConvexPolyhedronVisualComponent" : (ConvexPolyhedronVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "ConvexPolygonVisualComponent" : (ConvexPolygonVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent rcNew upCastFor: LevelElementDefinition).
-            "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition rcNew upCastFor: LevelElementDefinition).
-            "FileReferenceMaterial" : (FileReferenceMaterialDefinition rcNew upCastFor: LevelElementDefinition).
-            _ : LevelElementDefinitionPtr nil
+            "Level" : (LevelDefinition new upCastFor: LevelElementDefinition).
+            "Sector" : (SectorDefinition new upCastFor: LevelElementDefinition).
+            "SectorLayer" : (SectorLayerDefinition new upCastFor: LevelElementDefinition).
+            "Entity" : (EntityDefinition new upCastFor: LevelElementDefinition).
+            "BoxCollisionComponent" : (BoxCollisionShape new upCastFor: LevelElementDefinition).
+            "PolygonConvexHullCollisionComponent" : (PolygonConvexHullCollisionShape new upCastFor: LevelElementDefinition).
+            "ConvexHullCollisionComponent" : (ConvexHullCollisionShape new upCastFor: LevelElementDefinition).
+            "PolyhedronConvexHullCollisionComponent" : (ConvexHullCollisionShape new upCastFor: LevelElementDefinition).
+            "RectangleCollisionComponent" : (RectangleCollisionShape new upCastFor: LevelElementDefinition).
+            "RectangleVisualComponent" : (RectangleVisualComponent new upCastFor: LevelElementDefinition).
+            "BoxVisualComponent" : (BoxVisualComponent new upCastFor: LevelElementDefinition).
+            "PolyhedronFace" : (PolyhedronFace new upCastFor: LevelElementDefinition).
+            "ConvexPolyhedronVisualComponent" : (ConvexPolyhedronVisualComponent new upCastFor: LevelElementDefinition).
+            "ConvexPolygonVisualComponent" : (ConvexPolygonVisualComponent new upCastFor: LevelElementDefinition).
+            "DirectionalLightSourceVisualComponent" : (DirectionalLightSourceVisualComponent new upCastFor: LevelElementDefinition).
+            "PointLightSourceVisualComponent" : (PointLightSourceVisualComponent new upCastFor: LevelElementDefinition).
+            "SpotLightSourceVisualComponent" : (SpotLightSourceVisualComponent new upCastFor: LevelElementDefinition).
+            "MetallicRoughnessMaterial" : (MetallicRoughnessMaterialDefinition new upCastFor: LevelElementDefinition).
+            "FileReferenceMaterial" : (FileReferenceMaterialDefinition new upCastFor: LevelElementDefinition).
+            _ : LevelElementDefinitionRef nil
             }.
 
             resultInstance ifNotNil: {
-                resultInstance _ loadFromDOM: domObject context: context
+                resultInstance loadFromDOM: domObject context: context
             }.
 
             resultInstance
@@ -79,26 +79,26 @@ LevelElementDefinition extend: {
 
 LevelDefinition extend: {
     meta extend: {
-        static method loadFromFile: (fileReference: Std FileReference const ref) ::=> LevelDefinition rcPointer := {
+        static method loadFromFile: (fileReference: Std FileReference const ref) ::=> LevelDefinition rcRef := {
             let context mutable type: LevelLoadingContext.
             let extension := fileReference extension.
             extension = "wlevel" || extension = "wtlevel" ifTrue: {
                 let inputReadStream := fileReference binaryReadStream.
-                inputReadStream ifNil: {return: LevelDefinitionPtr nil}.
+                inputReadStream ifNil: {return: LevelDefinitionRef nil}.
 
                 let domValue := extension = "wtlevel"
                     ifTrue: {JSON ValueParser parseStream: inputReadStream getPointer}
                     ifFalse: {MessagePack ValueDecoder decodeStream: inputReadStream getPointer}.
 
                 let result := LevelElementDefinition loadFromDOM: (domValue get: DOM ObjectPtr) _ context: context.
-                result isNotNil && result _ isLevel ifTrue: {
+                result isNotNil && result isLevel ifTrue: {
                     return: (result downCastFor: LevelDefinition)
                 }.
 
-                return: LevelDefinitionPtr nil
+                return: LevelDefinitionRef nil
             }.
 
-            LevelDefinitionPtr nil
+            LevelDefinitionRef nil
         }
     }.
 
@@ -122,7 +122,7 @@ LevelDefinition extend: {
         domObject at: "sectors" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             (value get: DOM ListPtr) _ do: {:each :: Void |
                 let sector := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
-                sector isNotNil && sector _ isSector ifTrue: {
+                sector isNotNil && sector isSector ifTrue: {
                     self addSector: (sector downCastFor: SectorDefinition)
                 }
             }
@@ -138,7 +138,7 @@ SectorDefinition extend: {
         domObject at: "layers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             (value get: DOM ListPtr) _ do: {:each :: Void |
                 let layer := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
-                layer isNotNil && layer _ isSectorLayer ifTrue: {
+                layer isNotNil && layer isSectorLayer ifTrue: {
                     self addLayer: (layer downCastFor: SectorLayerDefinition)
                 }
             }
@@ -155,7 +155,7 @@ SectorLayerDefinition extend: {
         domObject at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             (value get: DOM ListPtr) _ do: {:each :: Void |
                 let entity := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
-                entity isNotNil && entity _ isEntity ifTrue: {
+                entity isNotNil && entity isEntity ifTrue: {
                     self addEntity: (entity downCastFor: EntityDefinition)
                 }
             }
@@ -182,7 +182,7 @@ EntityDefinition extend: {
         domObject at: "components" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
             (value get: DOM ListPtr) _ do: {:each :: Void |
                 let component := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
-                component isNotNil && component _ isEntityComponent ifTrue: {
+                component isNotNil && component isEntityComponent ifTrue: {
                     self addComponent: (component downCastFor: EntityComponentDefinition)
                 }
             }
@@ -341,7 +341,7 @@ ConvexPolyhedronVisualComponent extend: {
             faces reserve: list size.
             list do: {:each :: Void |
                 let each := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
-                each isNotNil && each _ isPolyhedronFace ifTrue: {
+                each isNotNil && each isPolyhedronFace ifTrue: {
                     faces add: (each downCastFor: PolyhedronFace)
                 }
             }

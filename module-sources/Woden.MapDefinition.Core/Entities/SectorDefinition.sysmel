@@ -3,19 +3,19 @@ namespace MapDefinition definition: {
 
 class SectorDefinition superclass: LevelElementDefinition; definition: {
     public field isSector2D type: Boolean8.
-    public field layers type: Std Collections Vector(SectorLayerDefinitionPtr).
+    public field layers type: Std Collections Vector(SectorLayerDefinitionRef).
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
         := visitor visitSectorDefinition: self.
 
     override method isSector => Boolean8 := true.
 
-    method addLayer: (layer: SectorLayerDefinitionPtr const ref) ::=> Void := {
+    method addLayer: (layer: SectorLayerDefinitionRef const ref) ::=> Void := {
         layers add: layer
     }.
 }.
 
-compileTime constant SectorDefinitionPtr := SectorDefinition rcPointer.
+compileTime constant SectorDefinitionRef := SectorDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

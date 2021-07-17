@@ -9,37 +9,37 @@ class PhysicalSector superclass: Std RCObject; definition: {
     field collisionObjects type: CollisionObjects.
     public field gravity type: Float32x3.
 
-    method addCollisionObject: (collisionObject: CollisionObjectPtr const ref) ::=> Void := {
+    method addCollisionObject: (collisionObject: CollisionObjectRef const ref) ::=> Void := {
         collisionObjects add: collisionObject.
-        collisionObject _ addedToPhysicalSector: self.
+        collisionObject addedToPhysicalSector: self.
     }.
 
-    method removeCollisionObject: (collisionObject: CollisionObjectPtr const ref) ::=> Void := {
+    method removeCollisionObject: (collisionObject: CollisionObjectRef const ref) ::=> Void := {
         (collisionObjects includes: collisionObject) ifFalse: {
             return: void
         }.
 
         collisionObjects remove: collisionObject.
-        collisionObject _ removedFromPhysicalSector: self.
+        collisionObject removedFromPhysicalSector: self.
     }.
 
     virtual method update: (delta: Float32) ::=> Void := {
         ## Integrate the forces into impulses.
         collisionObjects do: {:each :: Void |
-            each _ simulateImpulsesInSector: self withDelta: delta
+            each simulateImpulsesInSector: self withDelta: delta
         }.
 
         ## Simulate the movement itself.
         collisionObjects do: {:each :: Void |
-            each _ simulateMovementInSector: self withDelta: delta
+            each simulateMovementInSector: self withDelta: delta
         }
     }.
 
     method isBox: (testBox: BoxF32 const ref) belongingTo: (boxOwner: CollisionObject pointer) collidingWithGroup: (testColisionGroup: CollisionGroup) ::=> Boolean8 := {
         collisionObjects do: {:each :: Void |
-            each getPointer ~~ boxOwner &&
-            (testColisionGroup anyMask: each _ collisionGroup) ifTrue: {
-                let objectBoundingBox := each _ boundingBox.
+            each rcObjectAddress ~~ boxOwner &&
+            (testColisionGroup anyMask: each collisionGroup) ifTrue: {
+                let objectBoundingBox := each boundingBox.
                 (testBox hasIntersectionWithBox: objectBoundingBox) ifTrue: {
                     return: true
                 }
@@ -51,12 +51,12 @@ class PhysicalSector superclass: Std RCObject; definition: {
 
     method rayCast: (ray: Ray3dF32) emittingResultInto: (result: CollisionSweepTestResult ref) ::=> Void := {
         collisionObjects do: {:each :: Void |
-            (result exclusionSet includes: each getPointer) not &&
-                (result collisionGroupFilter anyMask: each _ collisionGroup) &&
-                (each _ collisionObjectExclusionSet includes: result collisionTestObject) not
+            (result exclusionSet includes: each rcObjectAddress) not &&
+                (result collisionGroupFilter anyMask: each collisionGroup) &&
+                (each collisionObjectExclusionSet includes: result collisionTestObject) not
                 ifTrue: {
 
-                let objectBoundingBox := each _ boundingBox.
+                let objectBoundingBox := each boundingBox.
                 let intersectionResult mutable := objectBoundingBox intersectionWithRay: ray.
                 intersectionResult isPresent ifTrue: {
                     let intersectionAlpha := intersectionResult _.
@@ -65,14 +65,14 @@ class PhysicalSector superclass: Std RCObject; definition: {
                             hasCollision: true;
                             collisionDistance: intersectionAlpha;
                             collidingBox: objectBoundingBox;
-                            collidingObject: each getPointer
+                            collidingObject: each rcObjectAddress
                     }
                 }
             }
         }.
     }.
 
-    method sweepTest: (sweepTest: CollisionSweepTestResult ref) collisionShape: (collisionShape: CollisionShape ref) positionFrom: (startPosition: Float32x3) to: (endPosition: Float32x3) ::=> Void := {
+    method sweepTest: (sweepTest: CollisionSweepTestResult ref) collisionShape: (collisionShape: CollisionShapeRef const ref) positionFrom: (startPosition: Float32x3) to: (endPosition: Float32x3) ::=> Void := {
         sweepTest sweepRay := Ray3dF32 from: startPosition to: endPosition.
 
         self sweepTest: sweepTest collisionBox: collisionShape boundingBox
@@ -84,13 +84,13 @@ class PhysicalSector superclass: Std RCObject; definition: {
         sweepTest reset.
 
         collisionObjects do: {:each :: Void |
-            (sweepTest exclusionSet includes: each getPointer) not &&
-                (sweepTest collisionGroup anyMask: each _ collisionGroupFilter) &&
-                (sweepTest collisionGroupFilter anyMask: each _ collisionGroup) &&
-                (each _ collisionObjectExclusionSet includes: sweepTest collisionTestObject) not
+            (sweepTest exclusionSet includes: each rcObjectAddress) not &&
+                (sweepTest collisionGroup anyMask: each collisionGroupFilter) &&
+                (sweepTest collisionGroupFilter anyMask: each collisionGroup) &&
+                (each collisionObjectExclusionSet includes: sweepTest collisionTestObject) not
                 ifTrue: {
 
-                let objectBoundingBox := each _ boundingBox.
+                let objectBoundingBox := each boundingBox.
                 let testBox := BoxF32 center: objectBoundingBox center - center halfExtent: objectBoundingBox halfExtent + halfExtent.
                 let intersectionResult mutable := testBox intersectionWithRay: sweepTest sweepRay.
                 intersectionResult isPresent ifTrue: {
@@ -100,7 +100,7 @@ class PhysicalSector superclass: Std RCObject; definition: {
                             hasCollision: true;
                             collisionDistance: intersectionAlpha;
                             collidingBox: testBox;
-                            collidingObject: each getPointer
+                            collidingObject: each rcObjectAddress
                     }
                 }
             }
@@ -112,8 +112,8 @@ class PhysicalSector superclass: Std RCObject; definition: {
     }.
 }.
 
-compileTime constant PhysicalSectorPtr := PhysicalSector rcPointer.
-compileTime constant PhysicalSectorWeakPtr := PhysicalSector weakRCPointer.
+compileTime constant PhysicalSectorRef := PhysicalSector rcRef.
+compileTime constant PhysicalSectorWeakRef := PhysicalSector weakRCRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

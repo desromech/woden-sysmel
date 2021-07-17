@@ -6,7 +6,7 @@ useNamespace: Woden Application.
 useNamespace: Std Graphics GUI.
 
 class GameApplicationModel superclass: SceneModel; definition: {
-    field globalGameState type: GlobalGameStatePtr.
+    field globalGameState type: GlobalGameStateRef.
     field accumulatedTime type: Float32.
     field updateTimeStep type: Float32.
 
@@ -14,25 +14,25 @@ class GameApplicationModel superclass: SceneModel; definition: {
         updateTimeStep := 1.0f / 60.0f.
     }.
 
-    method globalGameState => GlobalGameStatePtr const ref
+    method globalGameState => GlobalGameStateRef const ref
         := globalGameState.
 
-    method player => PlayerPtr := {
-        globalGameState ifNil: {return: PlayerPtr nil}.
-        globalGameState _ player
+    method player => PlayerRef := {
+        globalGameState ifNil: {return: PlayerRef nil}.
+        globalGameState player
     }.
 
-    virtual method newGlobalGameState => GlobalGameStatePtr
-        := GlobalGameState rcNew.
+    virtual method newGlobalGameState => GlobalGameStateRef
+        := GlobalGameState new.
 
     override method initializeModel => Boolean8 := {
         super initializeModel ifFalse: {return: false}.
         self newScene.
-        globalGameState := self newGlobalGameState.
-        globalGameState _
+        globalGameState := self newGlobalGameState
             initializeWithEngine: self engine;
             scene: scene;
-            mainCamera: mainCamera.
+            mainCamera: mainCamera;
+            yourself.
         true.
     }.
 
@@ -42,12 +42,12 @@ class GameApplicationModel superclass: SceneModel; definition: {
             let deltaSeconds := (event deltaSeconds castTo: Float32) min: 2.0f.
             accumulatedTime := accumulatedTime + deltaSeconds.
             while: accumulatedTime >= updateTimeStep do: {
-                globalGameState _ update: updateTimeStep.
+                globalGameState update: updateTimeStep.
                 accumulatedTime := accumulatedTime - updateTimeStep.
             }.
 
             ## Validate and interpolate the rendering state using the remaining delta.
-            globalGameState _ applyInterpolationForRendering: accumulatedTime / updateTimeStep.
+            globalGameState applyInterpolationForRendering: accumulatedTime / updateTimeStep.
         }.
 
         super onStartFrameTick: event.

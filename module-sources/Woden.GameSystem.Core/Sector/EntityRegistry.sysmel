@@ -23,9 +23,9 @@ class EntityRegistry definition: {
         factories at: factory _ className asMutableString put: factory.
     }.
 
-    method createEntityWithClassName: (className: Std String const ref) ::=> EntityPtr := {
+    method createEntityWithClassName: (className: Std String const ref) ::=> EntityRef := {
         let factory := factories at: className ifAbsent: {
-            return: EntityPtr nil
+            return: EntityRef nil
         }.
 
         factory _ newInstance
@@ -40,8 +40,7 @@ class EntityRegistry definition: {
             entities _
                 at: className put: descriptionObject.
 
-            let entity := factory _ newInstance.
-            entity _
+            factory _ newInstance
                 postLoadInitialization;
                 writeDescriptionOnto: descriptionObject _
         }.

@@ -10,7 +10,7 @@ class MaterialDefinition superclass: LevelElementDefinition; definition: {
         := engine resourceCache defaultMaterial.
 }.
 
-compileTime constant MaterialDefinitionPtr := MaterialDefinition rcPointer.
+compileTime constant MaterialDefinitionRef := MaterialDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

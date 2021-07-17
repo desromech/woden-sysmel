@@ -7,11 +7,10 @@ class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition
     public field path type: Std String.
 
     meta definition: {
-        static method path: (path: Std String) ::=> MaterialDefinitionPtr := {
-            let material := FileReferenceMaterialDefinition rcNew.
-            material _ path: path.
-            material upCastFor: MaterialDefinition
-        }.
+        static method path: (path: Std String) ::=> MaterialDefinitionRef
+            := FileReferenceMaterialDefinition new
+                path: path;
+                upCastFor: MaterialDefinition.
     }.
 
     override method accept: (visitor: LevelDefinitionVisitor ref) ::=> Void
@@ -31,7 +30,7 @@ class FileReferenceMaterialDefinition superclass: MaterialDefinition; definition
     }.
 }.
 
-compileTime constant FileReferenceMaterialDefinitionPtr := FileReferenceMaterialDefinition rcPointer.
+compileTime constant FileReferenceMaterialDefinitionRef := FileReferenceMaterialDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

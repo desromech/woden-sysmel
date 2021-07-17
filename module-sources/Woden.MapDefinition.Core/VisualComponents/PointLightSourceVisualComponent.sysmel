@@ -20,7 +20,7 @@ class PointLightSourceVisualComponent superclass: LightSourceVisualComponent; de
     }.
 }.
 
-compileTime constant PointLightSourceVisualComponentPtr := PointLightSourceVisualComponent rcPointer.
+compileTime constant PointLightSourceVisualComponentRef := PointLightSourceVisualComponent rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

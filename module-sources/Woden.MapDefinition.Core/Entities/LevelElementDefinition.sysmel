@@ -25,10 +25,10 @@ class LevelElementDefinition superclass: Std RCObject; definition: {
     virtual method isMetallicRoughnessMaterialDefinition => Boolean8 := false.
     virtual method isFileReferenceMaterialDefinition => Boolean8 := false.
 
-    virtual method setMaterial: (newMaterial: MaterialDefinitionPtr const ref) ::=> Void := {}.
+    virtual method setMaterial: (newMaterial: MaterialDefinitionRef const ref) ::=> Void := {}.
 }.
 
-compileTime constant LevelElementDefinitionPtr := LevelElementDefinition rcPointer.
+compileTime constant LevelElementDefinitionRef := LevelElementDefinition rcRef.
 
 }. ## namespace MapDefinition
 }. ## namespace Woden

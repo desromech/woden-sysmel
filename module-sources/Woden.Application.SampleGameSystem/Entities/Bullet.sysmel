@@ -14,7 +14,7 @@ class Bullet superclass: DynamicProjectile; definition: {
 
     override method onPhysicsCollisionHit: (collidingObject: CollisionObject ref) at: (collisionPoint: Float32x3) ::=> Void := {
         collidingObject ownerEntity ifNotNil: {:collidingEntity :: Void |
-            collidingEntity _ receiveDamage: damage by: self at: collisionPoint
+            collidingEntity receiveDamage: damage by: self at: collisionPoint
         }.
 
         remainingLifeTime := 0

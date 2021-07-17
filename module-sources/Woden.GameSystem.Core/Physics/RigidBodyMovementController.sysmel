@@ -9,19 +9,19 @@ useNamespace: Std Math Geometry.
  *#
 class RigidBodyMovementController superclass: AbstractRigidBodyMovementController; definition: {
     meta definition:{
-        let uniqueInstance mutable type: PhysicalMovementControllerPtr.
+        let uniqueInstance mutable type: PhysicalMovementControllerRef.
         let uniqueInstanceCreation mutable type: Std OnceFlag.
 
-        static method uniqueInstance => PhysicalMovementControllerPtr := {
+        static method uniqueInstance => PhysicalMovementControllerRef := {
             uniqueInstanceCreation do: {
-                uniqueInstance := self rcNew upCastFor: PhysicalMovementController
+                uniqueInstance := self new upCastFor: PhysicalMovementController
             }.
             uniqueInstance
         }.
     }.
 }.
 
-compileTime constant RigidBodyMovementControllerPtr := RigidBodyMovementController rcPointer.
+compileTime constant RigidBodyMovementControllerRef := RigidBodyMovementController rcRef.
 
 }. ## namespace GameSystem
 }. ## namespace Woden

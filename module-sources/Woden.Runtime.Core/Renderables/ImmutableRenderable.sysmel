@@ -8,7 +8,7 @@ class ImmutableRenderable superclass: Renderable; definition: {
 
 }.
 
-compileTime constant ImmutableRenderablePtr := ImmutableRenderable rcPointer.
+compileTime constant ImmutableRenderableRef := ImmutableRenderable rcRef.
 
 }. ## End of namespace Runtime
 }. ## End of namespace Woden
