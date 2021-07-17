@@ -32,21 +32,21 @@ class EntityRegistry definition: {
     }.
 
     method dumpEntityDefinitionsInto: (out: Std IO TextStreamWriter ref) ::=> Void := {
-        let definitionObject := DOM Object rcNew.
-        let entities := DOM Object rcNew.
+        let entities := DOM Object new.
 
         factories keysAndValuesDo: {:(Std String const ref)className :(AbstractEntityFactory pointer const ref)factory :: Void |
-            let descriptionObject := DOM Object rcNew.
-            entities _
+            let descriptionObject := DOM Object new.
+            entities
                 at: className put: descriptionObject.
 
             factory _ newInstance
                 postLoadInitialization;
-                writeDescriptionOnto: descriptionObject _
+                writeDescriptionOnto: descriptionObject
         }.
 
-        definitionObject _
-            at: "entities" asMutableString put: entities.
+        let definitionObject := DOM Object new
+            at: "entities" put: entities;
+            yourself.
 
         JSON Writer writeValue: definitionObject onTextStream: out.
     }.

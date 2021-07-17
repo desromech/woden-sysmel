@@ -54,7 +54,7 @@ class GLTFModelImporter definition: {
         let glbVersion := binaryReader nextUInt32.
         let glbLength := binaryReader nextUInt32.
 
-        let jsonObject mutable := DOM ObjectPtr nil.
+        let jsonObject mutable := DOM ObjectRef nil.
 
         let remainingLength mutable := glbLength - 12.
 
@@ -68,7 +68,7 @@ class GLTFModelImporter definition: {
             }.
 
             let jsonText := binaryReader nextUTF8StringOfSize: chunkLength.
-            jsonObject := (JSON ValueParser parseString: jsonText) get: DOM ObjectPtr.
+            jsonObject := (JSON ValueParser parseString: jsonText) get: DOM ObjectRef.
 
             remainingLength := remainingLength - (8u + chunkLength min: remainingLength).
         }.
@@ -87,16 +87,16 @@ class GLTFModelImporter definition: {
             }.
         }.
 
-        self parseTopLevel: jsonObject _.
+        self parseTopLevel: jsonObject.
     }.
 
-    method parseBuffer: (object: DOM Object const ref) ::=> Void := {
+    method parseBuffer: (object: DOM ObjectRef const ref) ::=> Void := {
         let buffer := modelAsset newBuffer.
         buffer
-            name: (object getString: "name" asMutableString default: "" asMutableString);
-            dataSize: (object getUIntPointer: "byteLength" asMutableString).
+            name: (object getString: "name" default: "");
+            dataSize: (object getUIntPointer: "byteLength").
 
-        object at: "uri" asMutableString ifPresent: {:(DOM Value const ref)uriValue :: Void |
+        object at: "uri" ifPresent: {:(DOM Value const ref)uriValue :: Void |
             let uri := uriValue get: Std String.
             let uriFileRef := parentFolder / uri asArraySlice.
             uriFileRef exists ifTrue: {
@@ -114,22 +114,22 @@ class GLTFModelImporter definition: {
 
     }.
 
-    method parseBuffers: (list: DOM List ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseBuffer: (each get: DOM ObjectPtr) _
+    method parseBuffers: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseBuffer: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseBufferView: (object: DOM Object const ref) ::=> Void := {
+    method parseBufferView: (object: DOM ObjectRef const ref) ::=> Void := {
         let bufferView := modelAsset newBufferView.
         bufferView
-            name: (object getString: "name" asMutableString default: "" asMutableString);
-            buffer: (modelAsset buffers[object getUIntPointer: "buffer" asMutableString]);
-            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
-            size: (object getUIntPointer: "byteLength" asMutableString);
-            stride: (object getUIntPointer: "byteStride" asMutableString default: 0).
+            name: (object getString: "name" default: "");
+            buffer: (modelAsset buffers[object getUIntPointer: "buffer"]);
+            offset: (object getUIntPointer: "byteOffset" default: 0);
+            size: (object getUIntPointer: "byteLength");
+            stride: (object getUIntPointer: "byteStride" default: 0).
 
-        let target := object getUInt32: "target" asMutableString default: 0.
+        let target := object getUInt32: "target" default: 0.
         target selectCase: #{
         34962 : {bufferView usage: BufferUsageMode Array}.
         34963 : {bufferView usage: BufferUsageMode ElementArray}.
@@ -137,25 +137,25 @@ class GLTFModelImporter definition: {
         }.
     }.
 
-    method parseBufferViews: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseBufferView: (each get: DOM ObjectPtr) _
+    method parseBufferViews: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseBufferView: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseAccessor: (object: DOM Object const ref) ::=> Void := {
+    method parseAccessor: (object: DOM ObjectRef const ref) ::=> Void := {
         let bufferAccessor := modelAsset newBufferAccessor.
         bufferAccessor
-            name: (object getString: "name" asMutableString default: "" asMutableString);
-            bufferView: (modelAsset bufferViews[object getUIntPointer: "bufferView" asMutableString]);
-            offset: (object getUIntPointer: "byteOffset" asMutableString default: 0);
-            count: (object getUIntPointer: "count" asMutableString);
-            minValue: (object getFloat64x4: "min" asMutableString default: 0);
-            maxValue: (object getFloat64x4: "max" asMutableString default: 0).
+            name: (object getString: "name" default: "");
+            bufferView: (modelAsset bufferViews[object getUIntPointer: "bufferView"]);
+            offset: (object getUIntPointer: "byteOffset" default: 0);
+            count: (object getUIntPointer: "count");
+            minValue: (object getFloat64x4: "min" default: 0);
+            maxValue: (object getFloat64x4: "max" default: 0).
 
-        let componentType := (object getUIntPointer: "componentType" asMutableString) castTo: GLTFAccessorComponentType.
-        let accessorType := object getString: "type" asMutableString.
-        let normalized := object getBoolean8: "normalized" asMutableString default: false.
+        let componentType := (object getUIntPointer: "componentType") castTo: GLTFAccessorComponentType.
+        let accessorType := object getString: "type".
+        let normalized := object getBoolean8: "normalized" default: false.
         let columnCount mutable := 1u.
 
         bufferAccessor format: (
@@ -230,93 +230,93 @@ class GLTFModelImporter definition: {
         bufferAccessor columnCount: columnCount.
     }.
 
-    method parseAccessors: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseAccessor: (each get: DOM ObjectPtr) _
+    method parseAccessors: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseAccessor: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseImage: (object: DOM Object const ref) ::=> Void := {
+    method parseImage: (object: DOM ObjectRef const ref) ::=> Void := {
         let image := modelAsset newImage.
         image
-            name: (object getString: "name" asMutableString default: "" asMutableString);
-            uri: (object getString: "uri" asMutableString default: "" asMutableString);
-            mimeType: (object getString: "mimeType" asMutableString default: "" asMutableString).
-        object at: "bufferView" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+            name: (object getString: "name" default: "");
+            uri: (object getString: "uri" default: "");
+            mimeType: (object getString: "mimeType" default: "").
+        object at: "bufferView" ifPresent: {:(DOM Value const ref)value :: Void |
             image bufferView: (modelAsset bufferViews[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseImages: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseImage: (each get: DOM ObjectPtr) _
+    method parseImages: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseImage: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseSampler: (object: DOM Object const ref) ::=> Void := {
+    method parseSampler: (object: DOM ObjectRef const ref) ::=> Void := {
         let sampler := modelAsset newSampler.
         sampler
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
         ##Std stdout << "TODO: parseSampler " << sampler name; nl.
     }.
 
-    method parseSamplers: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseSampler: (each get: DOM ObjectPtr) _
+    method parseSamplers: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseSampler: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseTexture: (object: DOM Object const ref) ::=> Void := {
+    method parseTexture: (object: DOM ObjectRef const ref) ::=> Void := {
         let texture := modelAsset newTexture.
         texture
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        object at: "sampler" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "sampler" ifPresent: {:(DOM Value const ref)value :: Void |
             texture sampler: (modelAsset samplers[DOM valueToUIntPointer(value)])
         }.
-        object at: "source" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "source" ifPresent: {:(DOM Value const ref)value :: Void |
             texture image: (modelAsset images[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseTextures: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseTexture: (each get: DOM ObjectPtr) _
+    method parseTextures: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseTexture: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseMaterialTexture: (object: DOM Object const ref) ::=> ModelAssetTextureRef := {
+    method parseMaterialTexture: (object: DOM ObjectRef const ref) ::=> ModelAssetTextureRef := {
         let result mutable := ModelAssetTextureRef nil.
-        object at: "index" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "index" ifPresent: {:(DOM Value const ref)value :: Void |
             result := modelAsset textures[DOM valueToUIntPointer(value)]
         }.
 
         result
     }.
 
-    method parsePbrMetallicRoughnessMaterial: (object: DOM Object const ref) ::=> ModelAssetMaterialRef := {
+    method parsePbrMetallicRoughnessMaterial: (object: DOM ObjectRef const ref) ::=> ModelAssetMaterialRef := {
         let material := modelAsset newMetallicRoughnessMaterial.
 
         material
-            baseColorFactor: Std Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" asMutableString default: 1.0f);
-            metallicFactor: (object getFloat32: "metallicFactor" asMutableString default: 1.0f);
-            roughnessFactor: (object getFloat32: "roughnessFactor" asMutableString default: 1.0f).
-        object at: "baseColorTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material baseColorTexture: (self parseMaterialTexture: (value get: DOM ObjectPtr) _)..
+            baseColorFactor: Std Math Color decodeSRGB(object getFloat32x4: "baseColorFactor" default: 1.0f);
+            metallicFactor: (object getFloat32: "metallicFactor" default: 1.0f);
+            roughnessFactor: (object getFloat32: "roughnessFactor" default: 1.0f).
+        object at: "baseColorTexture" ifPresent: {:(DOM Value const ref)value :: Void |
+            material baseColorTexture: (self parseMaterialTexture: (value get: DOM ObjectRef) ).
             material baseColorTexture setColorUsage
         }.
-        object at: "metallicRoughnessTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material metallicRoughnessTexture: (self parseMaterialTexture: (value get: DOM ObjectPtr) _).
+        object at: "metallicRoughnessTexture" ifPresent: {:(DOM Value const ref)value :: Void |
+            material metallicRoughnessTexture: (self parseMaterialTexture: (value get: DOM ObjectRef)).
             material metallicRoughnessTexture setLinearUsage
         }.
 
         material upCastFor: ModelAssetMaterial.
     }.
 
-    method parseMaterial: (object: DOM Object const ref) ::=> Void := {
+    method parseMaterial: (object: DOM ObjectRef const ref) ::=> Void := {
         let material mutable := ModelAssetMaterialRef nil.
-        object at: "pbrMetallicRoughness" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material := self parsePbrMetallicRoughnessMaterial: (value get: DOM ObjectPtr) _.
+        object at: "pbrMetallicRoughness" ifPresent: {:(DOM Value const ref)value :: Void |
+            material := self parsePbrMetallicRoughnessMaterial: (value get: DOM ObjectRef).
         }.
 
         material ifNil: {
@@ -324,41 +324,41 @@ class GLTFModelImporter definition: {
         }.
 
         material
-            name: (object getString: "name" asMutableString default: "" asMutableString);
-            emissionFactor: Std Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" asMutableString default: 0, 0)) rgb;
-            doubleSided: (object getBoolean8: "doubleSided" asMutableString default: false);
-            alphaCutoff: (object getFloat32: "alphaCutoff" asMutableString default: 0.5f).
+            name: (object getString: "name" default: "");
+            emissionFactor: Std Math Color decodeSRGB(Float32x4(object getFloat32x3: "emissiveFactor" default: 0, 0)) rgb;
+            doubleSided: (object getBoolean8: "doubleSided" default: false);
+            alphaCutoff: (object getFloat32: "alphaCutoff" default: 0.5f).
 
-        let alphaMode := object getString: "alphaMode" asMutableString default: "OPAQUE" asMutableString.
+        let alphaMode := object getString: "alphaMode" default: "OPAQUE".
         material alphaMode: (alphaMode asArraySlice selectCase: #{
         "MASK" : ModelAssetMaterialAlphaMode Mask.
         "BLEND" : ModelAssetMaterialAlphaMode Blend.
         _ : ModelAssetMaterialAlphaMode Opaque.
         }).
 
-        object at: "occlusionTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material occlusionTexture: (self parseMaterialTexture: (value get: DOM ObjectPtr) _).
+        object at: "occlusionTexture" ifPresent: {:(DOM Value const ref)value :: Void |
+            material occlusionTexture: (self parseMaterialTexture: (value get: DOM ObjectRef)).
             material occlusionTexture setLinearUsage
         }.
 
-        object at: "emissiveTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material emissionTexture: (self parseMaterialTexture: (value get: DOM ObjectPtr) _).
+        object at: "emissiveTexture" ifPresent: {:(DOM Value const ref)value :: Void |
+            material emissionTexture: (self parseMaterialTexture: (value get: DOM ObjectRef)).
             material emissionTexture setColorUsage
         }.
 
-        object at: "normalTexture" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            material normalTexture: (self parseMaterialTexture: (value get: DOM ObjectPtr) _).
+        object at: "normalTexture" ifPresent: {:(DOM Value const ref)value :: Void |
+            material normalTexture: (self parseMaterialTexture: (value get: DOM ObjectRef)).
             material normalTexture setNormalUsage
         }.
     }.
 
-    method parseMaterials: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseMaterial: (each get: DOM ObjectPtr) _
+    method parseMaterials: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseMaterial: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseMeshPrimitiveAttributes: (object: DOM Object const ref) ::=> ModelAssetMeshPrimitiveAttributesRef := {
+    method parseMeshPrimitiveAttributes: (object: DOM ObjectRef const ref) ::=> ModelAssetMeshPrimitiveAttributesRef := {
         let attributeList mutable := ModelAssetMeshPrimitiveAttributeList().
 
         object keysAndValuesDo: {:(Std String const ref)key :(DOM Value const ref)value :: Void |
@@ -390,106 +390,106 @@ class GLTFModelImporter definition: {
             yourself
     }.
 
-    method parseMesh: (mesh: ModelAssetMeshRef const ref) primitive: (object: DOM Object const ref) ::=> Void := {
+    method parseMesh: (mesh: ModelAssetMeshRef const ref) primitive: (object: DOM ObjectRef const ref) ::=> Void := {
 
         let primitive := ModelAssetMeshPrimitive new.
         mesh primitives add: primitive.
 
         primitive
-            attributes: (self parseMeshPrimitiveAttributes: (object getObject: "attributes" asMutableString) _ );
-            primitiveTopology: ((object getUInt32: "mode" asMutableString default: 4) castTo: GLTFPrimitiveMode) asPrimitiveTopology.
+            attributes: (self parseMeshPrimitiveAttributes: (object getObject: "attributes"));
+            primitiveTopology: ((object getUInt32: "mode" default: 4) castTo: GLTFPrimitiveMode) asPrimitiveTopology.
 
-        object at: "indices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "indices" ifPresent: {:(DOM Value const ref)value :: Void |
             primitive indices: (modelAsset bufferAccessors[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "material" ifPresent: {:(DOM Value const ref)value :: Void |
             primitive material: (modelAsset materials[DOM valueToUIntPointer(value)])
         }.
     }.
 
-    method parseMesh: (object: DOM Object const ref) ::=> Void := {
+    method parseMesh: (object: DOM ObjectRef const ref) ::=> Void := {
         let mesh := modelAsset newMesh.
         mesh
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        object at: "primitives" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                self parseMesh: mesh primitive: (each get: DOM ObjectPtr) _
+        object at: "primitives" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                self parseMesh: mesh primitive: (each get: DOM ObjectRef)
             }.
         }.
     }.
 
-    method parseMeshes: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseMesh: (each get: DOM ObjectPtr) _
+    method parseMeshes: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseMesh: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseSkin: (object: DOM Object const ref) ::=> Void := {
+    method parseSkin: (object: DOM ObjectRef const ref) ::=> Void := {
         let skeleton := modelAsset newSkeleton.
         skeleton
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        object at: "inverseBindMatrices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "inverseBindMatrices" ifPresent: {:(DOM Value const ref)value :: Void |
             skeleton inverseBindMatricesAccessor: modelAsset bufferAccessors[DOM valueToUIntPointer(value)]
         }.
     }.
 
-    method parseSkins: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseSkin: (each get: DOM ObjectPtr) _
+    method parseSkins: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseSkin: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseSkin: (skeleton: ModelAssetSkeletonRef const ref) nodes:(object: DOM Object const ref) ::=> Void := {
-        let joints := object getList: "joints" asMutableString.
-        skeleton joints reserve: joints _ size.
-        joints _ do: {:(DOM Value const ref)value :: Void |
+    method parseSkin: (skeleton: ModelAssetSkeletonRef const ref) nodes:(object: DOM ObjectRef const ref) ::=> Void := {
+        let joints := object getList: "joints".
+        skeleton joints reserve: joints size.
+        joints do: {:(DOM Value const ref)value :: Void |
             skeleton joints add: modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
 
-        object at: "skeleton" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "skeleton" ifPresent: {:(DOM Value const ref)value :: Void |
             skeleton rootJoint := modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
     }.
 
-    method parseSkinNodes: (list: DOM List const ref) ::=> Void := {
-        list doWithIndex: {:each :index :: Void |
-            self parseSkin: modelAsset skeletons[index] nodes: (each get: DOM ObjectPtr) _
+    method parseSkinNodes: (list: DOM ListRef const ref) ::=> Void := {
+        list doWithIndex: {:(DOM Value const ref)each :(UIntPointer)index :: Void |
+            self parseSkin: modelAsset skeletons[index] nodes: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseNode: (object: DOM Object const ref) ::=> Void := {
+    method parseNode: (object: DOM ObjectRef const ref) ::=> Void := {
         let node := modelAsset newNode.
         node
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        object at: "mesh" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "mesh" ifPresent: {:(DOM Value const ref)value :: Void |
             node mesh: (modelAsset meshes[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "skin" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "skin" ifPresent: {:(DOM Value const ref)value :: Void |
             node skeleton: (modelAsset skeletons[DOM valueToUIntPointer(value)])
         }.
 
-        object at: "scale" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "scale" ifPresent: {:(DOM Value const ref)value :: Void |
             let scale := DOM valueToFloat32x3(value, 1).
             node scale: scale.
             node transform scaleBy: scale.
         }.
-        object at: "rotation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "rotation" ifPresent: {:(DOM Value const ref)value :: Void |
             let rotation := QuaternionF32 xyzw: DOM valueToFloat32x4(value, Float32x4(0, 0, 0, 1)).
             node rotationQuaternion: rotation.
             node transform applyOrthonormalMatrix: rotation asFloat32x3x3.
         }.
-        object at: "translation" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "translation" ifPresent: {:(DOM Value const ref)value :: Void |
             let translation := DOM valueToFloat32x3(value, 0).
             node translation: translation.
             node transform translateBy: translation.
         }.
 
-        object at: "matrix" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        object at: "matrix" ifPresent: {:(DOM Value const ref)value :: Void |
             let matrix := DOM valueToFloat32x4x4(value, Float32x4x4 identity).
             Std stdout << "TODO: parse node matrix "; nl.
             Std stdout << matrix firstRow; nl.
@@ -500,9 +500,9 @@ class GLTFModelImporter definition: {
 
     }.
 
-    method parseNode: (node: ModelAssetNodeRef const ref) children: (object: DOM Object const ref) ::=> Void := {
-        object at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let children ref := (value get: DOM ListPtr) _.
+    method parseNode: (node: ModelAssetNodeRef const ref) children: (object: DOM ObjectRef const ref) ::=> Void := {
+        object at: "children" ifPresent: {:(DOM Value const ref)value :: Void |
+            let children ref := (value get: DOM ListRef).
             node children reserve: children size.
             0 until: children size do: {:i :: Void |
                 node children add: (modelAsset nodes[children getUIntPointer: i])
@@ -510,23 +510,23 @@ class GLTFModelImporter definition: {
         }
     }.
 
-    method parseNodes: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseNode: (each get: DOM ObjectPtr) _
+    method parseNodes: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseNode: (each get: DOM ObjectRef)
         }.
 
-        list doWithIndex: {:each :index :: Void |
-            self parseNode: modelAsset nodes[index] children: (each get: DOM ObjectPtr) _
+        list doWithIndex: {:(DOM Value const ref)each :(UIntPointer)index :: Void |
+            self parseNode: modelAsset nodes[index] children: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseScene: (object: DOM Object const ref) ::=> Void := {
+    method parseScene: (object: DOM ObjectRef const ref) ::=> Void := {
         let scene := modelAsset newScene.
         scene
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        object at: "nodes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let nodeList ref := (value get: DOM ListPtr) _.
+        object at: "nodes" ifPresent: {:(DOM Value const ref)value :: Void |
+            let nodeList ref := (value get: DOM ListRef).
             scene rootNodes reserve: nodeList size.
             0 until: nodeList size do: {:i :: Void |
                 scene rootNodes add: (modelAsset nodes[nodeList getUIntPointer: i])
@@ -534,20 +534,20 @@ class GLTFModelImporter definition: {
         }.
     }.
 
-    method parseScenes: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseScene: (each get: DOM ObjectPtr) _
+    method parseScenes: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseScene: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationRef const ref) sampler: (object: DOM Object const ref) ::=> Void := {
+    method parseAnimation: (animation: ModelAssetAnimationRef const ref) sampler: (object: DOM ObjectRef const ref) ::=> Void := {
         let sampler := ModelAssetAnimationSampler new.
         sampler
             index: animation samplers size;
-            inputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "input" asMutableString]);
-            outputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "output" asMutableString]).
+            inputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "input"]);
+            outputAccessor: (modelAsset bufferAccessors[object getUIntPointer: "output"]).
 
-        let interpolationMethod := object getString: "interpolation" asMutableString default: "LINEAR" asMutableString.
+        let interpolationMethod := object getString: "interpolation" default: "LINEAR".
         sampler interpolationMethod: (interpolationMethod asArraySlice selectCase: #{
             "LINEAR" : ModelAssetAnimationInterpolationMethod Linear.
             "STEP" : ModelAssetAnimationInterpolationMethod Step.
@@ -557,12 +557,12 @@ class GLTFModelImporter definition: {
         animation samplers add: sampler.
     }.
 
-    method parseAnimation: (animation: ModelAssetAnimationRef const ref) channel: (object: DOM Object const ref) ::=> Void := {
+    method parseAnimation: (animation: ModelAssetAnimationRef const ref) channel: (object: DOM ObjectRef const ref) ::=> Void := {
         let channel := ModelAssetAnimationChannel new.
-        channel sampler: (animation samplers[object getUIntPointer: "sampler" asMutableString]).
+        channel sampler: (animation samplers[object getUIntPointer: "sampler"]).
 
-        let target := object getObject: "target" asMutableString.
-        let path := target _ getString: "path" asMutableString.
+        let target := object getObject: "target".
+        let path := target getString: "path".
         channel targetProperty: (path asArraySlice selectCase: #{
             "translation" : ModelAssetAnimationTargetProperty Translation.
             "rotation" : ModelAssetAnimationTargetProperty Rotation.
@@ -570,78 +570,78 @@ class GLTFModelImporter definition: {
             "weights" : ModelAssetAnimationTargetProperty Weights.
         }).
 
-        target _ at: "node" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
+        target at: "node" ifPresent: {:(DOM Value const ref)value :: Void |
             channel targetNode: modelAsset nodes[DOM valueToUIntPointer(value)]
         }.
 
         animation channels add: channel.
     }.
 
-    method parseAnimation: (object: DOM Object const ref) ::=> Void := {
+    method parseAnimation: (object: DOM ObjectRef const ref) ::=> Void := {
         let animation := modelAsset newAnimation.
         animation
-            name: (object getString: "name" asMutableString default: "" asMutableString).
+            name: (object getString: "name" default: "").
 
-        let samplers := object getList: "samplers" asMutableString.
-        animation samplers reserve: samplers _ size.
-        samplers _ do: {:each :: Void |
-            self parseAnimation: animation sampler: (each get: DOM ObjectPtr) _
+        let samplers := object getList: "samplers".
+        animation samplers reserve: samplers size.
+        samplers do: {:(DOM Value const ref)each :: Void |
+            self parseAnimation: animation sampler: (each get: DOM ObjectRef)
         }.
 
-        let channels := object getList: "channels" asMutableString.
-        animation channels reserve: channels _ size.
-        channels _ do: {:each :: Void |
-            self parseAnimation: animation channel: (each get: DOM ObjectPtr) _
-        }.
-    }.
-
-    method parseAnimations: (list: DOM List const ref) ::=> Void := {
-        list do: {:each :: Void |
-            self parseAnimation: (each get: DOM ObjectPtr) _
+        let channels := object getList: "channels".
+        animation channels reserve: channels size.
+        channels do: {:(DOM Value const ref)each :: Void |
+            self parseAnimation: animation channel: (each get: DOM ObjectRef)
         }.
     }.
 
-    method parseTopLevel: (object: DOM Object const ref) ::=> ModelAssetRef := {
+    method parseAnimations: (list: DOM ListRef const ref) ::=> Void := {
+        list do: {:(DOM Value const ref)each :: Void |
+            self parseAnimation: (each get: DOM ObjectRef)
+        }.
+    }.
+
+    method parseTopLevel: (object: DOM ObjectRef const ref) ::=> ModelAssetRef := {
         modelAsset := ModelAsset new.
         modelAsset parentFolder: parentFolder.
-        object at: "buffers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseBuffers: (value get: DOM ListPtr) _
+        object at: "buffers" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseBuffers: (value get: DOM ListRef)
         }.
-        object at: "bufferViews" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseBufferViews: (value get: DOM ListPtr) _
+        object at: "bufferViews" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseBufferViews: (value get: DOM ListRef)
         }.
-        object at: "accessors" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseAccessors: (value get: DOM ListPtr) _
+        object at: "accessors" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseAccessors: (value get: DOM ListRef)
         }.
-        object at: "images" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseImages: (value get: DOM ListPtr) _
+        object at: "images" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseImages: (value get: DOM ListRef)
         }.
-        object at: "samplers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseSamplers: (value get: DOM ListPtr) _
+        object at: "samplers" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSamplers: (value get: DOM ListRef)
         }.
-        object at: "textures" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseTextures: (value get: DOM ListPtr) _
+        object at: "textures" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseTextures: (value get: DOM ListRef)
         }.
-        object at: "materials" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseMaterials: (value get: DOM ListPtr) _
+        object at: "materials" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseMaterials: (value get: DOM ListRef)
         }.
-        object at: "meshes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseMeshes: (value get: DOM ListPtr) _
+        object at: "meshes" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseMeshes: (value get: DOM ListRef)
         }.
-        object at: "skins" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseSkins: (value get: DOM ListPtr) _
+        object at: "skins" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSkins: (value get: DOM ListRef)
         }.
-        object at: "nodes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseNodes: (value get: DOM ListPtr) _
+        object at: "nodes" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseNodes: (value get: DOM ListRef)
         }.
-        object at: "skins" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseSkinNodes: (value get: DOM ListPtr) _
+        object at: "skins" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseSkinNodes: (value get: DOM ListRef)
         }.
-        object at: "scenes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseScenes: (value get: DOM ListPtr) _
+        object at: "scenes" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseScenes: (value get: DOM ListRef)
         }.
-        object at: "animations" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            self parseAnimations: (value get: DOM ListPtr) _
+        object at: "animations" ifPresent: {:(DOM Value const ref)value :: Void |
+            self parseAnimations: (value get: DOM ListRef)
         }.
 
         modelAsset
@@ -657,7 +657,7 @@ class GLTFModelImporter definition: {
         jsonReadStream ifNil: {return: ModelAssetRef nil}.
 
         let jsonValue := JSON ValueParser parseStream: jsonReadStream getPointer.
-        self parseTopLevel: (jsonValue get: DOM ObjectPtr) _.
+        self parseTopLevel: (jsonValue get: DOM ObjectRef).
     }.
 }.
 

@@ -8,12 +8,12 @@ namespace ModelConverter definition: {
  *#
 class Converter definition: {
     public field parameters type: Parameters.
-    public field targetProfile type: Sysmel Tools TextureConverter TextureConversionProfilePtr.
+    public field targetProfile type: Sysmel Tools TextureConverter TextureConversionProfileRef.
 
-    method validTargetProfile => Sysmel Tools TextureConverter TextureConversionProfilePtr := {
+    method validTargetProfile => Sysmel Tools TextureConverter TextureConversionProfileRef := {
         targetProfile ifNil: {
             targetProfile := Sysmel Tools TextureConverter TextureConversionProfileRegistry uniqueInstance findNamed: parameters targetProfileName asArraySlice default:
-                (Sysmel Tools TextureConverter PCTextureConversionProfile rcNew upCastFor: Sysmel Tools TextureConverter TextureConversionProfile)
+                (Sysmel Tools TextureConverter PCTextureConversionProfile new upCastFor: Sysmel Tools TextureConverter TextureConversionProfile)
         }.
         targetProfile
     }.
@@ -51,7 +51,7 @@ class Converter definition: {
             validTargetProfile.
 
         ## Convert the texture data.
-        let convertedTextureData := textureConversionProfile _ convertTextureData: textureData withParameters: textureConversionParameters.
+        let convertedTextureData := textureConversionProfile convertTextureData: textureData withParameters: textureConversionParameters.
         convertedTextureData ifNil: {
             return: false
         }.

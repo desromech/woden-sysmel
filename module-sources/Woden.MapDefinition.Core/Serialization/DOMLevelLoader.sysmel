@@ -39,8 +39,8 @@ class LevelLoadingContext definition: {
 
 LevelElementDefinition extend: {
     meta definition: {
-        static method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition rcRef := {
-            let typeName := domObject getString: "type" asMutableString default: "" asMutableString.
+        static method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> LevelElementDefinition rcRef := {
+            let typeName := domObject getString: "type" default: "".
             let resultInstance := typeName asArraySlice selectCase: #{
             "Level" : (LevelDefinition new upCastFor: LevelElementDefinition).
             "Sector" : (SectorDefinition new upCastFor: LevelElementDefinition).
@@ -72,8 +72,8 @@ LevelElementDefinition extend: {
         }.
     }.
 
-    virtual method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
-        name := domObject getString: "name" asMutableString default: "" asMutableString.
+    virtual method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        name := domObject getString: "name" default: "".
     }.
 }.
 
@@ -90,7 +90,7 @@ LevelDefinition extend: {
                     ifTrue: {JSON ValueParser parseStream: inputReadStream getPointer}
                     ifFalse: {MessagePack ValueDecoder decodeStream: inputReadStream getPointer}.
 
-                let result := LevelElementDefinition loadFromDOM: (domValue get: DOM ObjectPtr) _ context: context.
+                let result := LevelElementDefinition loadFromDOM: (domValue get: DOM ObjectRef) context: context.
                 result isNotNil && result isLevel ifTrue: {
                     return: (result downCastFor: LevelDefinition)
                 }.
@@ -102,26 +102,26 @@ LevelDefinition extend: {
         }
     }.
 
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "textures" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let texture := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "textures" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let texture := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 context addTexture: (texture downCastFor: TextureDefinition)
             }
         }.
 
-        domObject at: "materials" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let material := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "materials" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let material := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 context addMaterial: (material downCastFor: MaterialDefinition)
             }
         }.
 
-        domObject at: "sectors" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let sector := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "sectors" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let sector := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 sector isNotNil && sector isSector ifTrue: {
                     self addSector: (sector downCastFor: SectorDefinition)
                 }
@@ -131,13 +131,13 @@ LevelDefinition extend: {
 }.
 
 SectorDefinition extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
-        isSector2D := domObject getBoolean8: "isSector2D" asMutableString default: isSector2D.
+        isSector2D := domObject getBoolean8: "isSector2D" default: isSector2D.
 
-        domObject at: "layers" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let layer := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "layers" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let layer := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 layer isNotNil && layer isSectorLayer ifTrue: {
                     self addLayer: (layer downCastFor: SectorLayerDefinition)
                 }
@@ -147,14 +147,14 @@ SectorDefinition extend: {
 }.
 
 SectorLayerDefinition extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
-        layerMinZ := domObject getFloat32: "layerMinZ" asMutableString default: layerMinZ.
-        layerMaxZ := domObject getFloat32: "layerMaxZ" asMutableString default: layerMaxZ.
+        layerMinZ := domObject getFloat32: "layerMinZ" default: layerMinZ.
+        layerMaxZ := domObject getFloat32: "layerMaxZ" default: layerMaxZ.
 
-        domObject at: "children" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let entity := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "children" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let entity := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 entity isNotNil && entity isEntity ifTrue: {
                     self addEntity: (entity downCastFor: EntityDefinition)
                 }
@@ -164,24 +164,24 @@ SectorLayerDefinition extend: {
 }.
 
 EntityDefinition extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        className := domObject getString: "className" asMutableString default: "" asMutableString.
+        className := domObject getString: "className" default: "".
         self
-            scale: (domObject getFloat32x3: "scale" asMutableString default: 1);
-            orientation: (QuaternionF32 xyzw: (domObject getFloat32x4: "orientation" asMutableString default: Float32x4(0, 0, 0, 1)));
-            position: (domObject getFloat32x3: "position" asMutableString default: 0);
-        is2DEntity := (domObject getString: "dimensions" asMutableString default: "" asMutableString) asArraySlice = "2D".
+            scale: (domObject getFloat32x3: "scale" default: 1);
+            orientation: (QuaternionF32 xyzw: (domObject getFloat32x4: "orientation" default: Float32x4(0, 0, 0, 1)));
+            position: (domObject getFloat32x3: "position" default: 0);
+        is2DEntity := (domObject getString: "dimensions" default: "") asArraySlice = "2D".
 
-        domObject at: "localBoundingBox" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let boxObject := (value get: DOM ObjectPtr) _.
-            localBoundingBox := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString)
+        domObject at: "localBoundingBox" ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject := (value get: DOM ObjectRef).
+            localBoundingBox := BoxF32 min: (boxObject getFloat32x3: "min") max: (boxObject getFloat32x3: "max")
         }.
 
-        domObject at: "components" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            (value get: DOM ListPtr) _ do: {:each :: Void |
-                let component := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+        domObject at: "components" ifPresent: {:(DOM Value const ref)value :: Void |
+            (value get: DOM ListRef) do: {:(DOM Value const ref)each :: Void |
+                let component := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 component isNotNil && component isEntityComponent ifTrue: {
                     self addComponent: (component downCastFor: EntityComponentDefinition)
                 }
@@ -191,12 +191,12 @@ EntityDefinition extend: {
 }.
 
 RectangleCollisionShape extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "rectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let rectObject ref := (value get: DOM ObjectPtr) _.
-            let rectangle := RectangleF32 min: (rectObject getFloat32x2: "min" asMutableString) max: (rectObject getFloat32x2: "max" asMutableString).
+        domObject at: "rectangle" ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectObject ref := (value get: DOM ObjectRef).
+            let rectangle := RectangleF32 min: (rectObject getFloat32x2: "min") max: (rectObject getFloat32x2: "max").
 
             ## FIXME: support displaced rectangles.
             halfExtent := rectangle halfExtent.
@@ -205,51 +205,51 @@ RectangleCollisionShape extend: {
 }.
 
 FaceMaterialAttributes extend: {
-    method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
-        material := context getMaterialWithIndex: (domObject getInt32: "material" asMutableString default: 0).
-        scale := domObject getFloat32x2: "scale" asMutableString default: scale.
-        offset := domObject getFloat32x2: "offset" asMutableString default: offset.
-        rotation := domObject getFloat32: "rotation" asMutableString default: rotation.
+    method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        material := context getMaterialWithIndex: (domObject getInt32: "material" default: 0).
+        scale := domObject getFloat32x2: "scale" default: scale.
+        offset := domObject getFloat32x2: "offset" default: offset.
+        rotation := domObject getFloat32: "rotation" default: rotation.
     }
 }.
 
 RectangleVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "rectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let rectObject ref := (value get: DOM ObjectPtr) _.
-            rectangle := RectangleF32 min: (rectObject getFloat32x2: "min" asMutableString) max: (rectObject getFloat32x2: "max" asMutableString)
+        domObject at: "rectangle" ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectObject ref := (value get: DOM ObjectRef).
+            rectangle := RectangleF32 min: (rectObject getFloat32x2: "min") max: (rectObject getFloat32x2: "max")
         }.
 
-        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "material" ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
     }.
 }.
 
 BoxVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let boxObject ref := (value get: DOM ObjectPtr) _.
-            box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+        domObject at: "box" ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject ref := (value get: DOM ObjectRef).
+            box := BoxF32 min: (boxObject getFloat32x3: "min") max: (boxObject getFloat32x3: "max").
         }.
 
-        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "material" ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
     }.
 }.
 
 BoxCollisionShape extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "box" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let boxObject ref := (value get: DOM ObjectPtr) _.
-            let box := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+        domObject at: "box" ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject ref := (value get: DOM ObjectRef).
+            let box := BoxF32 min: (boxObject getFloat32x3: "min") max: (boxObject getFloat32x3: "max").
 
             ## FIXME: support displaced boxes.
             halfExtent := box halfExtent.
@@ -258,13 +258,13 @@ BoxCollisionShape extend: {
 }.
 
 PolygonConvexHullCollisionShape extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "points" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "points" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             points reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 points add: DOM valueToFloat32x2(each)
             }
         }.
@@ -274,21 +274,21 @@ PolygonConvexHullCollisionShape extend: {
 }.
 
 ConvexHullCollisionShape extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "points" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "points" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             points reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 points add: DOM valueToFloat32x3(each)
             }
         }.
 
-        domObject at: "planes" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "planes" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             planes reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 let planeData := DOM valueToFloat32x4(each).
                 planes add: (PlaneF32 normal: planeData xyz distance: planeData w negated)
             }
@@ -299,48 +299,48 @@ ConvexHullCollisionShape extend: {
 }.
 
 PolyhedronFace extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        let planeData := domObject getFloat32x4: "plane" asMutableString default: Float32x4(plane normal, plane distance negated).
+        let planeData := domObject getFloat32x4: "plane" default: Float32x4(plane normal, plane distance negated).
         plane := PlaneF32 normal: planeData xyz distance: planeData w negated.
 
-        domObject at: "vertices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "vertices" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             vertices reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 vertices add: DOM valueToFloat32x3(each)
             }
         }.
 
-        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "material" ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
     }.
 }.
 
 ConvexPolyhedronVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "boundingBox" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let boxObject ref := (value get: DOM ObjectPtr) _.
-            boundingBox := BoxF32 min: (boxObject getFloat32x3: "min" asMutableString) max: (boxObject getFloat32x3: "max" asMutableString).
+        domObject at: "boundingBox" ifPresent: {:(DOM Value const ref)value :: Void |
+            let boxObject ref := (value get: DOM ObjectRef).
+            boundingBox := BoxF32 min: (boxObject getFloat32x3: "min") max: (boxObject getFloat32x3: "max").
         }.
 
-        domObject at: "vertices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "vertices" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             vertices reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 vertices add: DOM valueToFloat32x3(each)
             }
         }.
 
-        domObject at: "faces" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "faces" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             faces reserve: list size.
-            list do: {:each :: Void |
-                let each := LevelElementDefinition loadFromDOM: (each get: DOM ObjectPtr) _ context: context.
+            list do: {:(DOM Value const ref)each :: Void |
+                let each := LevelElementDefinition loadFromDOM: (each get: DOM ObjectRef) context: context.
                 each isNotNil && each isPolyhedronFace ifTrue: {
                     faces add: (each downCastFor: PolyhedronFace)
                 }
@@ -350,94 +350,94 @@ ConvexPolyhedronVisualComponent extend: {
 }.
 
 PolygonFaceAttributes extend: {
-    method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
-        domObject at: "material" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            materialAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+    method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+        domObject at: "material" ifPresent: {:(DOM Value const ref)value :: Void |
+            materialAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
     }.
 }.
 
 ConvexPolygonVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        domObject at: "boundingRectangle" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let rectangleObject ref := (value get: DOM ObjectPtr) _.
-            boundingRectangle := RectangleF32 min: (rectangleObject getFloat32x2: "min" asMutableString) max: (rectangleObject getFloat32x2: "max" asMutableString).
+        domObject at: "boundingRectangle" ifPresent: {:(DOM Value const ref)value :: Void |
+            let rectangleObject ref := value get: DOM ObjectRef.
+            boundingRectangle := RectangleF32 min: (rectangleObject getFloat32x2: "min") max: (rectangleObject getFloat32x2: "max").
         }.
 
-        domObject at: "vertices" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            let list ref := (value get: DOM ListPtr) _.
+        domObject at: "vertices" ifPresent: {:(DOM Value const ref)value :: Void |
+            let list ref := value get: DOM ListRef.
             vertices reserve: list size.
-            list do: {:each :: Void |
+            list do: {:(DOM Value const ref)each :: Void |
                 vertices add: DOM valueToFloat32x2(each)
             }
         }.
 
-        domObject at: "topFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            topFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "topFace" ifPresent: {:(DOM Value const ref)value :: Void |
+            topFaceAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
 
-        domObject at: "bottomFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            bottomFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "bottomFace" ifPresent: {:(DOM Value const ref)value :: Void |
+            bottomFaceAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
 
-        domObject at: "sideFace" asMutableString ifPresent: {:(DOM Value const ref)value :: Void |
-            sideFaceAttributes loadFromDOM: (value get: DOM ObjectPtr) _ context: context
+        domObject at: "sideFace" ifPresent: {:(DOM Value const ref)value :: Void |
+            sideFaceAttributes loadFromDOM: (value get: DOM ObjectRef) context: context
         }.
     }.
 }.
 
 LightSourceVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        color := domObject getFloat32x3: "color" asMutableString default: color.
-        intensity := domObject getFloat32: "intensity" asMutableString default: intensity.
-        castShadows := domObject getBoolean8: "castShadows" asMutableString default: castShadows.
+        color := domObject getFloat32x3: "color" default: color.
+        intensity := domObject getFloat32: "intensity" default: intensity.
+        castShadows := domObject getBoolean8: "castShadows" default: castShadows.
     }.
 }.
 
 PointLightSourceVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        radius := domObject getFloat32: "radius" asMutableString default: intensity.
+        radius := domObject getFloat32: "radius" default: intensity.
     }.
 }.
 
 SpotLightSourceVisualComponent extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        outerCutOffAngle := domObject getFloat32: "outerCutOffAngle" asMutableString default: outerCutOffAngle.
-        innerCutOffAngle := domObject getFloat32: "innerCutOffAngle" asMutableString default: innerCutOffAngle.
-        exponent := domObject getFloat32: "exponent" asMutableString default: exponent.
+        outerCutOffAngle := domObject getFloat32: "outerCutOffAngle" default: outerCutOffAngle.
+        innerCutOffAngle := domObject getFloat32: "innerCutOffAngle" default: innerCutOffAngle.
+        exponent := domObject getFloat32: "exponent" default: exponent.
     }.
 }.
 
 MetallicRoughnessMaterialDefinition extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        baseColorTexture := context getTextureWithIndex: (domObject getInt32: "baseColorTexture" asMutableString default: 0).
-        emissionTexture := context getTextureWithIndex: (domObject getInt32: "emissionTexture" asMutableString default: 0).
-        normalTexture := context getTextureWithIndex: (domObject getInt32: "normalTexture" asMutableString default: 0).
-        occlusionMetallicRougnessTexture := context getTextureWithIndex: (domObject getInt32: "occlusionMetallicRougnessTexture" asMutableString default: 0).
+        baseColorTexture := context getTextureWithIndex: (domObject getInt32: "baseColorTexture" default: 0).
+        emissionTexture := context getTextureWithIndex: (domObject getInt32: "emissionTexture" default: 0).
+        normalTexture := context getTextureWithIndex: (domObject getInt32: "normalTexture" default: 0).
+        occlusionMetallicRougnessTexture := context getTextureWithIndex: (domObject getInt32: "occlusionMetallicRougnessTexture" default: 0).
 
-        baseColorFactor := domObject getFloat32x4: "baseColorFactor" asMutableString default: baseColorFactor.
-        emissionFactor := domObject getFloat32x3: "emissionFactor" asMutableString default: emissionFactor.
-        occlusionFactor := domObject getFloat32: "occlusionFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {occlusionFactor} ifNotNil: {1.0f}).
-        roughnessFactor := domObject getFloat32: "roughnessFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {roughnessFactor} ifNotNil: {1.0f}).
-        metallicFactor := domObject getFloat32: "metallicFactor" asMutableString default: (occlusionMetallicRougnessTexture ifNil: {metallicFactor} ifNotNil: {1.0f}).
+        baseColorFactor := domObject getFloat32x4: "baseColorFactor" default: baseColorFactor.
+        emissionFactor := domObject getFloat32x3: "emissionFactor" default: emissionFactor.
+        occlusionFactor := domObject getFloat32: "occlusionFactor" default: (occlusionMetallicRougnessTexture ifNil: {occlusionFactor} ifNotNil: {1.0f}).
+        roughnessFactor := domObject getFloat32: "roughnessFactor" default: (occlusionMetallicRougnessTexture ifNil: {roughnessFactor} ifNotNil: {1.0f}).
+        metallicFactor := domObject getFloat32: "metallicFactor" default: (occlusionMetallicRougnessTexture ifNil: {metallicFactor} ifNotNil: {1.0f}).
     }.
 }.
 
 FileReferenceMaterialDefinition extend: {
-    override method loadFromDOM: (domObject: DOM Object const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
+    override method loadFromDOM: (domObject: DOM ObjectRef const ref) context: (context: LevelLoadingContext ref) ::=> Void := {
         super loadFromDOM: domObject context: context.
 
-        path := domObject getString: "path" asMutableString default: "" asMutableString.
+        path := domObject getString: "path" default: "".
     }.
 }.
 
