@@ -59,7 +59,7 @@ class Converter definition: {
         image uri isEmpty || parameters embedTextures ifTrue: {
             let memoryStream mutable := Std IO MemoryStream().
             let imageReadWriter := Std Graphics ImageFormats ImageReadWriterRegistry uniqueInstance findWithExtension: "stx".
-            imageReadWriter _ putTextureData: convertedTextureData  onStream: memoryStream.
+            imageReadWriter putTextureData: convertedTextureData  onStream: memoryStream.
 
             let buffer := modelAsset newBuffer.
             buffer setContent: memoryStream contents.
