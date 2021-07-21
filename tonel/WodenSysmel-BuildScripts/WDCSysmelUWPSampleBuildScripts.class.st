@@ -7,7 +7,7 @@ Class {
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildGameSystemExample [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/game/gameSystemExample.sysmel' with: [ :prog |
 				prog
@@ -19,7 +19,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildGameSystemExample [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample01Cube [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample01Cube.sysmel'
 		]
@@ -28,7 +28,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample01Cube [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample02TexturedCube [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample02TexturedCube.sysmel'
 		]
@@ -37,7 +37,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample02TexturedCube [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample03Floor [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample03Floor.sysmel' with: [ :bundle |
 					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
@@ -48,7 +48,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample03Floor [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample04Pool [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample04Pool.sysmel' with: [ :bundle |
 					bundle wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
@@ -59,7 +59,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample04Pool [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample05Models [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample05Models.sysmel' with: [ :bundle |
 				bundle
@@ -72,7 +72,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample05Models [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample06Sponza [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample06Sponza.sysmel' with: [ :bundle |
 				bundle
@@ -84,7 +84,7 @@ WDCSysmelUWPSampleBuildScripts class >> buildSceneExample06Sponza [
 { #category : #examples }
 WDCSysmelUWPSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel' with: [ :bundle |
 				bundle

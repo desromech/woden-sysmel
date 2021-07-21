@@ -9,7 +9,7 @@ WDCSysmelSampleBuildScripts class >> buildConsoleGameSystemExample [
 	<example>
 	| result |
 	Smalltalk platform isWindows ifFalse: [ ^ self buildGameSystemExample ].
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			result := packageScript program: 'consoleGameSystemExample' with: [ :prog |
 				prog
@@ -25,7 +25,7 @@ WDCSysmelSampleBuildScripts class >> buildConsoleGameSystemExample [
 WDCSysmelSampleBuildScripts class >> buildGameSystemExample [
 	<example>
 	| result |
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			result := packageScript guiProgramWithSource: 'samples/game/gameSystemExample.sysmel' with: [ :prog |
 				prog
@@ -39,7 +39,7 @@ WDCSysmelSampleBuildScripts class >> buildGameSystemExample [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample01Cube [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample01Cube.sysmel'
 		]
@@ -48,7 +48,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample01Cube [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample02TexturedCube [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample02TexturedCube.sysmel'
 		]
@@ -57,7 +57,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample02TexturedCube [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample03Floor [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample03Floor.sysmel' with: [ :prog |
 					prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
@@ -68,7 +68,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample03Floor [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample04Pool [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript
 				guiProgramWithSource: 'samples/scene/sceneExample04Pool.sysmel' with: [ :prog |
@@ -80,7 +80,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample04Pool [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample05Models [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample05Models.sysmel' with: [ :prog |
 				prog
@@ -93,7 +93,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample05Models [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample06Sponza [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample06Sponza.sysmel' with: [ :prog |
 				prog wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'gltfSampleModels' / 'Sponza'
@@ -104,7 +104,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample06Sponza [
 { #category : #'native samples' }
 WDCSysmelSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 	<example>
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiProgramWithSource: 'samples/scene/sceneExample07SkinnedModel.sysmel' with: [ :prog |
 				prog
@@ -117,7 +117,7 @@ WDCSysmelSampleBuildScripts class >> buildSceneExample07SkinnedModel [
 WDCSysmelSampleBuildScripts class >> modelTool [
 	<example>
 	| prog |
-	self newNativeBuildEnvironment
+	self newNoRTTIBuildEnvironment
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			prog := packageScript programWithSource: 'tools/wodenModelTool.sysmel'
 		].
