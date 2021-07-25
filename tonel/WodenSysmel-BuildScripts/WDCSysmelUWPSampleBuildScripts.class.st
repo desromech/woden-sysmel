@@ -11,7 +11,8 @@ WDCSysmelUWPSampleBuildScripts class >> buildGameSystemExample [
 		buildMainPackageInFolder: WDCWodenSysmelAssets location with: [ :packageScript |
 			packageScript guiBundleWithSource: 'samples/game/gameSystemExample.sysmel' with: [ :prog |
 				prog
-					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials'
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaterials';
+					wodenAssets: WDCWodenSysmelAssets location / 'samples' / 'resources' / 'SampleMaps'
 			]
 		]
 ]
